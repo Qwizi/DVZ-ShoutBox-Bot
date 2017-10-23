@@ -146,6 +146,7 @@ function dvz_shoutbox_bot_action_register()
 
       $bot['id'] = $mybb->settings['dvz_shoutbox_bot_id'];
       
+      
       $botregister['username'] = $row['username'];
       $botregister['message'] = $mybb->settings['dvz_shoutbox_bot_register_message'];
       if($mybb->settings['dvz_shoutbox_bot_link_on'])
