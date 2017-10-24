@@ -228,7 +228,7 @@ function dvz_shoutbox_bot_action_thread()
 
 function dvz_shoutbox_bot_action_post()
 {
-   global $db, $mybb, $data, $thread;
+   global $db, $mybb, $data;
    if($mybb->settings['dvz_shoutbox_bot_on'] && $mybb->settings['dvz_shoutbox_bot_post_on'])
    {
       $sql = "SELECT pid, tid, username, subject, dateline FROM ".TABLE_PREFIX."posts ORDER BY dateline DESC LIMIT 1";
