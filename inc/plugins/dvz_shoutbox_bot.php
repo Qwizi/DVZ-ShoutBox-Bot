@@ -6,6 +6,7 @@ if(!defined("IN_MYBB"))
 
 $plugins->add_hook("member_do_register_end", "dvz_shoutbox_bot_action_register");
 $plugins->add_hook("datahandler_post_insert_thread_end", "dvz_shoutbox_bot_action_thread");
+$plugins->add_hook("datahandler_post_insert_post_end", "dvz_shoutbox_bot_action_post");
 
 function dvz_shoutbox_bot_info()
 {
@@ -124,6 +125,30 @@ function dvz_shoutbox_bot_install()
       "gid"              => intval($gid),
    );
    $db->insert_query("settings", $setting);
+
+   $setting  = array(
+      "sid"             => "NULL",
+      "name"         => "dvz_shoutbox_bot_post_on",
+      "title"             => "Czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post?",
+      "description"  => "Określa, czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post.",
+      "optionscode"   => "yesno",
+      "value"           => "yes",
+      "disporder"     => "8",
+      "gid"              => intval($gid),
+   );
+   $db->insert_query("settings", $setting);
+
+   $setting = array(
+      "sid"             => "NULL",
+      "name"         => "dvz_shoutbox_bot_post_message",
+      "title"             => "Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy post",
+      "description"  => "Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login. A <b>{subject}</b>, aby pobrać tytuł postu.",
+      "optionscode"   => "textarea",
+      "value"           => "Nowy post - {subject}. Napisany przez {username}",
+      "disporder"     => "9",
+      "gid"              => intval($gid),
+   );
+   $db->insert_query("settings", $setting);
    rebuild_settings();
 }
 
@@ -145,19 +170,19 @@ function dvz_shoutbox_bot_action_register()
       $row = $db->fetch_array($result);
 
       $bot['id'] = $mybb->settings['dvz_shoutbox_bot_id'];
-      
-      $botregister['username'] = $row['username'];
-      $botregister['message'] = $mybb->settings['dvz_shoutbox_bot_register_message'];
+
+      $bot_register['username'] = $row['username'];
+      $bot_register['message'] = $mybb->settings['dvz_shoutbox_bot_register_message'];
       if($mybb->settings['dvz_shoutbox_bot_link_on'])
       {
-         $botregister['text'] = str_replace('{username}', "@\"".$botregister['username']."\"", $botregister['message']);
+         $bot_register['text'] = str_replace('{username}', "@\"".$bot_register['username']."\"", $bot_register['message']);
       }else{
-         $botregister['text'] = str_replace('{username}', $botregister['username'], $botregister['message']);
+         $bot_register['text'] = str_replace('{username}', $bot_register['username'], $bot_register['message']);
       }
       $query = array(
          "id"             => $data['id'],
          "uid"           => $bot['id'],
-         "text"         => $botregister['text'],
+         "text"         => $bot_register['text'],
          "date"      => TIME_NOW,
          "modified"  => "",
          "ipaddress" => "",
@@ -177,22 +202,57 @@ function dvz_shoutbox_bot_action_thread()
 
       $bot['id'] = $mybb->settings['dvz_shoutbox_bot_id'];
 
-      $botthread['username'] = $row['username'];
-      $botthread['subject'] = $row['subject'];
-      $botthread['subjectlink'] = get_thread_link($row['tid']);
-      $botthread['message'] = $mybb->settings['dvz_shoutbox_bot_thread_message'];
-      $link = "[url=".$mybb->settings['bburl']."/".$botthread['subjectlink']."]".$botthread['subject']."[/url]";
-      $botthread['message'] = str_replace('{subject}', $link, $botthread['message']);
+      $bot_thread['username'] = $row['username'];
+      $bot_thread['subject'] = $row['subject'];
+      $bot_thread['subjectlink'] = get_thread_link($row['tid']);
+      $bot_thread['message'] = $mybb->settings['dvz_shoutbox_bot_thread_message'];
+      $link = "[url=".$mybb->settings['bburl']."/".$bot_thread['subjectlink']."]".$bot_thread['subject']."[/url]";
+      $bot_thread['message'] = str_replace('{subject}', $link, $bot_thread['message']);
       if($mybb->settings['dvz_shoutbox_bot_link_on'])
       {
-         $botthread['message'] = str_replace('{username}', "@\"".$botthread['username']."\"", $botthread['message']);
+         $bot_thread['message'] = str_replace('{username}', "@\"".$bot_thread['username']."\"", $bot_thread['message']);
       }else{
-         $botthread['message'] = str_replace('{username}', $botthread['username'], $botthread['message']);
+         $bot_thread['message'] = str_replace('{username}', $bot_thread['username'], $bot_thread['message']);
       }
       $query = array(
          "id"             => $data['id'],
          "uid"           => $bot['id'],
-         "text"         => $botthread['message'],
+         "text"         => $bot_thread['message'],
+         "date"      => TIME_NOW,
+         "modified"  => "",
+         "ipaddress" => "",
+      );
+      $db->insert_query("dvz_shoutbox", $query);
+   }
+}
+
+function dvz_shoutbox_bot_action_post()
+{
+   global $db, $mybb, $data, $thread;
+   if($mybb->settings['dvz_shoutbox_bot_on'] && $mybb->settings['dvz_shoutbox_bot_post_on'])
+   {
+      $sql = "SELECT pid, tid, username, subject, dateline FROM ".TABLE_PREFIX."posts ORDER BY dateline DESC LIMIT 1";
+      $result = $db->query($sql);
+      $row = $db->fetch_array($result);
+
+      $bot['id'] = $mybb->settings['dvz_shoutbox_bot_id'];
+
+      $bot_post['username'] = $row['username'];
+      $bot_post['subject']  = $row['subject'];
+      $bot_post['subjectlink'] = get_post_link($row['pid'], $row['tid']);
+      $link = "[url=".$mybb->settings['bburl']."/".$bot_post['subjectlink']."#pid".$row['pid']."]".$bot_post['subject']."[/url]";
+      $bot_post['message'] = $mybb->settings['dvz_shoutbox_bot_post_message'];
+      $bot_post['message'] = str_replace('{subject}', $link, $bot_post['message']);
+      if($mybb->settings['dvz_shoutbox_bot_link_on'])
+      {
+         $bot_post['message'] = str_replace('{username}', "@\"".$bot_post['username']."\"", $bot_post['message']);
+      }else{
+         $bot_post['message'] = str_replace('{username}', $bot_post['username'], $bot_post['message']);
+      }
+      $query = array(
+         "id"             => $data['id'],
+         "uid"           => $bot['id'],
+         "text"         => $bot_post['message'],
          "date"      => TIME_NOW,
          "modified"  => "",
          "ipaddress" => "",
