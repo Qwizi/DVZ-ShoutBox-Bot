@@ -7,6 +7,7 @@ if(!defined("IN_MYBB"))
 $plugins->add_hook("member_do_register_end", "dvz_shoutbox_bot_action_register");
 $plugins->add_hook("datahandler_post_insert_thread_end", "dvz_shoutbox_bot_action_thread");
 $plugins->add_hook("datahandler_post_insert_post_end", "dvz_shoutbox_bot_action_post");
+$plugins->add_hook("dvz_shoutbox_shout_commit", "dvz_shoutbox_bot_action");
 
 function dvz_shoutbox_bot_info()
 {
@@ -16,7 +17,7 @@ function dvz_shoutbox_bot_info()
       "website"         => "http://sharkservers.eu",
       "author"          => "Qwizi",
       "authorsite"    => "http://sharkservers.eu",
-      "version"         => "1.2",
+      "version"         => "1.3",
       "compatibility"   => "18*",
       "codename"     => "",
    );
@@ -66,6 +67,18 @@ function dvz_shoutbox_bot_install()
    );
    $db->insert_query("settings", $setting);
 
+   $setting = array(
+      "sid"             => "NULL",
+      "name"         => "dvz_shoutbox_bot_action_on",
+      "title"             => "Czy bot ma reagować na wiadomości wpisane na czacie?",
+      "description"  => "Określa czy bot ma odpowiadać na wiadomości podane w panelu admina. Można zarządzać nimi <a href=\"index.php?module=user-dvz-shoutbox-bot\">tutaj</a>",
+      "optionscode"   => "yesno",
+      "value"           => "yes",
+      "disporder"     => "3",
+      "gid"              => intval($gid),
+   );
+   $db->insert_query("settings", $setting);
+
    $setting  = array(
       "sid"             => "NULL",
       "name"         => "dvz_shoutbox_bot_id",
@@ -73,7 +86,7 @@ function dvz_shoutbox_bot_install()
       "description"  => "Podaj id użytkownika, który będzie wysyłał wiadomość na czacie.",
       "optionscode"   => "text",
       "value"           => "1",
-      "disporder"     => "3",
+      "disporder"     => "4",
       "gid"              => intval($gid),
    );
    $db->insert_query("settings", $setting);
@@ -85,7 +98,7 @@ function dvz_shoutbox_bot_install()
       "description"  => "Określa czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik dokona rejestracji.",
       "optionscode"   => "yesno",
       "value"           => "yes",
-      "disporder"     => "4",
+      "disporder"     => "5",
       "gid"              => intval($gid),
    );
    $db->insert_query("settings", $setting);
@@ -97,7 +110,7 @@ function dvz_shoutbox_bot_install()
       "description"  => "Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b> aby zastąpić login",
       "optionscode"   => "textarea",
       "value"           => "Właśnie zarejestrował się {username}. Serdecznie witamy!",
-      "disporder"     => "5",
+      "disporder"     => "6",
       "gid"              => intval($gid),
    );
    $db->insert_query("settings", $setting);
@@ -109,7 +122,7 @@ function dvz_shoutbox_bot_install()
       "description"  => "Określa, czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy wątek.",
       "optionscode"   => "yesno",
       "value"           => "yes",
-      "disporder"     => "6",
+      "disporder"     => "7",
       "gid"              => intval($gid),
    );
    $db->insert_query("settings", $setting);
@@ -118,10 +131,10 @@ function dvz_shoutbox_bot_install()
       "sid"             => "NULL",
       "name"         => "dvz_shoutbox_bot_thread_message",
       "title"             => "Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy wątek",
-      "description"  => "Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login. A <b>{subject}</b>, aby pobrać tytuł wątku.",
+      "description"  => "Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login, <b>{subject}</b>, aby pobrać tytuł wątku, <b>{forum}</b>, aby pobrać nazwe działu",
       "optionscode"   => "textarea",
-      "value"           => "Nowy wątek - {subject}. Napisany przez {username}",
-      "disporder"     => "7",
+      "value"           => "Nowy wątek - {subject} w dziale {forum}. Napisany przez {username}",
+      "disporder"     => "8",
       "gid"              => intval($gid),
    );
    $db->insert_query("settings", $setting);
@@ -133,7 +146,7 @@ function dvz_shoutbox_bot_install()
       "description"  => "Określa, czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post.",
       "optionscode"   => "yesno",
       "value"           => "yes",
-      "disporder"     => "8",
+      "disporder"     => "9",
       "gid"              => intval($gid),
    );
    $db->insert_query("settings", $setting);
@@ -145,11 +158,16 @@ function dvz_shoutbox_bot_install()
       "description"  => "Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login. A <b>{subject}</b>, aby pobrać tytuł postu.",
       "optionscode"   => "textarea",
       "value"           => "Nowy post - {subject}. Napisany przez {username}",
-      "disporder"     => "9",
+      "disporder"     => "10",
       "gid"              => intval($gid),
    );
    $db->insert_query("settings", $setting);
    rebuild_settings();
+
+   if(!$db->table_exists("dvz_shoutbox_bot"))
+   {
+      $db->write_query("CREATE TABLE `".TABLE_PREFIX."dvz_shoutbox_bot` ( `id` INT NOT NULL AUTO_INCREMENT , `string` TEXT NOT NULL , `answer` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci".$db->build_create_table_collation().";");
+   }
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -157,6 +175,10 @@ function dvz_shoutbox_bot_uninstall()
    global $db;
    $db->delete_query("settinggroups", "name=\"dvz_shoutbox_bot\"");
    $db->delete_query("settings", "name LIKE \"dvz_shoutbox_bot%\"");
+   if($db->table_exists("dvz_shoutbox_bot"))
+   {
+      $db->drop_table("dvz_shoutbox_bot");
+   }
    rebuild_settings();
 }
 
@@ -196,7 +218,7 @@ function dvz_shoutbox_bot_action_thread()
    global $db, $mybb, $data;
    if($mybb->settings['dvz_shoutbox_bot_on'] && $mybb->settings['dvz_shoutbox_bot_thread_on'])
    {
-      $sql = "SELECT tid, username, subject, dateline FROM ".TABLE_PREFIX."threads ORDER BY dateline DESC LIMIT 1";
+      $sql = "SELECT tid, fid, username, subject, dateline FROM ".TABLE_PREFIX."threads ORDER BY dateline DESC LIMIT 1";
       $result = $db->query($sql);
       $row = $db->fetch_array($result);
 
@@ -204,10 +226,15 @@ function dvz_shoutbox_bot_action_thread()
 
       $bot_thread['username'] = $row['username'];
       $bot_thread['subject'] = $row['subject'];
+      $forum = get_forum($row['fid']);
+      $bot_thread['forum'] = $forum['name'];
       $bot_thread['subjectlink'] = get_thread_link($row['tid']);
+      $bot_thread['forumlink'] = get_forum_link($row['fid']);
       $bot_thread['message'] = $mybb->settings['dvz_shoutbox_bot_thread_message'];
       $link = "[url=".$mybb->settings['bburl']."/".$bot_thread['subjectlink']."]".$bot_thread['subject']."[/url]";
+      $link2 = "[url=".$mybb->settings['bburl']."/".$bot_thread['forumlink']."]".$bot_thread['forum']."[/url]";
       $bot_thread['message'] = str_replace('{subject}', $link, $bot_thread['message']);
+      $bot_thread['message'] = str_replace('{forum}', $link2, $bot_thread['message']);
       if($mybb->settings['dvz_shoutbox_bot_link_on'])
       {
          $bot_thread['message'] = str_replace('{username}', "@\"".$bot_thread['username']."\"", $bot_thread['message']);
@@ -221,7 +248,7 @@ function dvz_shoutbox_bot_action_thread()
          "date"      => TIME_NOW,
          "modified"  => "",
          "ipaddress" => "",
-      );
+         );
       $db->insert_query("dvz_shoutbox", $query);
    }
 }
@@ -258,6 +285,34 @@ function dvz_shoutbox_bot_action_post()
          "ipaddress" => "",
       );
       $db->insert_query("dvz_shoutbox", $query);
+   }
+}
+
+function dvz_shoutbox_bot_action($data)
+{
+   global $db, $mybb;
+   if($mybb->settings['dvz_shoutbox_bot_on'] && $mybb->settings['dvz_shoutbox_bot_action_on'])
+   {
+      $query = $db->simple_select("dvz_shoutbox_bot", "*", "string=\"{$data['text']}\"");
+      $row = $db->fetch_array($query);
+
+      $bot_action['string'] = $row['string'];
+      $bot_action['answer'] = $row['answer'];
+
+      $bot['id'] = $mybb->settings['dvz_shoutbox_bot_id'];
+
+      if($data['text'] == $bot_action['string'])
+      {
+         $query = array(
+            "id"             => $data['id'],
+            "uid"           => $bot['id'],
+            "text"         => $bot_action['answer'],
+            "date"      => TIME_NOW,
+            "modified"  => "",
+            "ipaddress" => "",
+         );
+         $db->insert_query("dvz_shoutbox", $query);
+      }
    }
 }
 ?>
