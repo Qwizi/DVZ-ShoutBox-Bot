@@ -225,7 +225,7 @@ function dvz_shoutbox_bot_action_thread()
       $bot['id'] = $mybb->settings['dvz_shoutbox_bot_id'];
 
       $bot_thread['username'] = $row['username'];
-      $bot_thread['subject'] = $row['subject'];
+      $bot_thread['subject'] = htmlspecialchars($row['subject'], ENT_QUOTES);
       $forum = get_forum($row['fid']);
       $bot_thread['forum'] = $forum['name'];
       $bot_thread['subjectlink'] = get_thread_link($row['tid']);
@@ -265,7 +265,7 @@ function dvz_shoutbox_bot_action_post()
       $bot['id'] = $mybb->settings['dvz_shoutbox_bot_id'];
 
       $bot_post['username'] = $row['username'];
-      $bot_post['subject']  = $row['subject'];
+      $bot_post['subject']  = htmlspecialchars($row['subject'], ENT_QUOTES);
       $bot_post['subjectlink'] = get_post_link($row['pid'], $row['tid']);
       $link = "[url=".$mybb->settings['bburl']."/".$bot_post['subjectlink']."#pid".$row['pid']."]".$bot_post['subject']."[/url]";
       $bot_post['message'] = $mybb->settings['dvz_shoutbox_bot_post_message'];
