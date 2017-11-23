@@ -10,7 +10,7 @@ $page->output_header("DVZ ShoutBox Bot");
 $sub_tabs['dvz_shoutbox_view'] = array(
 		'title'			=> 'Widok',
 		'link'		  => 'index.php?module=user-dvz-shoutbox-bot',
-		'description'	=> "",
+		'description'	=> 'Widok',
 );
 
 $sub_tabs['dvz_shoutbox_add'] = array(
@@ -19,28 +19,10 @@ $sub_tabs['dvz_shoutbox_add'] = array(
 		'description'	=> "",
 );
 
-$sub_tabs['dvz_shoutbox_edit'] = array(
-		'title'			=> 'Edytuj',
-		'link'		  => 'index.php?module=user-dvz-shoutbox-bot&amp;action=edit',
-		'description'	=> "",
-);
-
-$sub_tabs['dvz_shoutbox_delete'] = array(
-		'title'			=> 'Usuń',
-		'link'		  => 'index.php?module=user-dvz-shoutbox-bot&amp;action=delate',
-		'description'	=> "",
-);
-
 switch ($mybb->input['action'])
 {
 	case 'add':
 	$page->output_nav_tabs($sub_tabs, 'dvz_shoutbox_add');
-	break;
-	case 'edit':
-	$page->output_nav_tabs($sub_tabs, 'dvz_shoutbox_edit');
-	break;
-	case 'delete':
-	$page->output_nav_tabs($sub_tabs, 'dvz_shoutbox_delete');
 	break;
 	default:
 	$page->output_nav_tabs($sub_tabs, 'dvz_shoutbox_bot_view');
@@ -75,12 +57,25 @@ elseif($mybb->input['action'] == 'add')
 			flash_message("Pola nie mogą być puste", "error");
 			admin_redirect("index.php?module=user-dvz-shoutbox-bot&amp;action=add");
 		}
+
+		if(strpos($mybb->input['string'], "'") !== false)
+		{
+			flash_message("W wiadomości znajdują sie niedozwolone znaki", "error");
+			admin_redirect("index.php?module=user-dvz-shoutbox-bot&amp;action=add");
+		}
+
+		if(strpos($mybb->input['answer'], "'") !== false)
+		{
+			flash_message("W odpowiedzi znajdują sie niedozwolone znaki", "error");
+			admin_redirect("index.php?module=user-dvz-shoutbox-bot&amp;action=add");
+		}
 		$query = array(
 			"id"		=> "",
 			"string"	=> $mybb->input['string'],
 			"answer"	=> $mybb->input['answer']
 		);
 		$db->insert_query("dvz_shoutbox_bot", $query);
+		flash_message("Pomyślnie dodano wiadomość", "success");
 		admin_redirect("index.php?module=user-dvz-shoutbox-bot");
 	}
 	else
@@ -109,6 +104,18 @@ elseif($mybb->input['action'] == 'edit')
 			admin_redirect("index.php?module=user-dvz-shoutbox-bot");
 		}
 
+		if(strpos($mybb->input['string'], "'") !== false)
+		{
+			flash_message("W wiadomości znajdują sie niedozwolone znaki", "error");
+			admin_redirect("index.php?module=user-dvz-shoutbox-bot&amp;action=add");
+		}
+
+		if(strpos($mybb->input['answer'], "'") !== false)
+		{
+			flash_message("W odpowiedzi znajdują sie niedozwolone znaki", "error");
+			admin_redirect("index.php?module=user-dvz-shoutbox-bot&amp;action=add");
+		}
+
 		$update_query = array(
 			"string"	=> $mybb->input['string'],
 			"answer" => $mybb->input['answer'],
@@ -121,13 +128,14 @@ elseif($mybb->input['action'] == 'edit')
 	{
 		$query = $db->simple_select("dvz_shoutbox_bot", "*", "id=\"".intval($mybb->input['id'])."\"");
 		$row = $db->fetch_array($query);
+
 		$form = new Form("index.php?module=user-dvz-shoutbox-bot&amp;action=edit", "post", "dvz-shoutbox-bot");
 
 		echo $form->generate_hidden_field("id", $row['id']);
 
 		$form_container = new FormContainer("Edytuj akcje");
-		$form_container->output_row("Wiadmość", "Wiadomość", $form->generate_text_area("string", htmlspecialchars_uni($row['string'])), array("id" => "string", "string"));
-		$form_container->output_row("Odpowiedź", "Odpowiedź", $form->generate_text_area("answer", htmlspecialchars_uni($row['answer'])), array("id" => "answer", "answer"));
+		$form_container->output_row("Wiadmość", "Wiadomość", $form->generate_text_area("string", $row['string']), array("id" => "string", "string"));
+		$form_container->output_row("Odpowiedź", "Odpowiedź", $form->generate_text_area("answer", $row['answer']), array("id" => "answer", "answer"));
 		$form_container->end();
 
 		$buttons = "";
@@ -150,7 +158,7 @@ elseif($mybb->input['action'] == 'delete')
 	else
 	{
 		$mybb->input['id'] = intval($mybb->input['id']);
-		$form = new Form("index.php?module=user-dvz-shoutbox-bot&amp;action=delete&amp;id={$mybb->input['id']}&amp;my_post_key={$mybb->post_code}", 'post');
+		$form = new Form("index.php?module=user-dvz-shoutbox-bot&amp;action=delete&amp;id={$mybb->input['id']}", 'post');
 		echo "<div class=\"confirm_action\">\n";
 		echo "<p>Czy napewno chcesz usunąc?</p>\n";
 		echo "<br />\n";
