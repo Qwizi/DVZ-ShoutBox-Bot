@@ -13,11 +13,11 @@ function dvz_shoutbox_bot_info()
 {
    return array(
       "name"            => "DVZ ShoutBox Bot",
-      "description"     => "Bot wysyłający wiadomość na czacie, jeżeli użytkownik dokona rejestracji lub napisze nowy wątek/post.",
+      "description"     => "Bot wysyłający wiadomość na czacie, jeżeli użytkownik dokona rejestracji lub napisze nowy wątek/post. Potrafi też odpowiadać na wiadomości podane przez admina.",
       "website"         => "http://sharkservers.eu",
       "author"          => "Qwizi",
       "authorsite"    => "http://sharkservers.eu",
-      "version"         => "1.3",
+      "version"         => "1.3.1",
       "compatibility"   => "18*",
       "codename"     => "",
    );
