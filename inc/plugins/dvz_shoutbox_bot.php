@@ -17,7 +17,7 @@ function dvz_shoutbox_bot_info()
       "website"         => "http://sharkservers.eu",
       "author"          => "Qwizi",
       "authorsite"    => "http://sharkservers.eu",
-      "version"         => "1.3.1",
+      "version"         => "1.3.2",
       "compatibility"   => "18*",
       "codename"     => "",
    );
@@ -231,8 +231,8 @@ function dvz_shoutbox_bot_action_thread()
       $bot_thread['subjectlink'] = get_thread_link($row['tid']);
       $bot_thread['forumlink'] = get_forum_link($row['fid']);
       $bot_thread['message'] = $mybb->settings['dvz_shoutbox_bot_thread_message'];
-      $link = "[url=".$mybb->settings['bburl']."/".$bot_thread['subjectlink']."]".$bot_thread['subject']."[/url]";
-      $link2 = "[url=".$mybb->settings['bburl']."/".$bot_thread['forumlink']."]".$bot_thread['forum']."[/url]";
+      $link = "[url=".$mybb->settings['bburl']."/".$bot_thread['subjectlink']."]".strip_tags($bot_thread['subject'])."[/url]";
+      $link2 = "[url=".$mybb->settings['bburl']."/".$bot_thread['forumlink']."]".strip_tags($bot_thread['forum'])."[/url]";
       $bot_thread['message'] = str_replace('{subject}', $link, $bot_thread['message']);
       $bot_thread['message'] = str_replace('{forum}', $link2, $bot_thread['message']);
       if($mybb->settings['dvz_shoutbox_bot_link_on'])
