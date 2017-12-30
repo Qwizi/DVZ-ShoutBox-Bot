@@ -86,7 +86,7 @@ elseif($mybb->input['action'] == 'add')
 		$form_container->output_row("Wiadomość", "Wiadomość", $form->generate_text_area('string', '', array('id' => 'string'), 'string'));
 		$form_container->output_row("Odpowiedź", "Odpowiedz", $form->generate_text_area('answer', '', array('id' => 'answer'), 'answer'));
 		$form_container->end();
-		$buttons = "";
+		$buttons = array();
 		$buttons[] = $form->generate_submit_button('Wyślij');
 		$form->output_submit_wrapper($buttons);
 		$form->end();
@@ -138,7 +138,7 @@ elseif($mybb->input['action'] == 'edit')
 		$form_container->output_row("Odpowiedź", "Odpowiedź", $form->generate_text_area("answer", $row['answer']), array("id" => "answer", "answer"));
 		$form_container->end();
 
-		$buttons = "";
+		$buttons = array();
 		$buttons[] = $form->generate_submit_button("Edytuj");
 		$form->output_submit_wrapper($buttons);
 		$form->end();
