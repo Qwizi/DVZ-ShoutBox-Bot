@@ -97,7 +97,7 @@ function dvz_shoutbox_bot_action_thread()
       $bot['message'] = str_replace('{forum}', $link2, $bot['message']);
       if($mybb->settings['dvz_shoutbox_bot_link_on'])
       {
-         $bot['message'] = str_replace('{username}', "@\"".$thread['username']."\"", $bot['message']);
+         $bot['message'] = str_replace('{username}', "@\"".$row['username']."\"", $bot['message']);
       }else{
          $bot['message'] = str_replace('{username}', $row['username'], $bot['message']);
       }
