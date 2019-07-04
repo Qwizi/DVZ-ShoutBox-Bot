@@ -1,7 +1,7 @@
 <?php
 define("IN_MYBB", 1);
 
-class dvz_shoutbox_bot
+class dvz_sb_bot
 {
    public static $init = null;
    public $mybb;

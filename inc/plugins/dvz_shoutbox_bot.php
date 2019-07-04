@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 if (!defined('IN_MYBB')) {
    die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
 }
@@ -24,6 +27,7 @@ function dvz_shoutbox_bot_info()
       'author'         => 'Adrian \'Qwizi\' Ciołek',
       'version'         => '1.5',
       'compatibility'   => '18*',
+      'codename' => ''
    ];
 }
 
