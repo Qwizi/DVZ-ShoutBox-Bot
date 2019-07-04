@@ -1,3 +1,3 @@
- # Auto detect text files and perform LF normalization
- -* text=auto 		 +* text=auto
- +* webui=p(0,12,1)
+# Auto detect text files and perform LF normalization
+* text=auto
+* webui=p(0,12,1)
