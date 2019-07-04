@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+//ini_set('display_startup_errors', 1);
+//error_reporting(E_ALL);
 if (!defined('IN_MYBB')) {
    die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
 }
@@ -12,9 +12,6 @@ if (!defined("PLUGINLIBRARY")) {
 $plugins->add_hook('member_do_register_end', ['dvz_shoutbox_bot', 'register']);
 $plugins->add_hook('datahandler_post_insert_thread_end', ['dvz_shoutbox_bot', 'thread']);
 $plugins->add_hook('datahandler_post_insert_post_end', ['dvz_shoutbox_bot', 'post']);
-/*$plugins->add_hook('dvz_shoutbox_shout_commit', ['dvz_shoutbox_bot', 'dvz_shoutbox_bot_action']);
- $plugins->add_hook('admin_user_menu', ['dvz_shoutbox_bot', 'dvz_shoutbox_bot_admin_user_menu']);
-$plugins->add_hook('admin_user_action_handler', ['dvz_shoutbox_bot', 'dvz_shoutbox_bot_user_action_handler']); */
 
 function dvz_shoutbox_bot_info()
 {
@@ -25,28 +22,24 @@ function dvz_shoutbox_bot_info()
       'name'            => $db->escape_string($lang->bot_title),
       'description'     => $db->escape_string($lang->bot_desc),
       'author'         => 'Adrian \'Qwizi\' Ciołek',
+      'authorsite'   => 'https://github.com/Qwizi',
       'version'         => '1.5',
       'compatibility'   => '18*',
       'codename' => ''
    ];
 }
 
-function dvz_shoutbox_bot_is_installed()
-{
-   global $mybb;
-   return $mybb->settings['dvz_sb_bot_onoff'] !== null;
-}
-
 function dvz_shoutbox_bot_install()
 {
    global $db, $PL, $lang;
+   $PL or require_once PLUGINLIBRARY;
 
    $lang->load('dvz_shoutbox_bot');
 
    $PL->settings(
       'dvz_sb_bot',
       $lang->bot_title,
-      $lang->bot_settings_desc,
+      $lang->bot_setting_desc,
       [
          'onoff' =>  [
             'title' => $lang->bot_onoff_title,
@@ -119,19 +112,27 @@ function dvz_shoutbox_bot_install()
 function dvz_shoutbox_bot_uninstall()
 {
    global $db, $PL, $mybb;
+   $PL or require_once PLUGINLIBRARY;
 
-   $PL->settings_delete('dvz_sb_bot');
+   $PL->settings_delete('dvz_sb_bot', true);
 
    //Delete settings, if plugin version < 1.5
-   if ($mybb->settings['dvz_shoutbox_bot_on'] !== null) {
+   $query = $db->simple_select('settinggroups', 'gid', "name='dvz_shoutbox_bot'");
+   if ((bool)$db->num_rows($query)) {
       $db->delete_query('settinggroups', 'name=\'dvz_shoutbox_bot\'');
       $db->delete_query('settings', 'name LIKE \'dvz_shoutbox_bot%\'');
-      rebuild_settings();
    }
 
    if ($db->table_exists('dvz_shoutbox_bot')) {
       $db->drop_table('dvz_shoutbox_bot');
    }
+}
+
+function dvz_shoutbox_bot_is_installed()
+{
+   global $db;
+   $query = $db->simple_select('settinggroups', 'gid', "name='dvz_sb_bot'");
+   return (bool)$db->num_rows($query);
 }
 
 class dvz_shoutbox_bot
@@ -161,7 +162,7 @@ class dvz_shoutbox_bot
 
             $forum = get_forum($thread['fid']);
 
-            $threadLink = get_thread_link($forum['tid']);
+            $threadLink = get_thread_link($thread['tid']);
             $threadTitle = $db->escape_string($thread['subject']);
             $threadFullLink = static::create_link($threadLink, $threadTitle);
 
@@ -178,7 +179,7 @@ class dvz_shoutbox_bot
             if (!$new_thread['savedraft']) {
                $forum_ignore = explode(',', $mybb->settings['dvz_sb_bot_thread_ignore']);
                if (!in_array($thread['fid'], $forum_ignore))
-                  statc::shout($message);
+                  static::shout($message);
             }
          }
       }
@@ -192,8 +193,8 @@ class dvz_shoutbox_bot
          if ($mybb->settings['dvz_sb_bot_post_onoff']) {
             $post = $db->fetch_array($db->simple_select('posts', "pid, tid, fid, username, subject", '', ['order_by' => 'dateline DESC', 'limit' => 1]));
 
-            $postLink = get_post_link($post['pid'], $post['tid']) . '#pid' . $post['pid'];
-            $postLinkPid = $postLink . '#pid' . $post['pid'];
+            $postLink = get_post_link($post['pid'], $post['tid']);
+            $postLinkPid = $postLink.'#pid'.$post['pid'];
             $postTitle = $db->escape_string($post['subject']);
             $postFullLink = static::create_link($postLinkPid, $postTitle);
 
@@ -204,7 +205,7 @@ class dvz_shoutbox_bot
 
             $forum_ignore = explode(',', $mybb->settings['dvz_sb_bot_thread_ignore']);
             if (!in_array($post['fid'], $forum_ignore))
-               statc::shout($message);
+               static::shout($message);
          }
       }
    }
@@ -216,11 +217,12 @@ class dvz_shoutbox_bot
       $data = [
          'uid' => $mybb->settings['dvz_sb_bot_id'],
          'text' => $message,
+         'ipaddress' => $db->escape_binary(my_inet_pton(get_ip())),
          'date' => TIME_NOW
       ];
       foreach ($data as $key => &$value) {
-         if (!in_array($key, array_keys($this->mybb->binary_fields['dvz_shoutbox']))) {
-            $value = $this->db->escape_string($value);
+         if (!in_array($key, array_keys($mybb->binary_fields['dvz_shoutbox']))) {
+            $value = $db->escape_string($value);
          }
       }
       return $db->insert_query('dvz_shoutbox', $data);
