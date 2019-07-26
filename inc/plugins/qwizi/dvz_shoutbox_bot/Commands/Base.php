@@ -2,5 +2,5 @@
 
 interface Qwizi_DVZSB_Commands_Base
 {
-    public function doAction($text, $uid);
+    public function doAction($data);
 }

@@ -9,6 +9,11 @@ class Qwizi_DVZSB_Commands_Prune implements Qwizi_DVZSB_Commands_Base
         $this->bot = $bot;
     }
 
+    public function getBot()
+    {
+        return $this->bot;
+    }
+
     private function prune($user=null, $target=null, $all=false)
     {
         if ($all == true) {
@@ -20,17 +25,19 @@ class Qwizi_DVZSB_Commands_Prune implements Qwizi_DVZSB_Commands_Base
     }
 
 
-    public function doAction($text, $uid)
+    public function doAction($data)
     {
         if ($this->bot->accessMod()) {
-            if ($text == $this->bot->settings('commands_prefix') . 'prune') {
+            if ($data['text'] == $this->bot->settings('commands_prefix') . 'prune') {
                 $this->prune(null, null, true);
             }
 
-            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote('prune') . '[\s]+(.*)$/', $text, $matches)) {
-                $user = $this->bot->getUserInfoFromUid($uid);
+            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote('prune') . '[\s]+(.*)$/', $data['text'], $matches)) {
+                $user = $this->bot->getUserInfoFromUid($data['uid']);
                 $target = $this->bot->getUserInfoFromUsername($matches[1]);
-                
+
+                $this->bot->delete("id={$data['shout_id']}");
+
                 $this->prune($user, $target, false);
             }
         }

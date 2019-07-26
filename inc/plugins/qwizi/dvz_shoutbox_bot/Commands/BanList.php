@@ -9,6 +9,11 @@ class Qwizi_DVZSB_Commands_BanList implements Qwizi_DVZSB_Commands_Base
         $this->bot = $bot;
     }
 
+    public function getBot()
+    {
+        return $this->bot;
+    }
+
     public function banList()
     {
         $errMsg = '';
@@ -38,10 +43,12 @@ class Qwizi_DVZSB_Commands_BanList implements Qwizi_DVZSB_Commands_Base
         }
     }
 
-    public function doAction($text, $uid)
+    public function doAction($data)
     {
         if ($this->bot->accessMod()) {
-            if ($text == $this->bot->settings('commands_prefix') . 'banlist') {
+            if ($data['text'] == $this->bot->settings('commands_prefix') . 'banlist') {
+                $this->bot->delete("id={$data['shout_id']}");
+
                 // Banlist
                 $this->banList();
             }

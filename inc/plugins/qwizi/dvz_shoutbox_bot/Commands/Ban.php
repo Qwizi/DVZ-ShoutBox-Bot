@@ -9,43 +9,54 @@ class Qwizi_DVZSB_Commands_Ban implements Qwizi_DVZSB_Commands_Base
         $this->bot = $bot;
     }
 
+    public function getBot()
+    {
+        return $this->bot;
+    }
+
     public function banUser($user, $target)
     {
-        $errMsg = '';
+        $errMsg = [];
         $mybb = $this->bot->getMybb();
         $db = $this->bot->getDB();
-        $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
-        if ($target['uid'] != $mybb->user['uid']) {
-            if (in_array('', $explodeBannedUsers)) {
-                $db->update_query('settings', ['value' => $db->escape_string($target['uid'])], "name='dvz_sb_blocked_users'");
-            } else {
-                if (!in_array($target['uid'], $explodeBannedUsers)) {
-                    array_push($explodeBannedUsers, $target['uid']);
-                    $implodeBannedUsers = implode(",", $explodeBannedUsers);
-                    $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
-                } else {
-                    $errMsg = "Nie możesz ponownie zbanować tego uzytkownika";
-                }
-            }
+        if (empty($target)) {
+            $errMsg['msg'] = "Nie znaleziono użytkownika";
         } else {
-            $errMsg = "Nie możesz sam siebie zbanować";
+            $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
+
+            if ($target['uid'] != $mybb->user['uid']) {
+                if (in_array('', $explodeBannedUsers)) {
+                    $db->update_query('settings', ['value' => $db->escape_string($target['uid'])], "name='dvz_sb_blocked_users'");
+                } else {
+                    if (!in_array($target['uid'], $explodeBannedUsers)) {
+                        array_push($explodeBannedUsers, $target['uid']);
+                        $implodeBannedUsers = implode(",", $explodeBannedUsers);
+                        $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
+                    } else {
+                        $errMsg['msg'] = "Nie możesz ponownie zbanować tego uzytkownika";
+                    }
+                }
+            } else {
+                $errMsg['msg'] = "Nie możesz sam siebie zbanować";
+            }
         }
 
-        if ($errMsg == '') {
+        if (empty($errMsg)) {
             $this->bot->shout("@\"{$user['username']}\" zbanował użytkownika @\"{$target['username']}\"");
         } else {
-            return $this->bot->shout($errMsg);
+            $this->bot->shout($errMsg['msg']);
         }
     }
 
-    public function doAction($text, $uid)
+    public function doAction($data)
     {
         if ($this->bot->accessMod()) {
-            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote('ban') . '[\s]+(.*)$/', $text, $matches)) {
-                $user = $this->bot->getUserInfoFromUid($uid);
+            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote('ban') . '[\s]+(.*)$/', $data['text'], $matches)) {
                 $target = $this->bot->getUserInfoFromUsername($matches[1]);
+                $user = $this->bot->getUserInfoFromUid($data['uid']);
 
+                $this->bot->delete("id={$data['shout_id']}");
                 // Ban user
                 $this->banUser($user, $target);
             }

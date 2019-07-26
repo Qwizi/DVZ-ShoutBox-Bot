@@ -283,7 +283,8 @@ function dvz_shoutbox_bot_shout_commit(&$data)
         $class = 'Qwizi_DVZSB_Commands_';
         $commandClass = $class . ucfirst($commands[$i]);
         $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-        $command->doAction($data['text'], $data['uid']);
+
+        $command->doAction($data);
         rebuild_settings();
     }
 }
@@ -298,21 +299,7 @@ function dvz_shoutbox_bot_index()
         $commandClass = $class . $commands[$i];
         $array = explode(",", $mybb->settings['dvz_sb_groups_mod']);
         $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-        //var_dump($command->doAction('/unban 18', 1));
     }
-    $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
-
-    $usernamesArray = [];
-
-    for ($i = 0; $i < count($explodeBannedUsers); $i++) {
-        array_push($usernamesArray, Qwizi_DVZSB_Bot::getInstance()->getUserInfoFromUid($explodeBannedUsers[$i]));
-    }
-
-    foreach ($usernamesArray as $index) {
-        $usernames[] = $index['username'];
-    }
-    $implode = implode(",", $usernames);
-    print_r($implode);
 
 }
 

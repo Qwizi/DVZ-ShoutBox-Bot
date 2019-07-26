@@ -166,6 +166,28 @@ class Qwizi_DVZSB_Bot
         );
     }
 
+    public function userLastShoutTime($uid)
+    {
+        $db = $this->getDB();
+        return $db->fetch_field(
+            $db->simple_select('dvz_shoutbox s', 'date', 'uid=' . (int)$uid . ' AND s.text IS NOT NULL', [
+                'order_by'  => 'date',
+                'order_dir' => 'desc',
+                'limit'     => 1,
+            ]),
+            'date'
+        );
+    }
+
+    public function antiflood()
+    {
+        $mybb = $this->getMybb();
+        return (
+            !$mybb->settings['dvz_sb_antiflood'] ||
+            ( TIME_NOW - $this->userLastShoutTime($mybb->user['uid']) ) > $mybb->settings['dvz_sb_antiflood']
+        );
+    }
+
     public function createLink($url, $title)
     {
         $mybb = $this->getMybb();

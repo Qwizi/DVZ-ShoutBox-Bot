@@ -9,6 +9,11 @@ class Qwizi_DVZSB_Commands_UnBan implements Qwizi_DVZSB_Commands_Base
         $this->bot = $bot;
     }
 
+    public function getBot()
+    {
+        return $this->bot;
+    }
+
     public function unBanUser($user, $target)
     {
         $errMsg = '';
@@ -37,12 +42,14 @@ class Qwizi_DVZSB_Commands_UnBan implements Qwizi_DVZSB_Commands_Base
         }
     }
 
-    public function doAction($text, $uid)
+    public function doAction($data)
     {
         if ($this->bot->accessMod()) {
-            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote('unban') . '[\s]+(.*)$/', $text, $matches)) {
-                $user = $this->bot->getUserInfoFromUid($uid);
+            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote('unban') . '[\s]+(.*)$/', $data['text'], $matches)) {
+                $user = $this->bot->getUserInfoFromUid($data['uid']);
                 $target = $this->bot->getUserInfoFromUsername($matches[1]);
+
+                $this->bot->delete("id={$data['shout_id']}");
 
                 // Ban user
                 $this->unBanUser($user, $target);
