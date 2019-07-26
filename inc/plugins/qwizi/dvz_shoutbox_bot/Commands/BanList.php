@@ -16,16 +16,16 @@ class Qwizi_DVZSB_Commands_BanList implements Qwizi_DVZSB_Commands_Base
 
     public function banList()
     {
-        $errMsg = '';
+        $error = [];
         $mybb = $this->bot->getMybb();
         $db = $this->bot->getDB();
         $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
         if (in_array('', $explodeBannedUsers)) {
-            $errMsg = "Brak zbanowanych użytkowników";
+            $error['msg'] = "Brak zbanowanych użytkowników";
         }
 
-        if ($errMsg == '') {
+        if (empty($error)) {
             $usernamesArray = [];
             
             for ($i = 0; $i < count($explodeBannedUsers); $i++) {
@@ -39,7 +39,7 @@ class Qwizi_DVZSB_Commands_BanList implements Qwizi_DVZSB_Commands_Base
 
             $this->bot->shout("Zbanowani: {$implode}");
         } else {
-            return $this->bot->shout($errMsg);
+            return $this->bot->shout($error['msg']);
         }
     }
 

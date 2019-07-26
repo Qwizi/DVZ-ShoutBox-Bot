@@ -96,7 +96,7 @@ class Qwizi_DVZSB_Bot
                 'modified' => time(),
             ], $where, false, true);
 
-            if ($result['modified'] > time()) {
+            if ($result['modified']) {
                 return $this->db->delete_query($this->getTableName(), $where);
             }
         } else {
