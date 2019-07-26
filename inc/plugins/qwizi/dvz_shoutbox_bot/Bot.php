@@ -88,9 +88,9 @@ class Qwizi_DVZSB_Bot
         return $this->db->insert_query($this->getTableName(), $data);
     }
 
-    public function delete($id)
+    public function delete($where="")
     {
-        return $this->db->delete_query($this->getTableName(), "gid=" . $id . "");
+        return $this->db->delete_query($this->getTableName(), $where);
     }
 
     public function update($updateArray, $where, $limit)
@@ -151,5 +151,11 @@ class Qwizi_DVZSB_Bot
             }
         }
         return $message;
+    }
+
+    public function getUserInfo($username)
+    {
+        $db = $this->getDB();
+        return $db->fetch_array($db->simple_select('users', "*", 'username="'.$username.'"'));
     }
 }

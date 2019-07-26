@@ -27,10 +27,11 @@ $classLoader->registerNamespace(
 );
 $classLoader->register();
 
-$plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');
+/* $plugins->add_hook('index_end', 'dvz_shoutbox_bot_index'); */
 $plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
+$plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit');
 
 function dvz_shoutbox_bot_info()
 {
@@ -114,6 +115,18 @@ function dvz_shoutbox_bot_install()
                 'optionscode' => 'textarea',
                 'value' => $lang->bot_post_message_example,
             ],
+            'commands_ononff' => [
+                'title' => 'Komendy włączone/wyłączone',
+                'description' => 'Określa czy komenda mają być włączone',
+                'optionscode' => 'onoff',
+                'value' => 1,
+            ],
+            'commands_prefix' => [
+                'title' => 'Prefix do komend',
+                'description' => 'Określa prefix do komend',
+                'optionscode' => 'text',
+                'value' => '/',
+            ],
         ]
     );
 
@@ -148,13 +161,6 @@ function dvz_shoutbox_bot_is_installed()
     return (bool) $db->num_rows($query);
 }
 
-function dvz_shoutbox_bot_index()
-{
-    dvz_shoutbox_bot_create_instance();
-    var_dump(Qwizi_DVZSB_Bot::getInstance()->settings('register_message'));
-    var_dump(Qwizi_DVZSB_Bot::getInstance()->createMsg('register', ['username' => 'test']));
-}
-
 function dvz_shoutbox_bot_register()
 {
     global $user;
@@ -172,17 +178,12 @@ function dvz_shoutbox_bot_thread(&$data)
 {
     dvz_shoutbox_bot_create_instance();
 
-    /* print_r(($data['tid']));
-    print_r($thread);
-    print_r($forum); */
-
     if (Qwizi_DVZSB_Bot::getInstance()->settings('thread_onoff')) {
         $data = (array) $data;
 
         if ($data['return_values']['visible'] != -2) {
 
             $thread = get_thread($data['return_values']['tid']);
-            print_r($thread);
             $forum = get_forum($thread['fid']);
             $forumIgnore = explode(",", Qwizi_DVZSB_Bot::getInstance()->settings('forum_ignore'));
 
@@ -198,29 +199,27 @@ function dvz_shoutbox_bot_thread(&$data)
 
                 $post = get_post($data['return_values']['pid']);
 
-                if(my_strlen($post['message']) > 800) {
-                    $post['message'] = my_substr($post['message'], 0, 800).'...';
-                    $post['message'] = htmlspecialchars_uni($post['message']);
-                }
-                
-                /* require_once MYBB_ROOT."inc/class_parser.php";
+                require_once MYBB_ROOT . "inc/class_parser.php";
                 $parser = new postParser;
-                
+
                 $parser_options = [
-                    'allow_html' => '1',
-                    'allow_mycode' => '1',
-                    'allow_smilies' => '1',
+                    'allow_html' => 'no',
+                    'allow_mycode' => 'no',
                 ];
-    
-                $msg = $parser->text_parse_message($post['message']); */
+
+                $post['message'] = strip_tags($parser->parse_message($post['message'], $parser_options));
+
+                if (my_strlen($post['message']) > 800) {
+                    $post['message'] = my_substr($post['message'], 0, 800) . '...';
+                }
 
                 $message = Qwizi_DVZSB_Bot::getInstance()->createMsg('thread', [
                     'username' => $thread['username'],
                     'subject' => $threadFullLink,
                     'forum' => $forumFullLink,
-                    'message' => htmlspecialchars_uni($post['message']),
+                    'message' => $post['message'],
                     'pid' => $post['pid'],
-                    'dateline' => $thread['dateline']
+                    'dateline' => $thread['dateline'],
                 ]);
 
                 Qwizi_DVZSB_Bot::getInstance()->shout($message);
@@ -246,33 +245,58 @@ function dvz_shoutbox_bot_post(&$data)
             $postLinkPid = $postLink . '#pid' . $post['pid'];
             $postTitle = htmlspecialchars_uni($post['subject']);
             $postFullLink = Qwizi_DVZSB_Bot::getInstance()->createLink($postLinkPid, $postTitle);
-            
-            if(my_strlen($post['message']) > 50) {
-                $post['message'] = my_substr($post['message'], 0, 50).'...';
-            }
-            
-            require_once MYBB_ROOT."inc/class_parser.php";
+
+            require_once MYBB_ROOT . "inc/class_parser.php";
             $parser = new postParser;
-            
+
             $parser_options = [
-                'allow_mycode' => '1',
-                'allow_smilies' => '1',
+                'allow_html' => 'no',
+                'allow_mycode' => 'no',
             ];
 
-            $post['message'] = $parser->parse_message($post['message'], $parser_options);
+            $post['message'] = strip_tags($parser->parse_message($post['message'], $parser_options));
+
+            if (my_strlen($post['message']) > 800) {
+                $post['message'] = my_substr($post['message'], 0, 800) . '...';
+            }
 
             $message = Qwizi_DVZSB_Bot::getInstance()->createMsg('post', [
                 'username' => $post['username'],
                 'subject' => $postFullLink,
                 'message' => $post['message'],
                 'pid' => $post['pid'],
-                'dateline' => $post['dateline']
+                'dateline' => $post['dateline'],
             ]);
 
             Qwizi_DVZSB_Bot::getInstance()->shout($message);
         }
     }
 }
+
+function dvz_shoutbox_bot_shout_commit(&$data)
+{
+    dvz_shoutbox_bot_create_instance();
+
+    $commands = ['prune', 'test'];
+    for ($i = 0; $i < count($commands); $i++) {
+        $class = 'Qwizi_DVZSB_Commands_';
+        $commandClass = $class.ucfirst($commands[$i]);
+        $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
+        $command->doAction($data['text'], $data['uid']);
+    }
+}
+
+/* function dvz_shoutbox_bot_index()
+{
+    dvz_shoutbox_bot_create_instance();
+    $commands = ['Prune'];
+    for ($i = 0; $i < count($commands); $i++) {
+        $class = 'Qwizi_DVZSB_Commands_';
+        $commandClass = $class.$commands[$i];
+        $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
+        var_dump(Qwizi_DVZSB_Bot::getInstance()->getUserInfo("Qwizi"));
+    }
+} */
 
 function dvz_shoutbox_bot_create_instance()
 {

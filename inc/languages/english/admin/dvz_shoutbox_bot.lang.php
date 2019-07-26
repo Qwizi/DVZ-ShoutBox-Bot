@@ -21,12 +21,12 @@ $l['bot_ignore_title'] = 'Ignoring forums';
 $l['bot_ignore_desc'] = 'Choose from list of that the bot should ignore.';
 $l['bot_thread_message_title'] = 'Message sent on chat if user will write new thread';
 $l['bot_thread_message_desc'] = 'Message that will be sent by the bot. Use <b>{username}</b> to replace the login, <b>{subject}</b> to download thread subject, <b>{forum}</b> to get name of forum.';
-$l['bot_thread_message_example'] = 'New thread - {subject} in forum {forum}. Sent by {username}';
+$l['bot_thread_message_example'] = 'New thread - {subject} in forum {forum}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
 $l['bot_post_title'] = 'Should the bot send a chat message if the user will write a new post?';
 $l['bot_post_desc'] = 'Determines wheter bot should sent message on chat if user will write new post.';
 $l['bot_post_message_title'] = 'Message sent to the chat, if the user writes a new post';
 $l['bot_post_message_desc'] = 'Message that will be sent by the bot. Use <b>{username}</b> to replace the login, <b>{subject}</b> to get title of post.';
-$l['bot_post_message_example'] = 'New post - {subject} Written by {username}';
+$l['bot_post_message_example'] = 'New post - {subject}.[quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
 
 $l['bot_panel_view_title'] = 'View';
 $l['bot_panel_view_desc'] = 'Manage messages';
