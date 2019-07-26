@@ -27,7 +27,7 @@ $classLoader->registerNamespace(
 );
 $classLoader->register();
 
-/* $plugins->add_hook('index_end', 'dvz_shoutbox_bot_index'); */
+$plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');
 $plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
@@ -275,28 +275,34 @@ function dvz_shoutbox_bot_post(&$data)
 
 function dvz_shoutbox_bot_shout_commit(&$data)
 {
+    global $mybb;
     dvz_shoutbox_bot_create_instance();
 
-    $commands = ['prune', 'test'];
+    $commands = ['prune', 'ban'];
     for ($i = 0; $i < count($commands); $i++) {
         $class = 'Qwizi_DVZSB_Commands_';
         $commandClass = $class.ucfirst($commands[$i]);
         $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
         $command->doAction($data['text'], $data['uid']);
+        rebuild_settings();
     }
 }
 
-/* function dvz_shoutbox_bot_index()
+function dvz_shoutbox_bot_index()
 {
+    global $mybb;
     dvz_shoutbox_bot_create_instance();
     $commands = ['Prune'];
     for ($i = 0; $i < count($commands); $i++) {
         $class = 'Qwizi_DVZSB_Commands_';
         $commandClass = $class.$commands[$i];
+        $array = explode(",", $mybb->settings['dvz_sb_groups_mod']);
         $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-        var_dump(Qwizi_DVZSB_Bot::getInstance()->getUserInfo("Qwizi"));
+        var_dump(Qwizi_DVZSB_Bot::getInstance()->accessMod());
     }
-} */
+    /* $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
+    print_r($explodeBannedUsers); */
+}
 
 function dvz_shoutbox_bot_create_instance()
 {

@@ -60,9 +60,9 @@ class Qwizi_DVZSB_Bot
     }
 
     public function settings($setting)
-    {   
+    {
         $mybb = $this->getMybb();
-        return $mybb->settings[$this->getSettingsGroupName().'_'.$setting];
+        return $mybb->settings[$this->getSettingsGroupName() . '_' . $setting];
     }
 
     public function get($many = false, $fields, $where, $optionsArray)
@@ -88,9 +88,20 @@ class Qwizi_DVZSB_Bot
         return $this->db->insert_query($this->getTableName(), $data);
     }
 
-    public function delete($where="")
+    public function delete($where = "")
     {
-        return $this->db->delete_query($this->getTableName(), $where);
+        if ($this->mybb->settings['dvz_sb_sync']) {
+            $result = $this->db->update_query('dvz_shoutbox', [
+                'text' => 'NULL',
+                'modified' => time(),
+            ], $where, false, true);
+
+            if ($result['modified'] > time()) {
+                return $this->db->delete_query($this->getTableName(), $where);
+            }
+        } else {
+            return $this->db->delete_query($this->getTableName(), $where);
+        }
     }
 
     public function update($updateArray, $where, $limit)
@@ -116,6 +127,69 @@ class Qwizi_DVZSB_Bot
         return $this->create($data);
     }
 
+    public function isMember($groups, $user = false)
+    {
+        $mybb = $this->getMybb();
+        if (empty($groups)) {
+            return array();
+        }
+        if ($user == false) {
+            $user = $mybb->user;
+        } else if (!is_array($user)) {
+            // Assume it's a UID
+            $user = get_user($user);
+        }
+        $memberships = array_map('intval', explode(',', $user['additionalgroups']));
+        $memberships[] = $user['usergroup'];
+        if (!is_array($groups)) {
+            if ((int) $groups == -1) {
+                return $memberships;
+            } else {
+                if (is_string($groups)) {
+                    $groups = explode(',', $groups);
+                } else {
+                    $groups = (array) $groups;
+                }
+            }
+        }
+        $groups = array_filter(array_map('intval', $groups));
+        return array_intersect($groups, $memberships);
+    }
+
+    public function accessMod()
+    {
+        $array = explode(",", $this->mybb->settings['dvz_sb_groups_mod']);
+
+        return (
+            ($array[0] == -1 || $this->isMember($array)) ||
+            ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod'])
+        );
+    }
+
+    public function banUser($uid)
+    {
+        $errMsg = '';
+        $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
+
+        if ($uid != $this->mybb->user['uid']) {
+            if (in_array('', $explodeBannedUsers)) {
+                $this->db->update_query('settings', ['value' => $this->db->escape_string($uid)], "name='dvz_sb_blocked_users'");
+            } else {
+                if (!in_array($uid, $explodeBannedUsers)) {
+                    array_push($explodeBannedUsers, $uid);
+                    $implodeBannedUsers = implode(",", $explodeBannedUsers);
+                    $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
+                } else {
+                    $errMsg = "Nie możesz ponownie zbanować tego uzytkownika";
+                }
+            }
+        } else {
+            $errMsg = "Nie możesz sam siebie zbanować";
+        }
+
+        return $errMsg;
+    }
+
     public function createLink($url, $title)
     {
         $mybb = $this->getMybb();
@@ -126,10 +200,10 @@ class Qwizi_DVZSB_Bot
     }
 
     public function createMsg($action, $data)
-    {   
+    {
         $db = $this->getDB();
 
-        $message = $this->settings($action.'_message');
+        $message = $this->settings($action . '_message');
         $db->escape_string(htmlspecialchars_uni($message));
         if (is_array($data)) {
             if (!empty($data['username'])) {
@@ -143,7 +217,7 @@ class Qwizi_DVZSB_Bot
             if (!empty($data['forum'])) {
                 $message = str_replace('{forum}', $data['forum'], $message);
             }
-            
+
             if (!empty($data['message'])) {
                 $message = str_replace('{message}', $data['message'], $message);
                 $message = str_replace('{pid}', $data['pid'], $message);
@@ -153,9 +227,15 @@ class Qwizi_DVZSB_Bot
         return $message;
     }
 
-    public function getUserInfo($username)
+    public function getUserInfoFromUsername($username)
     {
         $db = $this->getDB();
-        return $db->fetch_array($db->simple_select('users', "*", 'username="'.$username.'"'));
+        return $db->fetch_array($db->simple_select('users', "*", 'username="' . $username . '"'));
+    }
+
+    public function getUserInfoFromUid($uid)
+    {
+        $db = $this->getDB();
+        return $db->fetch_array($db->simple_select('users', "*", 'uid="' . $uid . '"'));
     }
 }
