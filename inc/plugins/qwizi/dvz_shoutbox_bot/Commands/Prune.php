@@ -20,7 +20,7 @@ class Qwizi_DVZSB_Commands_Prune implements Qwizi_DVZSB_Commands_Base
             $this->bot->delete();
         } else {
             $this->bot->delete("uid={$target['uid']}");
-            $this->bot->shout("@\"{$user['username']}\" usunął wiadomości użytkownika @\"{$target['username']}\"");
+            $this->bot->shout("@\"{$user['username']}\" usunął wiadomości użytkownika @\"{$target['username']}\"");;
         }
     }
 

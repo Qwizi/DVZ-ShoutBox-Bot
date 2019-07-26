@@ -16,12 +16,12 @@ class Qwizi_DVZSB_Commands_Ban implements Qwizi_DVZSB_Commands_Base
 
     public function banUser($user, $target)
     {
-        $errMsg = [];
+        $error = [];
         $mybb = $this->bot->getMybb();
         $db = $this->bot->getDB();
 
         if (empty($target)) {
-            $errMsg['msg'] = "Nie znaleziono użytkownika";
+            $error['msg'] = "Nie znaleziono użytkownika";
         } else {
             $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
@@ -34,18 +34,19 @@ class Qwizi_DVZSB_Commands_Ban implements Qwizi_DVZSB_Commands_Base
                         $implodeBannedUsers = implode(",", $explodeBannedUsers);
                         $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
                     } else {
-                        $errMsg['msg'] = "Nie możesz ponownie zbanować tego uzytkownika";
+                        $error['msg'] = "Nie możesz ponownie zbanować tego uzytkownika";
                     }
                 }
             } else {
-                $errMsg['msg'] = "Nie możesz sam siebie zbanować";
+                $error['msg'] = "Nie możesz sam siebie zbanować";
             }
         }
 
-        if (empty($errMsg)) {
+        if (empty($error)) {
             $this->bot->shout("@\"{$user['username']}\" zbanował użytkownika @\"{$target['username']}\"");
+            $this->bot->rebuildSettings();
         } else {
-            $this->bot->shout($errMsg['msg']);
+            $this->bot->shout($error['msg']);
         }
     }
 

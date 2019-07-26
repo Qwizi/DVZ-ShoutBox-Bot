@@ -16,29 +16,34 @@ class Qwizi_DVZSB_Commands_UnBan implements Qwizi_DVZSB_Commands_Base
 
     public function unBanUser($user, $target)
     {
-        $errMsg = '';
+        $error = [];
         $mybb = $this->bot->getMybb();
         $db = $this->bot->getDB();
         $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
-        if ($target['uid'] != $mybb->user['uid']) {
-            if (in_array($target['uid'], $explodeBannedUsers)) {
-                if (($key = array_search($target['uid'], $explodeBannedUsers)) !== false) {
-                    unset($explodeBannedUsers[$key]);
-                }
-                $implodeBannedUsers = implode(",", $explodeBannedUsers);
-                $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
-            } else {
-                $errMsg = "Uzytkownik nie posiada bana";
-            }
+        if (empty($target)) {
+            $error['msg'] = "Nie znaleziono użytkownika";
         } else {
-            $errMsg = "Nie możesz sam siebie odbanować";
+            if ($target['uid'] != $mybb->user['uid']) {
+                if (in_array($target['uid'], $explodeBannedUsers)) {
+                    if (($key = array_search($target['uid'], $explodeBannedUsers)) !== false) {
+                        unset($explodeBannedUsers[$key]);
+                    }
+                    $implodeBannedUsers = implode(",", $explodeBannedUsers);
+                    $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
+                } else {
+                    $error['msg'] = "Uzytkownik nie posiada bana";
+                }
+            } else {
+                $error['msg'] = "Nie możesz sam siebie odbanować";
+            }
         }
 
-        if ($errMsg == '') {
+        if (empty($error)) {
             $this->bot->shout("@\"{$user['username']}\" odbanował użytkownika @\"{$target['username']}\"");
+            $this->bot->rebuildSettings();
         } else {
-            return $this->bot->shout($errMsg);
+            return $this->bot->shout($error['msg']);
         }
     }
 

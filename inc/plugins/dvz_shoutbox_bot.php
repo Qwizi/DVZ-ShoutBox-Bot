@@ -130,9 +130,43 @@ function dvz_shoutbox_bot_install()
         ]
     );
 
-    if (!$db->table_exists('dvz_shoutbox_bot')) {
-        $db->write_query('CREATE TABLE `' . TABLE_PREFIX . 'dvz_shoutbox_bot` ( `id` INT NOT NULL AUTO_INCREMENT , `string` TEXT NOT NULL , `answer` TEXT NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_polish_ci' . $db->build_create_table_collation() . ';');
-    }
+    $query = $db->query("SELECT SUPPORT FROM INFORMATION_SCHEMA.ENGINES WHERE ENGINE = 'InnoDB'");
+    $innodbSupport = $db->num_rows($query) && in_array($db->fetch_field($query, 'SUPPORT'), ['DEFAULT', 'YES']);
+
+    $db->write_query("
+        CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "dvz_shoutbox_bot_commands` (
+            `cid` int(11) not null auto_increment,
+            `tag` varchar(24) not null,
+            `name` varchar(32) not null,
+            `description` text not null,
+            `activated` tinyint(1) not null default 1,
+            PRIMARY KEY (`cid`)
+        ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
+    ");
+
+    $db->insert_query_multiple('dvz_shoutbox_bot_commands', [
+        [
+            'tag' => 'ban',
+            'name' => 'Ban',
+            'description' => 'Komenda ta pozwala banować użytkowników',
+        ],
+        [
+            'tag' => 'unBan',
+            'name' => 'UnBan',
+            'description' => 'Komenda ta pozwala zdjemować blokady użytkowników',
+        ],
+        [
+            'tag' => 'banList',
+            'name' => 'Lista banów',
+            'description' => 'Komenda ta pokazuje aktualnie kto jest zbanowany',
+        ],
+        [
+            'tag' => 'prune',
+            'name' => 'Prune',
+            'description' => 'Komenda ta pozwala na usuwanie wpisów',
+        ],
+    ]);
+
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -142,15 +176,20 @@ function dvz_shoutbox_bot_uninstall()
 
     $PL->settings_delete('dvz_sb_bot', true);
 
-    //Delete settings, if plugin version < 1.5
+    //Delete old settings
     $query = $db->simple_select('settinggroups', 'gid', "name='dvz_shoutbox_bot'");
     if ((bool) $db->num_rows($query)) {
         $db->delete_query('settinggroups', 'name=\'dvz_shoutbox_bot\'');
         $db->delete_query('settings', 'name LIKE \'dvz_shoutbox_bot%\'');
     }
 
+    //Delete old table
     if ($db->table_exists('dvz_shoutbox_bot')) {
         $db->drop_table('dvz_shoutbox_bot');
+    }
+
+    if ($db->table_exists('dvz_shoutbox_bot_commands')) {
+        $db->drop_table('dvz_shoutbox_bot_commands');
     }
 }
 
@@ -275,31 +314,68 @@ function dvz_shoutbox_bot_post(&$data)
 
 function dvz_shoutbox_bot_shout_commit(&$data)
 {
-    global $mybb;
+    global $db;
     dvz_shoutbox_bot_create_instance();
 
-    $commands = ['prune', 'ban', 'unBan', 'banList'];
-    for ($i = 0; $i < count($commands); $i++) {
-        $class = 'Qwizi_DVZSB_Commands_';
-        $commandClass = $class . ucfirst($commands[$i]);
-        $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
+    $commandsArray = [];
 
-        $command->doAction($data);
-        rebuild_settings();
+    $query = $db->simple_select('dvz_shoutbox_bot_commands', "tag", "activated=1");
+
+    if ((bool) $db->num_rows($query)) {
+        while ($row = $db->fetch_array($query)) {
+            $commandsArray[] = $row;
+        }
+    }
+
+    if (!empty($commandsArray)) {
+        foreach ($commandsArray as $index => $key) {
+            $class = 'Qwizi_DVZSB_Commands_';
+            $commandClass = $class . ucfirst($key['tag']);
+            $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
+            $command->doAction($data);
+        }
+        /* for ($i = 0; $i < count($commandsArray); $i++) {
+            $class = 'Qwizi_DVZSB_Commands_';
+            $commandClass = $class . ucfirst($commandsArray[$i]['tag']);
+            $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
+
+            $command->doAction($data);
+            rebuild_settings();
+        } */
     }
 }
 
 function dvz_shoutbox_bot_index()
 {
-    global $mybb;
+    global $db, $mybb;
     dvz_shoutbox_bot_create_instance();
-    $commands = ['Prune', 'UnBan'];
-    for ($i = 0; $i < count($commands); $i++) {
+
+    /* $commandsArray = [];
+
+    $query = $db->simple_select('dvz_shoutbox_bot_commands', "tag", "activated=1");
+
+    if ((bool) $db->num_rows($query)) {
+        while ($row = $db->fetch_array($query)) {
+            $commandsArray[] = $row;
+        }
+    }
+
+    print_r($commandsArray);
+
+    $commands = ['Prune', 'UnBan']; */
+
+    /* foreach ($commandsArray as $index => $key) {
+        $class = 'Qwizi_DVZSB_Commands_';
+        $commandClass = $class . ucfirst($key['tag']);
+        $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
+        print_r($command);
+    } */
+    /* for ($i = 0; $i < count($commands); $i++) {
         $class = 'Qwizi_DVZSB_Commands_';
         $commandClass = $class . $commands[$i];
         $array = explode(",", $mybb->settings['dvz_sb_groups_mod']);
         $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-    }
+    } */
 
 }
 
