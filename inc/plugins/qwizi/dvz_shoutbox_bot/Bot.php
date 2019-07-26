@@ -166,30 +166,6 @@ class Qwizi_DVZSB_Bot
         );
     }
 
-    public function banUser($uid)
-    {
-        $errMsg = '';
-        $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
-
-        if ($uid != $this->mybb->user['uid']) {
-            if (in_array('', $explodeBannedUsers)) {
-                $this->db->update_query('settings', ['value' => $this->db->escape_string($uid)], "name='dvz_sb_blocked_users'");
-            } else {
-                if (!in_array($uid, $explodeBannedUsers)) {
-                    array_push($explodeBannedUsers, $uid);
-                    $implodeBannedUsers = implode(",", $explodeBannedUsers);
-                    $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
-                } else {
-                    $errMsg = "Nie możesz ponownie zbanować tego uzytkownika";
-                }
-            }
-        } else {
-            $errMsg = "Nie możesz sam siebie zbanować";
-        }
-
-        return $errMsg;
-    }
-
     public function createLink($url, $title)
     {
         $mybb = $this->getMybb();
