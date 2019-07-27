@@ -1,5 +1,6 @@
 # DVZ-ShoutBox-Bot
 DVZ ShoutBox Bot
+***
 
 # General:
 Bot sending messages on chat if user will register or write new thread/post. Responds to commands.
@@ -9,3 +10,7 @@ Bot sending messages on chat if user will register or write new thread/post. Res
 * `unban`
 * `banlist`
 * `prune`
+
+# Create custom command:
+* Create new file `YourCommand.php` in `inc/plugins/qwizi/Commands/` directory
+* `

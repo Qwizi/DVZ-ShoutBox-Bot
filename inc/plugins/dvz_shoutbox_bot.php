@@ -43,7 +43,7 @@ function dvz_shoutbox_bot_info()
         'description' => $db->escape_string($lang->bot_desc),
         'author' => 'Adrian \'Qwizi\' Ciołek',
         'authorsite' => 'https://github.com/Qwizi',
-        'version' => '1.5',
+        'version' => '1.5.0',
         'compatibility' => '18*',
         'codename' => '',
     ];
@@ -334,15 +334,6 @@ function dvz_shoutbox_bot_shout_commit(&$data)
             $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
             $command->doAction($data);
         }
-        /* for ($i = 0; $i < count($commandsArray); $i++) {
-            $class = 'Qwizi_DVZSB_Commands_';
-            $commandClass = $class . ucfirst($commandsArray[$i]['tag']);
-            $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-
-            $command->doAction($data);
-            rebuild_settings();
-        } */
-    }
 }
 
 function dvz_shoutbox_bot_index()
