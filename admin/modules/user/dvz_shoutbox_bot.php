@@ -101,6 +101,98 @@ if ($mybb->input['action'] == 'add') {
     $page->output_footer();
 }
 
+if ($mybb->input['action'] == 'edit') {
+
+    $query = $db->simple_select('dvz_shoutbox_bot_commands',  "*", "cid=\"".$mybb->get_input('cid', MyBB::INPUT_INT)."\"");
+    $command = $db->fetch_array($query);
+
+    if (!$command['cid']) {
+        flash_message('Nie znaleziono komendy', 'error');
+        admin_redirect(MODULE_LINK);
+    }
+
+    $plugins->run_hooks("admin_dvz_shoutbox_bot_edit");
+
+    if ($mybb->request_method == 'post') {
+        if (!trim($mybb->input['name'])) {
+            $errors[] = 'Nieprawidłowa nazwa';
+        }
+
+        if (!trim($mybb->input['description'])) {
+            $errors[] = 'Nieprawidłowy opis';
+        }
+
+        if (!trim($mybb->input['tag'])) {
+            $errors[] = 'Nieprawidłwy tag';
+        }
+
+        if (!trim($mybb->input['command'])) {
+            $errors[] = 'Nieprawidłowa komenda';
+        }
+
+        if (!$errors) {
+            $updated_command = [
+                'name' => $db->escape_string($mybb->input['name']),
+                'description' => $db->escape_string($mybb->input['description']),
+                'tag' => $db->escape_string($mybb->input['tag']),
+                'command' => $db->escape_string($mybb->input['command']),
+                'activated' => 1
+            ];
+
+            $plugins->run_hooks("admin_dvz_shoutbox_bot_edit_commit");
+
+            $cid = $db->update_query('dvz_shoutbox_bot_commands', $updated_command, "cid=\"".$mybb->get_input('cid', MyBB::INPUT_INT)."\"");
+
+            $PL or require_once PLUGINLIBRARY;
+
+            $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+
+            $searchKey = array_search($mybb->input['name'], $pluginCache['commands']);
+
+            array_splice($pluginCache['commands'], $searchKey);
+
+            $PL->cache_update('dvz_shoutbox_bot', ['commands' => $pluginCache['commands']]);
+
+            $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit_end", $cid);
+        }
+    }
+    
+    if ($errors) {
+        $page->output_inline_error($errors);
+    } else {
+        $mybb->input = array_merge($mybb->input, $command);
+    }
+
+    $page->output_header('Edytuj komende');
+
+    $sub_tabs = [];
+    $sub_tabs['edit_command'] = [
+        'title' => 'Edytuj komende',
+        'description' => 'Edytuj komende',
+    ];
+    $page->output_nav_tabs($sub_tabs, 'edit_command');
+
+    $form = new Form(MODULE_LINK.'&amp;action=edit&amp;cid={$', 'post');
+
+    $form_container = new FormContainer('Edytuj komende komende');
+    $form_container->output_row("Nazwa <em>*</em>", "", $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
+    $form_container->output_row("Opis <em>*</em>", "", $form->generate_text_area('description', $mybb->input['description'], ['id' => 'description'], 'description'));
+    $form_container->output_row("Tag <em>*</em>", "", $form->generate_text_box('tag', $mybb->input['tag'], ['id' => 'tag'], 'tag'));
+    $form_container->output_row("Komenda <em>*</em>", "", $form->generate_text_box('command', $mybb->input['command'], ['id' => 'command'], 'command'));
+    $form_container->output_row("Aktywna", "", $form->generate_check_box("activated", 1, 'Aktywna', ["checked" => $mybb->input['activated']]));
+
+    $form_container->construct_row();
+
+    $form_container->end();
+
+    $buttons = [];
+    $buttons[] = $form->generate_submit_button('Zapisz komende');
+    $form->output_submit_wrapper($buttons);
+    $form->end();
+
+    $page->output_footer();
+}
+
 if (!$mybb->input['action']) {
     $plugins->run_hooks("admin_dvz_shoutbox_bot_start");
 
@@ -128,8 +220,8 @@ if (!$mybb->input['action']) {
             $form_container->output_cell($row['activated'] == 1 ? 'tak' : 'nie', ['class' => 'align_center']);
 
             $popup = new PopupMenu("command_{$row['cid']}", 'Opcje');
-            $popup->add_item('Edytuj', MODULE_LINK . "&amp;action=edit&amp;id={$row['cid']}");
-            $popup->add_item('Usuń', MODULE_LINK . "&amp;action=delete&amp;id={$row['cid']}");
+            $popup->add_item('Edytuj', MODULE_LINK . "&amp;action=edit&amp;cid={$row['cid']}");
+            $popup->add_item('Usuń', MODULE_LINK . "&amp;action=delete&amp;cid={$row['cid']}");
 
             $form_container->output_cell($popup->fetch(), ['class' => 'align_center']);
 
