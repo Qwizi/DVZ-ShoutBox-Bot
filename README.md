@@ -13,4 +13,3 @@ Bot sending messages on chat if user will register or write new thread/post. Res
 
 # Create custom command:
 * Create new file `YourCommand.php` in `inc/plugins/qwizi/Commands/` directory
-* `

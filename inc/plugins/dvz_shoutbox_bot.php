@@ -27,11 +27,14 @@ $classLoader->registerNamespace(
 );
 $classLoader->register();
 
+// TODO Usunąć hooka index_end
 $plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');
 $plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
 $plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit');
+$plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
+$plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
 
 function dvz_shoutbox_bot_info()
 {
@@ -51,7 +54,7 @@ function dvz_shoutbox_bot_info()
 
 function dvz_shoutbox_bot_install()
 {
-    global $db, $PL, $lang;
+    global $db, $PL, $lang, $cache;
     $PL or require_once PLUGINLIBRARY;
 
     $lang->load('dvz_shoutbox_bot');
@@ -115,13 +118,13 @@ function dvz_shoutbox_bot_install()
                 'optionscode' => 'textarea',
                 'value' => $lang->bot_post_message_example,
             ],
-            'commands_ononff' => [
+            'commands_onoff' => [ // TODO przetłumaczyć ustawienie komendy onoff
                 'title' => 'Komendy włączone/wyłączone',
                 'description' => 'Określa czy komenda mają być włączone',
                 'optionscode' => 'onoff',
                 'value' => 1,
             ],
-            'commands_prefix' => [
+            'commands_prefix' => [ // TODO przetłaczyć ustawienie prefix
                 'title' => 'Prefix do komend',
                 'description' => 'Określa prefix do komend',
                 'optionscode' => 'text',
@@ -137,57 +140,104 @@ function dvz_shoutbox_bot_install()
         CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "dvz_shoutbox_bot_commands` (
             `cid` int(11) not null auto_increment,
             `tag` varchar(24) not null,
-            `name` varchar(32) not null,
+            `name` varchar(64) not null,
+            `command` varchar(32) not null,
             `description` text not null,
             `activated` tinyint(1) not null default 1,
             PRIMARY KEY (`cid`)
         ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
     ");
 
-    $db->insert_query_multiple('dvz_shoutbox_bot_commands', [
+    $commandsData = [
         [
             'tag' => 'ban',
             'name' => 'Ban',
+            'command' => 'ban',
             'description' => 'Komenda ta pozwala banować użytkowników',
+            'activated' => 1,
         ],
         [
             'tag' => 'unBan',
             'name' => 'UnBan',
+            'command' => 'unban',
             'description' => 'Komenda ta pozwala zdjemować blokady użytkowników',
+            'activated' => 1,
         ],
         [
             'tag' => 'banList',
             'name' => 'Lista banów',
+            'command' => 'banlist',
             'description' => 'Komenda ta pokazuje aktualnie kto jest zbanowany',
+            'activated' => 1,
         ],
         [
             'tag' => 'prune',
             'name' => 'Prune',
+            'command' => 'prune',
             'description' => 'Komenda ta pozwala na usuwanie wpisów',
+            'activated' => 1,
         ],
-    ]);
+        [
+            'tag' => 'setBot',
+            'name' => 'Set bot',
+            'command' => 'setbot',
+            'description' => 'Komenda ta pozwala na ustawienie konta bota',
+            'activated' => 1,
+        ],
+        [
+            'tag' => 'help',
+            'name' => 'Help',
+            'command' => 'help',
+            'description' => 'Lista komend',
+            'activated' => 1,
+        ],
+        [
+            'tag' => 'steamID64',
+            'name' => 'Convert steamid32 to steamid64',
+            'command' => 'steamid64',
+            'description' => 'Konwertuje steamid32 do steamid64',
+            'activated' => 1,
+        ],
+        [
+            'tag' => 'steamID32',
+            'name' => 'Convert steamid64 to steamid32',
+            'command' => 'steamid32',
+            'description' => 'Konwertuje steamid64 do steamid32',
+            'activated' => 1,
+        ],
+    ];
 
+    //! ADD COMMANDS
+    $db->insert_query_multiple('dvz_shoutbox_bot_commands', $commandsData);
+
+    //! UPDATE CACHE
+    $PL->cache_update('dvz_shoutbox_bot', [
+        'version' => dvz_shoutbox_bot_info()['version'],
+        'commands' => $commandsData,
+    ]);
 }
 
 function dvz_shoutbox_bot_uninstall()
 {
-    global $db, $PL, $mybb;
+    global $db, $PL;
     $PL or require_once PLUGINLIBRARY;
 
     $PL->settings_delete('dvz_sb_bot', true);
+    $PL->cache_delete('dvz_shoutbox_bot');
 
-    //Delete old settings
+    //! Delete old settings
     $query = $db->simple_select('settinggroups', 'gid', "name='dvz_shoutbox_bot'");
     if ((bool) $db->num_rows($query)) {
         $db->delete_query('settinggroups', 'name=\'dvz_shoutbox_bot\'');
         $db->delete_query('settings', 'name LIKE \'dvz_shoutbox_bot%\'');
     }
 
-    //Delete old table
+    //! Delete old table
     if ($db->table_exists('dvz_shoutbox_bot')) {
         $db->drop_table('dvz_shoutbox_bot');
     }
 
+    // Delete commands table
     if ($db->table_exists('dvz_shoutbox_bot_commands')) {
         $db->drop_table('dvz_shoutbox_bot_commands');
     }
@@ -198,6 +248,33 @@ function dvz_shoutbox_bot_is_installed()
     global $db;
     $query = $db->simple_select('settinggroups', 'gid', "name='dvz_sb_bot'");
     return (bool) $db->num_rows($query);
+}
+
+function dvz_shoutbox_bot_activate()
+{
+    global $PL;
+    $PL or require_once PLUGINLIBRARY;
+
+    $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+
+    if (isset($pluginCache['version']) && version_compare($pluginCache['version'], dvz_shoutbox_bot_info()['version']) == -1) {
+        $pluginCache['version'] = dvz_shoutbox_bot_info()['version'];
+        $PL->update_cache('dvz_shoutbox_bot', ['version' => $pluginCache]);
+    }
+}
+
+function dvz_shoutbox_bot_admin_user_menu(&$sub_menu)
+{
+    $sub_menu[count($sub_menu) - 1] = [
+        'id' => 'dvz-shoutbox-bot',
+        'title' => 'DVZ ShoutBox Bot',
+        'link' => 'index.php?module=user-dvz-shoutbox-bot',
+    ];
+}
+
+function dvz_shoutbox_bot_user_action_handler(&$actions)
+{
+    $actions['dvz-shoutbox-bot'] = ['active' => 'dvz-shoutbox-bot', 'file' => 'dvz_shoutbox_bot.php'];
 }
 
 function dvz_shoutbox_bot_register()
@@ -314,65 +391,50 @@ function dvz_shoutbox_bot_post(&$data)
 
 function dvz_shoutbox_bot_shout_commit(&$data)
 {
-    global $db;
+    global $PL;
     dvz_shoutbox_bot_create_instance();
 
-    $commandsArray = [];
+    if (Qwizi_DVZSB_Bot::getInstance()->settings('commands_onoff')) {
+        $PL or require_once PLUGINLIBRARY;
 
-    $query = $db->simple_select('dvz_shoutbox_bot_commands', "tag", "activated=1");
+        $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
-    if ((bool) $db->num_rows($query)) {
-        while ($row = $db->fetch_array($query)) {
-            $commandsArray[] = $row;
+        $commandsArray = $pluginCache['commands'];
+
+        if (!empty($commandsArray)) {
+            foreach ($commandsArray as $index => $key) {
+
+                if ($key['activated'] == 1) {
+
+                    $data['command'] = $key['command'];
+
+                    $class = 'Qwizi_DVZSB_Commands_';
+                    $commandClass = $class . ucfirst($key['tag']);
+
+                    $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
+                    $command->doAction($data);
+                }
+            }
         }
     }
-
-    if (!empty($commandsArray)) {
-        foreach ($commandsArray as $index => $key) {
-            $class = 'Qwizi_DVZSB_Commands_';
-            $commandClass = $class . ucfirst($key['tag']);
-            $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-            $command->doAction($data);
-        }
 }
 
 function dvz_shoutbox_bot_index()
 {
-    global $db, $mybb;
-    dvz_shoutbox_bot_create_instance();
+    global $PL;
+    $PL or require_once PLUGINLIBRARY;
 
-    /* $commandsArray = [];
+    $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
-    $query = $db->simple_select('dvz_shoutbox_bot_commands', "tag", "activated=1");
-
-    if ((bool) $db->num_rows($query)) {
-        while ($row = $db->fetch_array($query)) {
-            $commandsArray[] = $row;
-        }
-    }
+    $commandsArray = $pluginCache['commands'];
 
     print_r($commandsArray);
-
-    $commands = ['Prune', 'UnBan']; */
-
-    /* foreach ($commandsArray as $index => $key) {
-        $class = 'Qwizi_DVZSB_Commands_';
-        $commandClass = $class . ucfirst($key['tag']);
-        $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-        print_r($command);
-    } */
-    /* for ($i = 0; $i < count($commands); $i++) {
-        $class = 'Qwizi_DVZSB_Commands_';
-        $commandClass = $class . $commands[$i];
-        $array = explode(",", $mybb->settings['dvz_sb_groups_mod']);
-        $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-    } */
-
 }
 
 function dvz_shoutbox_bot_create_instance()
 {
-    global $mybb, $db, $cache;
+    global $mybb, $db, $PL;
+    $PL or require_once PLUGINLIBRARY;
 
-    Qwizi_DVZSB_Bot::createInstance($mybb, $db, $cache);
+    Qwizi_DVZSB_Bot::createInstance($mybb, $db, $PL);
 }

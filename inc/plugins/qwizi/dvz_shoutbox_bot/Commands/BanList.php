@@ -46,9 +46,7 @@ class Qwizi_DVZSB_Commands_BanList implements Qwizi_DVZSB_Commands_Base
     public function doAction($data)
     {
         if ($this->bot->accessMod()) {
-            if ($data['text'] == $this->bot->settings('commands_prefix') . 'banlist') {
-                $this->bot->delete("id={$data['shout_id']}");
-
+            if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
                 // Banlist
                 $this->banList();
             }

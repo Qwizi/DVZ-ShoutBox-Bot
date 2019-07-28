@@ -53,11 +53,10 @@ class Qwizi_DVZSB_Commands_Ban implements Qwizi_DVZSB_Commands_Base
     public function doAction($data)
     {
         if ($this->bot->accessMod()) {
-            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote('ban') . '[\s]+(.*)$/', $data['text'], $matches)) {
+            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
                 $target = $this->bot->getUserInfoFromUsername($matches[1]);
                 $user = $this->bot->getUserInfoFromUid($data['uid']);
-
-                $this->bot->delete("id={$data['shout_id']}");
+                
                 // Ban user
                 $this->banUser($user, $target);
             }

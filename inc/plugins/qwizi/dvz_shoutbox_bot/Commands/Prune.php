@@ -28,11 +28,11 @@ class Qwizi_DVZSB_Commands_Prune implements Qwizi_DVZSB_Commands_Base
     public function doAction($data)
     {
         if ($this->bot->accessMod()) {
-            if ($data['text'] == $this->bot->settings('commands_prefix') . 'prune') {
+            if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
                 $this->prune(null, null, true);
             }
 
-            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote('prune') . '[\s]+(.*)$/', $data['text'], $matches)) {
+            if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
                 $user = $this->bot->getUserInfoFromUid($data['uid']);
                 $target = $this->bot->getUserInfoFromUsername($matches[1]);
 

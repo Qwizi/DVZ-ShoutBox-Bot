@@ -5,23 +5,23 @@ class Qwizi_DVZSB_Bot
     private static $instance = null;
     private $mybb;
     private $db;
-    private $cache;
+    private $PL;
     private $tableName = 'dvz_shoutbox';
     private $settingsGroupName = 'dvz_sb_bot';
     private $botID;
 
-    private function __construct($mybb, DB_Base $db, $cache)
+    private function __construct($mybb, DB_Base $db, $PL)
     {
         $this->mybb = $mybb;
         $this->db = $db;
-        $this->cache = $cache;
+        $this->PL = $PL;
         $this->botID = $this->mybb->settings['dvz_sb_bot_id'];
     }
 
-    public static function createInstance(Mybb $mybb, DB_BASE $db, $cache)
+    public static function createInstance(Mybb $mybb, DB_BASE $db, $PL)
     {
         if (static::$instance === null) {
-            static::$instance = new self($mybb, $db, $cache);
+            static::$instance = new self($mybb, $db, $PL);
         }
         return static::$instance;
     }
@@ -42,6 +42,11 @@ class Qwizi_DVZSB_Bot
     public function getMybb()
     {
         return $this->mybb;
+    }
+
+    public function getPL()
+    {
+        return $this->PL;
     }
 
     public function getTableName()
