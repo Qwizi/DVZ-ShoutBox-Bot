@@ -1,5 +1,5 @@
 # DVZ-ShoutBox-Bot
-DVZ ShoutBox Bot
+DVZ ShoutBox Bot \n
 Version: 1.5.0
 
 # General:
