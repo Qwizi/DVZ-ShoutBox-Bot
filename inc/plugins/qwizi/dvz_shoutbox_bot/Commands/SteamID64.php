@@ -1,19 +1,7 @@
 <?php
 
-class Qwizi_DVZSB_Commands_SteamID64 implements Qwizi_DVZSB_Commands_Base
+class Qwizi_DVZSB_Commands_SteamID64 extends Qwizi_DVZSB_Commands_Base
 {
-    private $bot;
-
-    public function __construct(Qwizi_DVZSB_Bot $bot)
-    {
-        $this->bot = $bot;
-    }
-
-    public function getBot()
-    {
-        return $this->bot;
-    }
-
     private function getCommunityFromID($id)
     {
         $accountarray = explode(":", $id);
@@ -31,7 +19,7 @@ class Qwizi_DVZSB_Commands_SteamID64 implements Qwizi_DVZSB_Commands_Base
             if (strpos($target, 'STEAM') === false) {
                 $error['msg'] = "Wystąpił'problem";
             } else {
-                $steamid =  $this->getCommunityFromID($target);
+                $steamid = $this->getCommunityFromID($target);
                 $message = "@\"{$user['username']}\" - SteamID64 -> {$steamid}";
             }
 
@@ -49,12 +37,22 @@ class Qwizi_DVZSB_Commands_SteamID64 implements Qwizi_DVZSB_Commands_Base
     public function doAction($data)
     {
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
-            $user = $this->bot->getUserInfoFromUid($data['uid']);
             $target = $matches[1];
 
-            // Ban user
-            $this->convert($user, $target);
-        }
+            if (isset($target) && !empty($target)) {
+                if (strpos($target, 'STEAM') === false) {
+                    $this->error = "Wystąpił'problem";
+                } else {
+                    $steamid = $this->getCommunityFromID($target);
+                }
 
+            } else {
+                $this->error = "Wystąpił'problem";
+            }
+
+            $this->message = "SteamID64 -> {$steamid}";
+
+            $this->shout();
+        }
     }
 }

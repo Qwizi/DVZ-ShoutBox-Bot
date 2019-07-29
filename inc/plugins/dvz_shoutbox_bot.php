@@ -392,10 +392,10 @@ function dvz_shoutbox_bot_post(&$data)
 function dvz_shoutbox_bot_shout_commit(&$data)
 {
     global $PL;
+    $PL or require_once PLUGINLIBRARY;
     dvz_shoutbox_bot_create_instance();
 
     if (Qwizi_DVZSB_Bot::getInstance()->settings('commands_onoff')) {
-        $PL or require_once PLUGINLIBRARY;
 
         $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
@@ -423,12 +423,10 @@ function dvz_shoutbox_bot_index()
 {
     global $PL;
     $PL or require_once PLUGINLIBRARY;
+    dvz_shoutbox_bot_create_instance();
+    /* $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
-    $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
-
-    $commandsArray = $pluginCache['commands'];
-
-    print_r($commandsArray);
+    $commandsArray = $pluginCache['commands']; */
 }
 
 function dvz_shoutbox_bot_create_instance()

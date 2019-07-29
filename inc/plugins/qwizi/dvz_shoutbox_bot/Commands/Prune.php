@@ -1,35 +1,12 @@
 <?php
 
-class Qwizi_DVZSB_Commands_Prune implements Qwizi_DVZSB_Commands_Base
+class Qwizi_DVZSB_Commands_Prune extends Qwizi_DVZSB_Commands_Base
 {
-    private $bot;
-
-    public function __construct(Qwizi_DVZSB_Bot $bot)
-    {
-        $this->bot = $bot;
-    }
-
-    public function getBot()
-    {
-        return $this->bot;
-    }
-
-    private function prune($user=null, $target=null, $all=false)
-    {
-        if ($all == true) {
-            $this->bot->delete();
-        } else {
-            $this->bot->delete("uid={$target['uid']}");
-            $this->bot->shout("@\"{$user['username']}\" usunął wiadomości użytkownika @\"{$target['username']}\"");;
-        }
-    }
-
-
     public function doAction($data)
     {
         if ($this->bot->accessMod()) {
             if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
-                $this->prune(null, null, true);
+                $this->bot->delete();
             }
 
             if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
@@ -38,7 +15,11 @@ class Qwizi_DVZSB_Commands_Prune implements Qwizi_DVZSB_Commands_Base
 
                 $this->bot->delete("id={$data['shout_id']}");
 
-                $this->prune($user, $target, false);
+                $this->bot->delete("uid={$target['uid']}");
+
+                $this->message = "@\"{$user['username']}\" usunął wiadomości użytkownika @\"{$target['username']}\"";
+
+                $this->shout();
             }
         }
     }
