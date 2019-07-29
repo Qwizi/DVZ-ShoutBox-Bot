@@ -23,6 +23,7 @@ class Qwizi_DVZSB_Commands_UnBan extends Qwizi_DVZSB_Commands_Base
                             }
                             $implodeBannedUsers = implode(",", $explodeBannedUsers);
                             $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
+                            $this->rebuildSettings();
                         } else {
                             $this->error = "Uzytkownik nie posiada bana";
                         }
