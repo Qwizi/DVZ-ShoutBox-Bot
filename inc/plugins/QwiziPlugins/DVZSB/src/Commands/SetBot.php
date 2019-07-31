@@ -20,7 +20,7 @@ class SetBot extends Base
                     $this->rebuildSettings();
                 }
 
-                $this->message = "@\"{$user['username']}\" usunął wiadomości użytkownika @\"{$target['username']}\"";
+                $this->message = "@\"{$user['username']}\" zmienił konto bota na @\"{$target['username']}\"";
 
                 $this->shout();
             }
