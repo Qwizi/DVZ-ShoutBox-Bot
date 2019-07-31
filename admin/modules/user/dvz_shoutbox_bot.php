@@ -55,7 +55,7 @@ if ($mybb->input['action'] == 'add') {
                 'description' => $db->escape_string($mybb->input['description']),
                 'tag' => $db->escape_string($mybb->input['tag']),
                 'command' => $db->escape_string($mybb->input['command']),
-                'activated' => 1
+                'activated' => 1,
             ];
 
             $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit");
@@ -73,14 +73,14 @@ if ($mybb->input['action'] == 'add') {
             $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit_end", $cid);
 
             flash_message('Pomyślnie dodano komende', 'success');
-			admin_redirect(MODULE_LINK);
+            admin_redirect(MODULE_LINK);
         }
     }
 
     $page->output_header('Dodaj komende');
     $page->output_nav_tabs($sub_tabs, 'add_command');
 
-    $form = new Form(MODULE_LINK.'&amp;action=add', 'post');
+    $form = new Form(MODULE_LINK . '&amp;action=add', 'post');
 
     $form_container = new FormContainer('Dodaj komende');
     $form_container->output_row("Nazwa <em>*</em>", "", $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
@@ -103,10 +103,10 @@ if ($mybb->input['action'] == 'add') {
 
 if ($mybb->input['action'] == 'edit') {
 
-    $query = $db->simple_select('dvz_shoutbox_bot_commands',  "*", "cid=\"".$mybb->get_input('cid', MyBB::INPUT_INT)."\"");
-    $command = $db->fetch_array($query);
+    $query = $db->simple_select('dvz_shoutbox_bot_commands', "*", "cid=\"" . $mybb->get_input('cid', MyBB::INPUT_INT) . "\"");
+    $commandQ = $db->fetch_array($query);
 
-    if (!$command['cid']) {
+    if (!$commandQ['cid']) {
         flash_message('Nie znaleziono komendy', 'error');
         admin_redirect(MODULE_LINK);
     }
@@ -136,31 +136,35 @@ if ($mybb->input['action'] == 'edit') {
                 'description' => $db->escape_string($mybb->input['description']),
                 'tag' => $db->escape_string($mybb->input['tag']),
                 'command' => $db->escape_string($mybb->input['command']),
-                'activated' => 1
+                'activated' => (int) $mybb->input['activated'],
             ];
 
             $plugins->run_hooks("admin_dvz_shoutbox_bot_edit_commit");
 
-            $cid = $db->update_query('dvz_shoutbox_bot_commands', $updated_command, "cid=\"".$mybb->get_input('cid', MyBB::INPUT_INT)."\"");
+            $cid = $db->update_query('dvz_shoutbox_bot_commands', $updated_command, "cid=\"" . $mybb->get_input('cid', MyBB::INPUT_INT) . "\"");
 
             $PL or require_once PLUGINLIBRARY;
 
             $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
-            $searchKey = array_search($mybb->input['name'], $pluginCache['commands']);
+            foreach ($pluginCache['commands'] as &$command) {
+                if ($command['tag'] == $commandQ['tag']) {
 
-            array_splice($pluginCache['commands'], $searchKey);
+                    $command['name'] = $mybb->input['name'];
+                    $command['description'] = $mybb->input['description'];
+                    $command['tag'] = $mybb->input['tag'];
+                    $command['command'] = $mybb->input['command'];
+                    $command['activated'] = $mybb->input['activated'];
+                }
+            }
 
             $PL->cache_update('dvz_shoutbox_bot', ['commands' => $pluginCache['commands']]);
 
             $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit_end", $cid);
+
+            flash_message('Pomyślnie wyedytowano komende', 'success');
+            admin_redirect(MODULE_LINK);
         }
-    }
-    
-    if ($errors) {
-        $page->output_inline_error($errors);
-    } else {
-        $mybb->input = array_merge($mybb->input, $command);
     }
 
     $page->output_header('Edytuj komende');
@@ -172,7 +176,13 @@ if ($mybb->input['action'] == 'edit') {
     ];
     $page->output_nav_tabs($sub_tabs, 'edit_command');
 
-    $form = new Form(MODULE_LINK.'&amp;action=edit&amp;cid={$', 'post');
+    if ($errors) {
+        $page->output_inline_error($errors);
+    } else {
+        $mybb->input = array_merge($mybb->input, $commandQ);
+    }
+
+    $form = new Form(MODULE_LINK . "&amp;action=edit&amp;cid={$commandQ['cid']}", 'post');
 
     $form_container = new FormContainer('Edytuj komende komende');
     $form_container->output_row("Nazwa <em>*</em>", "", $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
@@ -191,6 +201,41 @@ if ($mybb->input['action'] == 'edit') {
     $form->end();
 
     $page->output_footer();
+}
+
+if ($mybb->input['action'] == 'delete') {
+    $query = $db->simple_select('dvz_shoutbox_bot_commands', "*", "cid=\"" . $mybb->get_input('cid', MyBB::INPUT_INT) . "\"");
+    $commandQ = $db->fetch_array($query);
+
+    if (!$commandQ['cid']) {
+        flash_message('Nie znaleziono komendy', 'error');
+        admin_redirect(MODULE_LINK);
+    }
+
+    if ($mybb->input['no']) {
+        admin_redirect(MODULE_LINK);
+    }
+
+    $plugins->run_hooks("admin_dvz_shoutbox_bot_delete");
+
+    if ($mybb->request_method == 'post') {
+        $db->delete_query('dvz_shoutbox_bot_commands', "cid='{$commandQ['cid']}'");
+
+        $PL or require_once PLUGINLIBRARY;
+
+        $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+
+        $commandsArray = $pluginCache['commands'];
+
+        $key = array_search($commandQ['tag'], array_column($commandsArray, 'tag'));
+        unset($commandsArray[$key]);
+
+        $PL->cache_update('dvz_shoutbox_bot', ['commands' => $commandsArray]);
+
+        admin_redirect(MODULE_LINK);
+    } else {
+        $page->output_confirm_action(MODULE_LINK."&amp;action=delete&amp;cid={$commandQ['cid']}", "Napewno chcesz usunąc komende?");
+    }
 }
 
 if (!$mybb->input['action']) {

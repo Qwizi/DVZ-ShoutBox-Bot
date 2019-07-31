@@ -1,8 +1,11 @@
 <?php
+declare(strict_types=1);
 
-class Qwizi_DVZSB_Commands_Help extends Qwizi_DVZSB_Commands_Base
+namespace Qwizi\DVZSB\Commands;
+
+class Help extends Base
 {
-    public function doAction($data)
+    public function doAction(array $data): void
     {
         if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
             $PL = $this->bot->getPL();

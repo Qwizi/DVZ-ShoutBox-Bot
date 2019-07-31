@@ -1,12 +1,17 @@
 <?php
+declare(strict_types=1);
 
-abstract class Qwizi_DVZSB_Commands_Base
+namespace Qwizi\DVZSB\Commands;
+
+use Qwizi\DVZSB\Bot;
+
+abstract class Base
 {
     public $bot;
     public $error;
     public $message;
 
-    public function __construct(Qwizi_DVZSB_Bot $bot)
+    public function __construct(Bot $bot)
     {
         $this->bot = $bot;
     }
@@ -44,5 +49,5 @@ abstract class Qwizi_DVZSB_Commands_Base
         $GLOBALS['settings'] = &$mybb->settings;
     }
 
-    abstract protected function doAction($data);
+    abstract protected function doAction(array $data): void;
 }

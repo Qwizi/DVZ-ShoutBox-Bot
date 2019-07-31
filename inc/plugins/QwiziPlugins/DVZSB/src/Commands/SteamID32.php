@@ -1,6 +1,9 @@
 <?php
+declare(strict_types=1);
 
-class Qwizi_DVZSB_Commands_SteamID32 extends Qwizi_DVZSB_Commands_Base
+namespace Qwizi\DVZSB\Commands;
+
+class SteamID32 extends Base
 {
     private function getIDFromCommunity($id)
     {
@@ -18,7 +21,7 @@ class Qwizi_DVZSB_Commands_SteamID32 extends Qwizi_DVZSB_Commands_Base
         return "STEAM_0:" . $idnum . ":" . number_format($accnum, 0, '', '');
     }
 
-    public function doAction($data)
+    public function doAction(array $data): void
     {
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
             $target = $matches[1];

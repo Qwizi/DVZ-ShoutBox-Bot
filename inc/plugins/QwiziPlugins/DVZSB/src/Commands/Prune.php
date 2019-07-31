@@ -1,21 +1,24 @@
 <?php
+declare(strict_types=1);
 
-class Qwizi_DVZSB_Commands_SetBot extends Qwizi_DVZSB_Commands_Base
+namespace Qwizi\DVZSB\Commands;
+
+class Prune extends Base
 {
-    public function doAction($data)
+    public function doAction(array $data): void
     {
         if ($this->bot->accessMod()) {
+            if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
+                $this->bot->delete();
+            }
+
             if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
                 $user = $this->bot->getUserInfoFromUid($data['uid']);
                 $target = $this->bot->getUserInfoFromUsername($matches[1]);
-                $db = $this->bot->getDB();
 
-                if (empty($target)) {
-                    $this->error = "Nie znaleziono użytkownika";
-                } else {
-                    $db->update_query('settings', ['value' => $db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
-                    $this->rebuildSettings();
-                }
+                $this->bot->delete("id={$data['shout_id']}");
+
+                $this->bot->delete("uid={$target['uid']}");
 
                 $this->message = "@\"{$user['username']}\" usunął wiadomości użytkownika @\"{$target['username']}\"";
 

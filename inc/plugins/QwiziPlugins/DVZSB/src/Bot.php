@@ -1,6 +1,12 @@
 <?php
+declare(strict_types=1);
 
-class Qwizi_DVZSB_Bot
+namespace Qwizi\DVZSB;
+
+use DB_Base;
+use MyBB;
+
+class Bot
 {
     private static $instance = null;
     private $mybb;
@@ -10,12 +16,12 @@ class Qwizi_DVZSB_Bot
     private $settingsGroupName = 'dvz_sb_bot';
     private $botID;
 
-    private function __construct($mybb, DB_Base $db, $PL)
+    public function __construct(Mybb $mybb, DB_Base $db, $PL)
     {
         $this->mybb = $mybb;
         $this->db = $db;
         $this->PL = $PL;
-        $this->botID = $this->mybb->settings['dvz_sb_bot_id'];
+        $this->botID = (int) $this->mybb->settings['dvz_sb_bot_id'];
     }
 
     public static function createInstance(Mybb $mybb, DB_BASE $db, $PL)
@@ -49,28 +55,28 @@ class Qwizi_DVZSB_Bot
         return $this->PL;
     }
 
-    public function getTableName()
+    public function getTableName(): string
     {
         return $this->tableName;
     }
 
-    public function getBotID()
+    public function getBotID(): int
     {
         return $this->botID;
     }
 
-    public function getSettingsGroupName()
+    public function getSettingsGroupName(): string
     {
         return $this->settingsGroupName;
     }
 
-    public function settings($setting)
+    public function settings(string $setting): string
     {
         $mybb = $this->getMybb();
         return $mybb->settings[$this->getSettingsGroupName() . '_' . $setting];
     }
 
-    public function get($many = false, $fields, $where, $optionsArray)
+    public function get(bool $many = false, string $fields, string $where, array $optionsArray): array
     {
         $data = [];
         if ($many == false) {
@@ -114,7 +120,7 @@ class Qwizi_DVZSB_Bot
         return $this->db->update_query($this->getTableName(), $updateArray, $where);
     }
 
-    public function shout($message)
+    public function shout(string $message)
     {
         $db = $this->getDB();
         $mybb = $this->getMybb();
@@ -212,7 +218,7 @@ class Qwizi_DVZSB_Bot
         $GLOBALS['settings'] = &$mybb->settings;
     }
 
-    public function createLink($url, $title)
+    public function createLink(string $url, string $title): string
     {
         $mybb = $this->getMybb();
         $db = $this->getDB();
@@ -221,7 +227,7 @@ class Qwizi_DVZSB_Bot
         return $link;
     }
 
-    public function createMsg($action, $data)
+    public function createMsg(string $action, array $data): string
     {
         $db = $this->getDB();
 
@@ -249,15 +255,16 @@ class Qwizi_DVZSB_Bot
         return $message;
     }
 
-    public function getUserInfoFromUsername($username)
+    public function getUserInfoFromUsername(string $username)
     {
         $db = $this->getDB();
         return $db->fetch_array($db->simple_select('users', "*", 'username="' . $username . '"'));
     }
 
-    public function getUserInfoFromUid($uid)
+    public function getUserInfoFromUid(int $uid)
     {
         $db = $this->getDB();
-        return $db->fetch_array($db->simple_select('users', "*", 'uid="' . $uid . '"'));
+        $user = $db->fetch_array($db->simple_select('users', "*", 'uid="' . $uid . '"'));
+        return $user;
     }
 }

@@ -1,8 +1,11 @@
 <?php
+declare(strict_types=1);
 
-class Qwizi_DVZSB_Commands_UnBan extends Qwizi_DVZSB_Commands_Base
+namespace Qwizi\DVZSB\Commands;
+
+class UnBan extends Base
 {
-    public function doAction($data)
+    public function doAction(array $data): void
     {
         if ($this->bot->accessMod()) {
             if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {

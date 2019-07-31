@@ -1,6 +1,9 @@
 <?php
+declare(strict_types=1);
 
-class Qwizi_DVZSB_Commands_SteamID64 extends Qwizi_DVZSB_Commands_Base
+namespace Qwizi\DVZSB\Commands;
+
+class SteamID64 extends Base
 {
     private function getCommunityFromID($id)
     {
@@ -12,29 +15,7 @@ class Qwizi_DVZSB_Commands_SteamID64 extends Qwizi_DVZSB_Commands_Base
         return $number;
     }
 
-    public function convert($user, $target)
-    {
-        $error = [];
-        if (isset($target) && !empty($target)) {
-            if (strpos($target, 'STEAM') === false) {
-                $error['msg'] = "Wystąpił'problem";
-            } else {
-                $steamid = $this->getCommunityFromID($target);
-                $message = "@\"{$user['username']}\" - SteamID64 -> {$steamid}";
-            }
-
-        } else {
-            $error['msg'] = "Wystąpił'problem";
-        }
-
-        if (empty($error)) {
-            $this->bot->shout($message);
-        } else {
-            $this->bot->shout($error['msg']);
-        }
-    }
-
-    public function doAction($data)
+    public function doAction(array $data): void
     {
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
             $target = $matches[1];

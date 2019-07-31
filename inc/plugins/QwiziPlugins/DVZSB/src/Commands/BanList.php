@@ -1,8 +1,11 @@
 <?php
+declare(strict_types=1);
 
-class Qwizi_DVZSB_Commands_BanList extends Qwizi_DVZSB_Commands_Base
+namespace Qwizi\DVZSB\Commands;
+
+class BanList extends Base
 {
-    public function doAction($data)
+    public function doAction(array $data): void
     {
         if ($this->bot->accessMod()) {
             if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {

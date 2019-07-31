@@ -1,29 +1,22 @@
 <?php
-ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
-if (!defined('IN_MYBB')) {
-    die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
-}
+declare (strict_types = 1);
 
-if (!defined("PLUGINLIBRARY")) {
-    define("PLUGINLIBRARY", MYBB_ROOT . "inc/plugins/pluginlibrary.php");
-}
+use Qwizi\Core\ClassLoader;
+use Qwizi\DVZSB\Bot;
 
-if (!defined("QWIZI_CORE_PATH")) {
-    define("QWIZI_CORE_PATH", MYBB_ROOT . 'inc/plugins/qwizi/core/');
-}
+defined('IN_MYBB') or die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
 
-if (!defined("QWIZI_BOT_PLUGIN_PATH")) {
-    define("QWIZI_BOT_PLUGIN_PATH", MYBB_ROOT . 'inc/plugins/qwizi/dvz_shoutbox_bot');
-}
+defined('PLUGINLIBRARY') or define('PLUGINLIBRARY', MYBB_ROOT . "inc/plugins/pluginlibrary.php");
 
-require_once QWIZI_CORE_PATH . 'ClassLoader.php';
-/* Ladowanie klas*/
-$classLoader = new MybbStuff_Core_ClassLoader();
+defined('QWIZI_PLUGINS_CORE_PATH') || define('QWIZI_PLUGINS_CORE_PATH', __DIR__ . '/QwiziPlugins/Core');
+
+define('DVZSB_PLUGIN_PATH', __DIR__ . '/QwiziPlugins/DVZSB');
+
+require_once QWIZI_PLUGINS_CORE_PATH . '/src/ClassLoader.php';
+$classLoader = ClassLoader::getInstance();
 $classLoader->registerNamespace(
-    'Qwizi_DVZSB',
-    [QWIZI_BOT_PLUGIN_PATH . '/']
+    'Qwizi\\DVZSB\\',
+    DVZSB_PLUGIN_PATH . '/src/'
 );
 $classLoader->register();
 
@@ -282,11 +275,11 @@ function dvz_shoutbox_bot_register()
     global $user;
     dvz_shoutbox_bot_create_instance();
 
-    if (Qwizi_DVZSB_Bot::getInstance()->settings('register_onoff')) {
-        $message = Qwizi_DVZSB_Bot::getInstance()->createMsg('register', [
+    if (Bot::getInstance()->settings('register_onoff')) {
+        $message = Bot::getInstance()->createMsg('register', [
             'username' => $user['username'],
         ]);
-        Qwizi_DVZSB_Bot::getInstance()->shout($message);
+        Bot::getInstance()->shout($message);
     }
 }
 
@@ -294,24 +287,24 @@ function dvz_shoutbox_bot_thread(&$data)
 {
     dvz_shoutbox_bot_create_instance();
 
-    if (Qwizi_DVZSB_Bot::getInstance()->settings('thread_onoff')) {
+    if (Bot::getInstance()->settings('thread_onoff')) {
         $data = (array) $data;
 
         if ($data['return_values']['visible'] != -2) {
 
             $thread = get_thread($data['return_values']['tid']);
             $forum = get_forum($thread['fid']);
-            $forumIgnore = explode(",", Qwizi_DVZSB_Bot::getInstance()->settings('forum_ignore'));
+            $forumIgnore = explode(",", Bot::getInstance()->settings('forum_ignore'));
 
             if (!in_array($forum['fid'], $forumIgnore) && !in_array("-1", $forumIgnore)) {
 
                 $threadLink = get_thread_link($thread['tid']);
                 $threadTitle = htmlspecialchars_uni($thread['subject']);
-                $threadFullLink = Qwizi_DVZSB_Bot::getInstance()->createLink($threadLink, $threadTitle);
+                $threadFullLink = Bot::getInstance()->createLink($threadLink, $threadTitle);
 
                 $forumLink = get_forum_link($forum['fid']);
                 $forumTitle = htmlspecialchars_uni($forum['name']);
-                $forumFullLink = Qwizi_DVZSB_Bot::getInstance()->createLink($forumLink, $forumTitle);
+                $forumFullLink = Bot::getInstance()->createLink($forumLink, $forumTitle);
 
                 $post = get_post($data['return_values']['pid']);
 
@@ -329,7 +322,7 @@ function dvz_shoutbox_bot_thread(&$data)
                     $post['message'] = my_substr($post['message'], 0, 800) . '...';
                 }
 
-                $message = Qwizi_DVZSB_Bot::getInstance()->createMsg('thread', [
+                $message = Bot::getInstance()->createMsg('thread', [
                     'username' => $thread['username'],
                     'subject' => $threadFullLink,
                     'forum' => $forumFullLink,
@@ -338,7 +331,7 @@ function dvz_shoutbox_bot_thread(&$data)
                     'dateline' => $thread['dateline'],
                 ]);
 
-                Qwizi_DVZSB_Bot::getInstance()->shout($message);
+                Bot::getInstance()->shout($message);
             }
 
         }
@@ -349,18 +342,18 @@ function dvz_shoutbox_bot_post(&$data)
 {
     dvz_shoutbox_bot_create_instance();
 
-    if (Qwizi_DVZSB_Bot::getInstance()->settings('post_onoff')) {
+    if (Bot::getInstance()->settings('post_onoff')) {
         $data = (array) $data;
 
         $post = get_post($data['return_values']['pid']);
 
-        $forumIgnore = explode(",", Qwizi_DVZSB_Bot::getInstance()->settings('forum_ignore'));
+        $forumIgnore = explode(",", Bot::getInstance()->settings('forum_ignore'));
 
         if (!in_array($post['fid'], $forumIgnore) && !in_array("-1", $forumIgnore)) {
             $postLink = get_post_link($post['pid'], $post['tid']);
             $postLinkPid = $postLink . '#pid' . $post['pid'];
             $postTitle = htmlspecialchars_uni($post['subject']);
-            $postFullLink = Qwizi_DVZSB_Bot::getInstance()->createLink($postLinkPid, $postTitle);
+            $postFullLink = Bot::getInstance()->createLink($postLinkPid, $postTitle);
 
             require_once MYBB_ROOT . "inc/class_parser.php";
             $parser = new postParser;
@@ -376,7 +369,7 @@ function dvz_shoutbox_bot_post(&$data)
                 $post['message'] = my_substr($post['message'], 0, 800) . '...';
             }
 
-            $message = Qwizi_DVZSB_Bot::getInstance()->createMsg('post', [
+            $message = Bot::getInstance()->createMsg('post', [
                 'username' => $post['username'],
                 'subject' => $postFullLink,
                 'message' => $post['message'],
@@ -384,35 +377,33 @@ function dvz_shoutbox_bot_post(&$data)
                 'dateline' => $post['dateline'],
             ]);
 
-            Qwizi_DVZSB_Bot::getInstance()->shout($message);
+            Bot::getInstance()->shout($message);
         }
     }
 }
 
 function dvz_shoutbox_bot_shout_commit(&$data)
 {
-    global $PL;
-    $PL or require_once PLUGINLIBRARY;
     dvz_shoutbox_bot_create_instance();
 
-    if (Qwizi_DVZSB_Bot::getInstance()->settings('commands_onoff')) {
-
+    if (Bot::getInstance()->settings('commands_onoff')) {
+        $PL = Bot::getInstance()->getPL();
         $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
         $commandsArray = $pluginCache['commands'];
 
         if (!empty($commandsArray)) {
-            foreach ($commandsArray as $index => $key) {
+            foreach ($commandsArray as &$command) {
 
-                if ($key['activated'] == 1) {
+                if ($command['activated'] == 1) {
 
-                    $data['command'] = $key['command'];
+                    $data['command'] = $command['command'];
 
-                    $class = 'Qwizi_DVZSB_Commands_';
-                    $commandClass = $class . ucfirst($key['tag']);
+                    $nameSpace = 'Qwizi\\DVZSB\\Commands\\';
+                    $commandClassName = $nameSpace . ucfirst($command['tag']);
 
-                    $command = new $commandClass(Qwizi_DVZSB_Bot::getInstance());
-                    $command->doAction($data);
+                    $commandClass = new $commandClassName(Bot::getInstance());
+                    $commandClass->doAction($data);
                 }
             }
         }
@@ -421,18 +412,23 @@ function dvz_shoutbox_bot_shout_commit(&$data)
 
 function dvz_shoutbox_bot_index()
 {
-    global $PL;
-    $PL or require_once PLUGINLIBRARY;
     dvz_shoutbox_bot_create_instance();
-    /* $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+    $PL = Bot::getInstance()->getPL();
 
-    $commandsArray = $pluginCache['commands']; */
+    $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+
+    $commandsArray = $pluginCache['commands'];
+
+/*     $key = array_search('test', array_column($commandsArray, 'tag'));
+    unset($commandsArray[$key]); 
+    print_r($key);
+    print_r($commandsArray);*/
 }
 
 function dvz_shoutbox_bot_create_instance()
 {
-    global $mybb, $db, $PL;
+    global $mybb, $db, $PL, $bot;
     $PL or require_once PLUGINLIBRARY;
 
-    Qwizi_DVZSB_Bot::createInstance($mybb, $db, $PL);
+    $bot = Bot::createInstance($mybb, $db, $PL);
 }
