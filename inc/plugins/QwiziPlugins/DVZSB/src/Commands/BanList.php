@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace Qwizi\DVZSB\Commands;
 
@@ -7,30 +7,33 @@ class BanList extends Base
 {
     public function doAction(array $data): void
     {
-        if ($this->bot->accessMod()) {
-            if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
-                $mybb = $this->bot->getMybb();
-                $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
+        if (!$this->bot->accessMod()) {
+            return;
+        }
 
-                if (in_array('', $explodeBannedUsers)) {
-                    $this->error = "Brak zbanowanych użytkowników";
-                } else {
-                    $usernamesArray = [];
+        if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
+            $mybb = $this->bot->getMybb();
+            $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
-                    for ($i = 0; $i < count($explodeBannedUsers); $i++) {
-                        array_push($usernamesArray, $this->bot->getUserInfoFromUid((int)$explodeBannedUsers[$i]));
-                    }
+            if (in_array('', $explodeBannedUsers)) {
+                $this->error = "Brak zbanowanych użytkowników";
+            } else {
+                $usernamesArray = [];
 
-                    foreach ($usernamesArray as $index) {
-                        $usernames[] = "@\"{$index['username']}\"";
-                    }
-                    $implode = implode(", ", $usernames);
+                for ($i = 0; $i < count($explodeBannedUsers); $i++) {
+                    array_push($usernamesArray, $this->bot->getUserInfoFromUid((int) $explodeBannedUsers[$i]));
                 }
 
-                $this->message = "Zbanowani: {$implode}";
-
-                $this->shout();
+                foreach ($usernamesArray as $index) {
+                    $usernames[] = "@\"{$index['username']}\"";
+                }
+                $implode = implode(", ", $usernames);
             }
+
+            $this->message = "Zbanowani: {$implode}";
+
+            $this->shout();
         }
     }
+
 }
