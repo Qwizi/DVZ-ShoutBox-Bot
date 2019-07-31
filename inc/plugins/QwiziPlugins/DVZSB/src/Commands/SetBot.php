@@ -19,7 +19,7 @@ class SetBot extends Base
                     $db->update_query('settings', ['value' => $db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
                 }
 
-                $this->rebuildSettings();
+                $this->bot->rebuildSettings();
 
                 $this->message = "@\"{$user['username']}\" zmienił konto bota na @\"{$target['username']}\"";
 
