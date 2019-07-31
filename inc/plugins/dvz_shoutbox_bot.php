@@ -48,6 +48,12 @@ function dvz_shoutbox_bot_info()
 function dvz_shoutbox_bot_install()
 {
     global $db, $PL, $lang, $cache;
+
+    if (!file_exists(PLUGINLIBRARY)) {
+        flash_message("PluginLibrary is missing.", "error");
+        admin_redirect("index.php?module=config-plugins");
+    }
+
     $PL or require_once PLUGINLIBRARY;
 
     $lang->load('dvz_shoutbox_bot');
@@ -213,6 +219,12 @@ function dvz_shoutbox_bot_install()
 function dvz_shoutbox_bot_uninstall()
 {
     global $db, $PL;
+
+    if (!file_exists(PLUGINLIBRARY)) {
+        flash_message("PluginLibrary is missing.", "error");
+        admin_redirect("index.php?module=config-plugins");
+    }
+
     $PL or require_once PLUGINLIBRARY;
 
     $PL->settings_delete('dvz_sb_bot', true);
@@ -420,9 +432,9 @@ function dvz_shoutbox_bot_index()
     $commandsArray = $pluginCache['commands'];
 
 /*     $key = array_search('test', array_column($commandsArray, 'tag'));
-    unset($commandsArray[$key]); 
-    print_r($key);
-    print_r($commandsArray);*/
+unset($commandsArray[$key]);
+print_r($key);
+print_r($commandsArray);*/
 }
 
 function dvz_shoutbox_bot_create_instance()
