@@ -18,7 +18,7 @@ class BanList extends Base
                     $usernamesArray = [];
 
                     for ($i = 0; $i < count($explodeBannedUsers); $i++) {
-                        array_push($usernamesArray, $this->bot->getUserInfoFromUid($explodeBannedUsers[$i]));
+                        array_push($usernamesArray, $this->bot->getUserInfoFromUid((int)$explodeBannedUsers[$i]));
                     }
 
                     foreach ($usernamesArray as $index) {

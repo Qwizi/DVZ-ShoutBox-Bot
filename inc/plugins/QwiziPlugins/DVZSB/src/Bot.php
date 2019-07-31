@@ -255,13 +255,13 @@ class Bot
         return $message;
     }
 
-    public function getUserInfoFromUsername(string $username)
+    public function getUserInfoFromUsername($username)
     {
         $db = $this->getDB();
         return $db->fetch_array($db->simple_select('users', "*", 'username="' . $username . '"'));
     }
 
-    public function getUserInfoFromUid(int $uid)
+    public function getUserInfoFromUid($uid)
     {
         $db = $this->getDB();
         $user = $db->fetch_array($db->simple_select('users', "*", 'uid="' . $uid . '"'));

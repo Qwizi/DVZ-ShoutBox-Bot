@@ -26,7 +26,6 @@ class UnBan extends Base
                             }
                             $implodeBannedUsers = implode(",", $explodeBannedUsers);
                             $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
-                            $this->rebuildSettings();
                         } else {
                             $this->error = "Uzytkownik nie posiada bana";
                         }
@@ -34,6 +33,8 @@ class UnBan extends Base
                         $this->error = "Nie możesz sam siebie odbanować";
                     }
                 }
+
+                $this->bot->rebuildSettings();
 
                 $this->message = "@\"{$user['username']}\" odbanował użytkownika @\"{$target['username']}\"";
 

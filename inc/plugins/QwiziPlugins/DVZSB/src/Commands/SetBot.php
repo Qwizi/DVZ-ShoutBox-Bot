@@ -17,8 +17,9 @@ class SetBot extends Base
                     $this->error = "Nie znaleziono użytkownika";
                 } else {
                     $db->update_query('settings', ['value' => $db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
-                    $this->rebuildSettings();
                 }
+
+                $this->rebuildSettings();
 
                 $this->message = "@\"{$user['username']}\" zmienił konto bota na @\"{$target['username']}\"";
 
