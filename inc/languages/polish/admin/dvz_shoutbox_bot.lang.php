@@ -27,6 +27,25 @@ $l['bot_post_desc'] = 'Określa, czy bot ma wysyłać wiadomość na czacie, je�
 $l['bot_post_message_title'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy post';
 $l['bot_post_message_desc'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login. A <b>{subject}</b>, aby pobrać tytuł postu.';
 $l['bot_post_message_example'] = 'Nowy post - {subject}. Napisany przez {username}';
+//TODO dodać langi poniższe do /english
+$l['bot_commands_onoff_title'] = 'Komendy włączone/wyłączone';
+$l['bot_commands_onoff_desc'] = 'Określa, czy komendy mają być włączone';
+$l['bot_commands_prefix_title'] = 'Prefix do komend';
+$l['bot_commands_prefix_desc'] = 'Określa prefix do komend';
+$l['bot_commandsData_ban_name'] = 'Ban';
+$l['bot_commandsData_ban_desc'] = 'Komenda ta pozwala banować użytkowników';
+$l['bot_commandsData_unBan_name'] = 'UnBan';
+$l['bot_commandsData_unBan_desc'] = 'Komenda ta pozwala zdejmować blokady użytkowników';
+$l['bot_commandsData_banList_name'] = 'Lista banów';
+$l['bot_commandsData_banList_desc'] = 'Komenda ta pokazuje aktualnie kto jest zbanowany';
+$l['bot_commandsData_prune_name'] = 'Prune';
+$l['bot_commandsData_prune_desc'] = 'Komenda ta pozwala na usuwanie wpisów';
+$l['bot_commandsData_setBot_name'] = 'Set Bot';
+$l['bot_commandsData_setBot_desc'] = 'Komenda ta pozwala na ustawienie konta bota';
+$l['bot_commandsData_help_name'] = 'Help';
+$l['bot_commandsData_help_desc'] = 'Lista komend';
+$l['bot_commandsData_steamID64_desc'] = 'Konwertuje steamid32 do steamid64';
+$l['bot_commandsData_steamID32_desc'] = 'Konwertuje steamid64 do steamid32';
 
 
 $l['bot_panel_view_title'] = 'Widok';
