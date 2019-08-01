@@ -49,6 +49,9 @@ $l['bot_commandsData_steamID32_desc'] = 'Konwertuje steamid64 do steamid32';
 //SetBot.php
 $l['bot_setbot_error_empty_user'] = "Nie znaleziono użytkownika";
 $l['bot_setbot_message_success'] = " zmienił konto bota na ";
+//Prune.php
+$l['bot_prune_all_message'] = "Czat został wyczyszczony.";
+$l['bot_prune_message_user_success'] = " usunął wiadomości użytkownika ";
 
 $l['bot_panel_view_title'] = 'Widok';
 $l['bot_panel_view_desc'] = 'Zarządzaj wiadomościami';

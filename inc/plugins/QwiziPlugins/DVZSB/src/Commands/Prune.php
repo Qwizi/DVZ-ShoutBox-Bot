@@ -7,12 +7,15 @@ class Prune extends Base
 {
     public function doAction(array $data): void
     {
+        global $lang; //TODO: Qwizi fix it
         if (!$this->bot->accessMod()) {
             return;
         }
 
         if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
             $this->bot->delete();
+            $this->message = $lang->bot_prune_all_message;
+            $this->shout();
         }
 
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
@@ -23,7 +26,7 @@ class Prune extends Base
 
             $this->bot->delete("uid={$target['uid']}");
 
-            $this->message = "@\"{$user['username']}\" usunął wiadomości użytkownika @\"{$target['username']}\"";
+            $this->message = "@\"{$user['username']}\"" . $lang->bot_prune_message_user_success . "@\"{$target['username']}\"";
 
             $this->shout();
         }

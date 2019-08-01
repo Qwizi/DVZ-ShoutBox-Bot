@@ -7,7 +7,7 @@ class SetBot extends Base
 {
     public function doAction(array $data): void
     {
-        global $lang;
+        global $lang; //TODO: Qwizi fix it
         if (!$this->bot->accessMod()) {
             return;
         }
@@ -26,7 +26,6 @@ class SetBot extends Base
             $this->bot->rebuildSettings();
 
             $this->message = "@\"{$user['username']}\"" . $lang->bot_setbot_message_success . "@\"{$target['username']}\"";
-
             $this->shout();
         }
     }
