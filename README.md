@@ -2,6 +2,7 @@
 DVZ ShoutBox Bot
 
 Version: 1.5.0
+
 Authors: Qwizi, Poftorek
 # General:
 Bot sending messages on chat if user will register or write new thread/post. Responds to commands.
