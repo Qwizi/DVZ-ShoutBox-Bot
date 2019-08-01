@@ -47,7 +47,7 @@ function dvz_shoutbox_bot_info()
 
 function dvz_shoutbox_bot_install()
 {
-    global $db, $PL, $lang, $cache;
+    global $db, $PL, $lang;
 
     if (!file_exists(PLUGINLIBRARY)) {
         flash_message("PluginLibrary is missing.", "error");
