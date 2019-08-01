@@ -7,6 +7,7 @@ class SetBot extends Base
 {
     public function doAction(array $data): void
     {
+        global $lang;
         if (!$this->bot->accessMod()) {
             return;
         }
@@ -17,14 +18,14 @@ class SetBot extends Base
             $db = $this->bot->getDB();
 
             if (empty($target)) {
-                $this->error = "Nie znaleziono użytkownika";
+                $this->error = $lang->bot_setbot_error_empty_user;
             } else {
                 $db->update_query('settings', ['value' => $db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
             }
 
             $this->bot->rebuildSettings();
 
-            $this->message = "@\"{$user['username']}\" zmienił konto bota na @\"{$target['username']}\"";
+            $this->message = "@\"{$user['username']}\"" . $lang->bot_setbot_message_success . "@\"{$target['username']}\"";
 
             $this->shout();
         }

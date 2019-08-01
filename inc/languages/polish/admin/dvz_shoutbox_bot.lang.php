@@ -40,13 +40,15 @@ $l['bot_commandsData_banList_name'] = 'Lista banów';
 $l['bot_commandsData_banList_desc'] = 'Komenda ta pokazuje aktualnie kto jest zbanowany';
 $l['bot_commandsData_prune_name'] = 'Prune';
 $l['bot_commandsData_prune_desc'] = 'Komenda ta pozwala na usuwanie wpisów';
-$l['bot_commandsData_setBot_name'] = 'Set Bot';
+$l['bot_commandsData_setBot_name'] = 'SetBot';
 $l['bot_commandsData_setBot_desc'] = 'Komenda ta pozwala na ustawienie konta bota';
 $l['bot_commandsData_help_name'] = 'Help';
 $l['bot_commandsData_help_desc'] = 'Lista komend';
 $l['bot_commandsData_steamID64_desc'] = 'Konwertuje steamid32 do steamid64';
 $l['bot_commandsData_steamID32_desc'] = 'Konwertuje steamid64 do steamid32';
-
+//SetBot.php
+$l['bot_setbot_error_empty_user'] = "Nie znaleziono użytkownika";
+$l['bot_setbot_message_success'] = " zmienił konto bota na ";
 
 $l['bot_panel_view_title'] = 'Widok';
 $l['bot_panel_view_desc'] = 'Zarządzaj wiadomościami';
