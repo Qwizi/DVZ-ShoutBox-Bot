@@ -7,9 +7,12 @@ class Help extends Base
 {
     public function doAction(array $data): void
     {
-        global $lang;
         if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
             $PL = $this->bot->getPL();
+            $lang = $this->bot->getLang();
+
+            $lang->load('dvz_shoutbox_bot');
+
             $commandPrefix = $this->bot->settings('commands_prefix');
 
             $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
@@ -26,6 +29,7 @@ class Help extends Base
             }
 
             $this->message = $command;
+            
             $this->shout();
         }
     }

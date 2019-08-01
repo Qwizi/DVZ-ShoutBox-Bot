@@ -17,9 +17,11 @@ class SteamID64 extends Base
 
     public function doAction(array $data): void
     {
-        global $lang;
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
             $target = $matches[1];
+            $lang = $this->bot->getLang();
+
+            $lang->load('dvz_shoutbox_bot');
 
             if (isset($target) && !empty($target)) {
                 if (strpos($target, 'STEAM') === false) {
@@ -33,7 +35,7 @@ class SteamID64 extends Base
             }
 
             $this->message = "SteamID64 -> {$steamid}";
-
+            
             $this->shout();
         }
     }

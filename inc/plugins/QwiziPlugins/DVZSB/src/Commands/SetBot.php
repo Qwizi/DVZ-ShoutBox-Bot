@@ -7,7 +7,6 @@ class SetBot extends Base
 {
     public function doAction(array $data): void
     {
-        global $lang;
         if (!$this->bot->accessMod()) {
             return;
         }
@@ -16,6 +15,9 @@ class SetBot extends Base
             $user = $this->bot->getUserInfoFromUid($data['uid']);
             $target = $this->bot->getUserInfoFromUsername($matches[1]);
             $db = $this->bot->getDB();
+            $lang = $this->bot->getLang();
+
+            $lang->load('dvz_shoutbox_bot');
 
             if (empty($target)) {
                 $this->error = $lang->bot_setbot_error_empty_user;
@@ -25,7 +27,10 @@ class SetBot extends Base
 
             $this->bot->rebuildSettings();
 
-            $this->message = "@\"{$user['username']}\"" . $lang->bot_setbot_message_success . "@\"{$target['username']}\"";
+            $lang->bot_setbot_message_success = $lang->sprintf($lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+
+            $this->message = $lang->bot_setbot_message_success;
+            
             $this->shout();
         }
     }

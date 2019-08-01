@@ -7,7 +7,6 @@ class Ban extends Base
 {
     public function doAction(array $data): void
     {
-        global $lang;
         if (!$this->bot->accessMod()) {
             return;
         }
@@ -17,6 +16,9 @@ class Ban extends Base
             $user = $this->bot->getUserInfoFromUid((int) $data['uid']);
             $mybb = $this->bot->getMybb();
             $db = $this->bot->getDB();
+            $lang = $this->bot->getLang();
+
+            $lang->load('dvz_shoutbox_bot');
 
             if (empty($target)) {
                 $this->error = $lang->bot_ban_error_empty_user;
@@ -43,7 +45,10 @@ class Ban extends Base
 
             $this->bot->rebuildSettings();
 
-            $this->message = "@\"{$user['username']}\"" . $lang->bot_ban_message_success . "@\"{$target['username']}\"";
+            $lang->bot_ban_message_success = $lang->sprintf($lang->bot_ban_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+
+            $this->message = $lang->bot_ban_message_success;
+            
             $this->shout();
         }
     }

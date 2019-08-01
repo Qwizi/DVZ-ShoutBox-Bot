@@ -7,13 +7,16 @@ class BanList extends Base
 {
     public function doAction(array $data): void
     {
-        global $lang;
         if (!$this->bot->accessMod()) {
             return;
         }
 
         if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
             $mybb = $this->bot->getMybb();
+            $lang = $this->bot->getLang();
+
+            $lang->load('dvz_shoutbox_bot');
+
             $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
             if (in_array('', $explodeBannedUsers)) {
@@ -31,7 +34,10 @@ class BanList extends Base
                 $implode = implode(", ", $usernames);
             }
 
-            $this->message = $lang->bot_banlist_list_banned . "{$implode}";
+            $lang->bot_banlist_list_banned = $lang->sprintf($lang->bot_banlist_list_banned, $implode);
+
+            $this->message = $lang->bot_banlist_list_banned;
+
             $this->shout();
         }
     }

@@ -5,29 +5,32 @@ namespace Qwizi\DVZSB;
 
 use DB_Base;
 use MyBB;
+use MyLanguage;
 
 class Bot
 {
     private static $instance = null;
     private $mybb;
     private $db;
+    private $lang;
     private $PL;
     private $tableName = 'dvz_shoutbox';
     private $settingsGroupName = 'dvz_sb_bot';
     private $botID;
 
-    public function __construct(Mybb $mybb, DB_Base $db, $PL)
+    public function __construct(Mybb $mybb, DB_Base $db, MyLanguage $lang, $PL)
     {
         $this->mybb = $mybb;
         $this->db = $db;
+        $this->lang = $lang;
         $this->PL = $PL;
         $this->botID = (int) $this->mybb->settings['dvz_sb_bot_id'];
     }
 
-    public static function createInstance(Mybb $mybb, DB_BASE $db, $PL)
+    public static function createInstance(Mybb $mybb, DB_BASE $db, MyLanguage $lang, $PL)
     {
         if (static::$instance === null) {
-            static::$instance = new self($mybb, $db, $PL);
+            static::$instance = new self($mybb, $db, $lang, $PL);
         }
         return static::$instance;
     }
@@ -53,6 +56,11 @@ class Bot
     public function getPL()
     {
         return $this->PL;
+    }
+
+    public function getLang()
+    {
+        return $this->lang;
     }
 
     public function getTableName(): string

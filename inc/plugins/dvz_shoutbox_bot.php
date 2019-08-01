@@ -430,7 +430,8 @@ function dvz_shoutbox_bot_index()
     $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
     $commandsArray = $pluginCache['commands'];
-
+    $lang = Bot::getInstance()->getLang();
+    print_r($lang->load('dvz_shoutbox_bot'));
 /*     $key = array_search('test', array_column($commandsArray, 'tag'));
 unset($commandsArray[$key]);
 print_r($key);
@@ -439,8 +440,8 @@ print_r($commandsArray);*/
 
 function dvz_shoutbox_bot_create_instance()
 {
-    global $mybb, $db, $PL, $bot;
+    global $mybb, $db, $lang, $PL, $bot;
     $PL or require_once PLUGINLIBRARY;
 
-    $bot = Bot::createInstance($mybb, $db, $PL);
+    $bot = Bot::createInstance($mybb, $db, $lang, $PL);
 }

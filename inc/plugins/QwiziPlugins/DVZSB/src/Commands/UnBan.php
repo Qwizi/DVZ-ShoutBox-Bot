@@ -7,7 +7,6 @@ class UnBan extends Base
 {
     public function doAction(array $data): void
     {
-        global $lang;
         if (!$this->bot->accessMod()) {
             return;
         }
@@ -18,6 +17,10 @@ class UnBan extends Base
 
             $mybb = $this->bot->getMybb();
             $db = $this->bot->getDB();
+            $lang = $this->bot->getLang();
+
+            $lang->load('dvz_shoutbox_bot');
+
             $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
             if (empty($target)) {
@@ -39,8 +42,10 @@ class UnBan extends Base
             }
 
             $this->bot->rebuildSettings();
+            
+            $lang->bot_unban_message_success = $lang->sprintf($lang->bot_unban_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
 
-            $this->message = "@\"{$user['username']}\"" . $lang->bot_unban_message_success . "@\"{$target['username']}\"";
+            $this->message = $lang->bot_unban_message_success;
             $this->shout();
         }
     }

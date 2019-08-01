@@ -10,6 +10,9 @@ if (!defined("PLUGINLIBRARY")) {
 
 define("MODULE_LINK", 'index.php?module=user-dvz-shoutbox-bot');
 
+$lang->load('dvz_shoutbox_bot');
+
+// TODO Poftorek możesz używać tutaj langów teraz
 $page->add_breadcrumb_item('Komendy', MODULE_LINK);
 
 if ($mybb->input['action'] == 'add' || !$mybb->input['action']) {
