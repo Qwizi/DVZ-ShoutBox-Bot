@@ -58,7 +58,7 @@ $l['bot_ban_error_multiban_user'] = "Nie możesz ponownie zbanować tego uzytkow
 $l['bot_ban_error_ban_myself'] = "Nie możesz sam siebie zbanować";
 $l['bot_ban_message_success'] = " zbanował użytkownika ";
 //BanList.php
-$['bot_banlist_empty_list'] = "Brak zbanowanych użytkowników";
+$l['bot_banlist_empty_list'] = "Brak zbanowanych użytkowników";
 $l['bot_banlist_list_banned'] = "Zbanowani: ";
 //Help.php
 $l['bot_help_error'] = "Wystąpił problem.";
@@ -71,6 +71,8 @@ $l['bot_unban_message_success'] = " odbanował użytkownika ";
 $l['bot_steamid32_error'] = "Wystąpił problem.";
 //SteamID64.php
 $l['bot_steamid64_error'] = "Wystąpił problem.";
+//admin/modules/user/dvz_shoutbox_bot.php
+
 
 $l['bot_panel_view_title'] = 'Widok';
 $l['bot_panel_view_desc'] = 'Zarządzaj wiadomościami';
