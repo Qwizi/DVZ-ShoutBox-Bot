@@ -17,18 +17,19 @@ class SteamID64 extends Base
 
     public function doAction(array $data): void
     {
+        global $lang;
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
             $target = $matches[1];
 
             if (isset($target) && !empty($target)) {
                 if (strpos($target, 'STEAM') === false) {
-                    $this->error = "Wystąpił'problem";
+                    $this->error = $lang->bot_steamid64_error;;
                 } else {
                     $steamid = $this->getCommunityFromID($target);
                 }
 
             } else {
-                $this->error = "Wystąpił'problem";
+                $this->error = $lang->bot_steamid64_error;;
             }
 
             $this->message = "SteamID64 -> {$steamid}";

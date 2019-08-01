@@ -7,7 +7,7 @@ class Prune extends Base
 {
     public function doAction(array $data): void
     {
-        global $lang; //TODO: Qwizi fix it
+        global $lang;
         if (!$this->bot->accessMod()) {
             return;
         }

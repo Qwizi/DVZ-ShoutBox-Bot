@@ -7,6 +7,7 @@ class Ban extends Base
 {
     public function doAction(array $data): void
     {
+        global $lang;
         if (!$this->bot->accessMod()) {
             return;
         }
@@ -18,7 +19,7 @@ class Ban extends Base
             $db = $this->bot->getDB();
 
             if (empty($target)) {
-                $this->error = "Nie znaleziono użytkownika";
+                $this->error = $lang->bot_ban_error_empty_user;
             } else {
                 $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
@@ -32,18 +33,17 @@ class Ban extends Base
 
                             $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
                         } else {
-                            $this->error = "Nie możesz ponownie zbanować tego uzytkownika";
+                            $this->error = $lang->bot_ban_error_multiban_user;
                         }
                     }
                 } else {
-                    $this->error = "Nie możesz sam siebie zbanować";
+                    $this->error = $lang->bot_ban_error_ban_myself;
                 }
             }
 
             $this->bot->rebuildSettings();
 
-            $this->message = "@\"{$user['username']}\" zbanował użytkownika @\"{$target['username']}\"";
-
+            $this->message = "@\"{$user['username']}\"" . $lang->bot_ban_message_success . "@\"{$target['username']}\"";
             $this->shout();
         }
     }

@@ -7,6 +7,7 @@ class BanList extends Base
 {
     public function doAction(array $data): void
     {
+        global $lang;
         if (!$this->bot->accessMod()) {
             return;
         }
@@ -16,7 +17,7 @@ class BanList extends Base
             $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
             if (in_array('', $explodeBannedUsers)) {
-                $this->error = "Brak zbanowanych użytkowników";
+                $this->error = $lang->bot_banlist_empty_list;
             } else {
                 $usernamesArray = [];
 
@@ -30,8 +31,7 @@ class BanList extends Base
                 $implode = implode(", ", $usernames);
             }
 
-            $this->message = "Zbanowani: {$implode}";
-
+            $this->message = $lang->bot_banlist_list_banned . "{$implode}";
             $this->shout();
         }
     }

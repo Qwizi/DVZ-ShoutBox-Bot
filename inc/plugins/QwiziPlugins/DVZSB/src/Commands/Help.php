@@ -7,6 +7,7 @@ class Help extends Base
 {
     public function doAction(array $data): void
     {
+        global $lang;
         if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
             $PL = $this->bot->getPL();
             $commandPrefix = $this->bot->settings('commands_prefix');
@@ -21,11 +22,10 @@ class Help extends Base
                     $command .= "{$commandPrefix}{$commandsArray[$i]['command']} - {$commandsArray[$i]['description']}\n";
                 }
             } else {
-                $this->error = "Wystąpił problem.";
+                $this->error = $lang->bot_help_error;
             }
 
             $this->message = $command;
-
             $this->shout();
         }
     }

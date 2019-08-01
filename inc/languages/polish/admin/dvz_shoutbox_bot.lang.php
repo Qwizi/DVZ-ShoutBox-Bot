@@ -27,7 +27,7 @@ $l['bot_post_desc'] = 'Określa, czy bot ma wysyłać wiadomość na czacie, je�
 $l['bot_post_message_title'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy post';
 $l['bot_post_message_desc'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login. A <b>{subject}</b>, aby pobrać tytuł postu.';
 $l['bot_post_message_example'] = 'Nowy post - {subject}. Napisany przez {username}';
-//TODO dodać langi poniższe do /english
+//TODO: dodać langi poniższe do /english
 $l['bot_commands_onoff_title'] = 'Komendy włączone/wyłączone';
 $l['bot_commands_onoff_desc'] = 'Określa, czy komendy mają być włączone';
 $l['bot_commands_prefix_title'] = 'Prefix do komend';
@@ -52,6 +52,25 @@ $l['bot_setbot_message_success'] = " zmienił konto bota na ";
 //Prune.php
 $l['bot_prune_all_message'] = "Czat został wyczyszczony.";
 $l['bot_prune_message_user_success'] = " usunął wiadomości użytkownika ";
+//Ban.php
+$l['bot_ban_error_empty_user'] = "Nie znaleziono użytkownika";
+$l['bot_ban_error_multiban_user'] = "Nie możesz ponownie zbanować tego uzytkownika";
+$l['bot_ban_error_ban_myself'] = "Nie możesz sam siebie zbanować";
+$l['bot_ban_message_success'] = " zbanował użytkownika ";
+//BanList.php
+$['bot_banlist_empty_list'] = "Brak zbanowanych użytkowników";
+$l['bot_banlist_list_banned'] = "Zbanowani: ";
+//Help.php
+$l['bot_help_error'] = "Wystąpił problem.";
+//UnBan.php
+$l['bot_unban_empty_user'] = "Nie znaleziono użytkownika.";
+$l['bot_unban_no_ban'] = "Użytkownik nie posiada bana.";
+$l['bot_unban_error_unban_myself'] = "Nie możesz siebie odbanować.";
+$l['bot_unban_message_success'] = " odbanował użytkownika ";
+//SteamID32.php
+$l['bot_steamid32_error'] = "Wystąpił problem.";
+//SteamID64.php
+$l['bot_steamid64_error'] = "Wystąpił problem.";
 
 $l['bot_panel_view_title'] = 'Widok';
 $l['bot_panel_view_desc'] = 'Zarządzaj wiadomościami';

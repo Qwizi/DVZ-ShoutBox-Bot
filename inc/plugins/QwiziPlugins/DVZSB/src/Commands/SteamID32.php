@@ -23,6 +23,7 @@ class SteamID32 extends Base
 
     public function doAction(array $data): void
     {
+        global $lang;
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
             $target = $matches[1];
 
@@ -30,11 +31,11 @@ class SteamID32 extends Base
                 if (strpos($target, 'STEAM') === false) {
                     $steamid = $this->getIDFromCommunity($target);
                 } else {
-                    $this->error = "Wystąpił'problem";
+                    $this->error = $lang->bot_steamid32_error;
                 }
 
             } else {
-                $this->error = "Wystąpił'problem";
+                $this->error = $lang->bot_steamid32_error;
             }
 
             $this->message = "SteamID32 -> {$steamid}";
