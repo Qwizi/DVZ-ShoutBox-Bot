@@ -6,6 +6,7 @@ namespace Qwizi\DVZSB;
 use DB_Base;
 use MyBB;
 use MyLanguage;
+use pluginSystem;
 
 class Bot
 {
@@ -13,24 +14,26 @@ class Bot
     private $mybb;
     private $db;
     private $lang;
+    private $plugins;
     private $PL;
     private $tableName = 'dvz_shoutbox';
     private $settingsGroupName = 'dvz_sb_bot';
     private $botID;
 
-    public function __construct(Mybb $mybb, DB_Base $db, MyLanguage $lang, $PL)
+    public function __construct(Mybb $mybb, DB_Base $db, MyLanguage $lang, PluginSystem $plugins, $PL)
     {
         $this->mybb = $mybb;
         $this->db = $db;
         $this->lang = $lang;
+        $this->plugins = $plugins;
         $this->PL = $PL;
         $this->botID = (int) $this->mybb->settings['dvz_sb_bot_id'];
     }
 
-    public static function createInstance(Mybb $mybb, DB_BASE $db, MyLanguage $lang, $PL)
+    public static function createInstance(Mybb $mybb, DB_BASE $db, MyLanguage $lang, PluginSystem $plugins, $PL)
     {
         if (static::$instance === null) {
-            static::$instance = new self($mybb, $db, $lang, $PL);
+            static::$instance = new self($mybb, $db, $lang, $plugins, $PL);
         }
         return static::$instance;
     }
@@ -71,6 +74,11 @@ class Bot
     public function getBotID(): int
     {
         return $this->botID;
+    }
+
+    public function getPlugins()
+    {
+        return $this->plugins;
     }
 
     public function getSettingsGroupName(): string

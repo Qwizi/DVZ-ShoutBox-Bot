@@ -27,6 +27,7 @@ class SteamID32 extends Base
     public function doAction(array $data): void
     {
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
+            $plugins = $this->bot->getPlugins();
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
@@ -50,6 +51,14 @@ class SteamID32 extends Base
             $this->message = "SteamID32 -> {$steamid}";
             
             $this->shout();
+
+            $this->returned_value = [
+                'tuid' => $target['uid'],
+                'message' => $this->message,
+                'error' => $this->error
+            ];
+
+            $plugins->run_hooks("dvz_shoutbox_bot_commands_steamid32_commit", $this->returned_value);
         }
     }
 }

@@ -18,8 +18,9 @@ class Ban extends Base
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
             $mybb = $this->bot->getMybb();
             $db = $this->bot->getDB();
-            $lang = $this->bot->getLang();
+            $plugins = $this->bot->getPlugins();
 
+            $lang = $this->bot->getLang();
             $lang->load('dvz_shoutbox_bot');
 
             try {
@@ -63,6 +64,15 @@ class Ban extends Base
             $this->message = $lang->bot_ban_message_success;
 
             $this->shout();
+
+            $this->returned_value = [
+                'uid' => $user['uid'],
+                'tuid' => $target['uid'],
+                'message' => $this->message,
+                'error' => $this->error
+            ];
+
+            $plugins->run_hooks("dvz_shoutbox_bot_commands_ban_commit", $this->returned_value);
         }
     }
 }

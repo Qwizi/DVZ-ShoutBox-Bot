@@ -10,6 +10,7 @@ abstract class Base
     public $bot;
     public $error;
     public $message;
+    public $returned_value = [];
 
     public function __construct(Bot $bot)
     {

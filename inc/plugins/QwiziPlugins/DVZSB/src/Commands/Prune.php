@@ -15,10 +15,15 @@ class Prune extends Base
         }
 
         if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
+            $plugins = $this->bot->getPlugins();
+
             $this->bot->delete();
+
+            $plugins->run_hooks("dvz_shoutbox_bot_commands_prune_all_commit");
         }
 
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
+            $plugins = $this->bot->getPlugins();
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
@@ -46,6 +51,15 @@ class Prune extends Base
             $this->message = $lang->bot_prune_message_user_success;
 
             $this->shout();
+
+            $this->returned_value = [
+                'uid' => $user['uid'],
+                'tuid' => $target['uid'],
+                'message' => $this->message,
+                'error' => $this->error
+            ];
+
+            $plugins->run_hooks("dvz_shoutbox_bot_commands_prune_commit", $this->returned_value);
         }
     }
 

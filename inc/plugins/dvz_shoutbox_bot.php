@@ -30,6 +30,8 @@ $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
 $plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit');
 $plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
 $plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
+// TODO TEST HOOKA OD KOMENDY
+// $plugins->add_hook('dvz_shoutbox_bot_commands_ban_commit', 'dvz_shoutbox_bot_commands_ban_commit');
 
 function dvz_shoutbox_bot_info()
 {
@@ -216,6 +218,7 @@ function dvz_shoutbox_bot_install()
         'version' => dvz_shoutbox_bot_info()['version'],
         'commands' => $commandsData,
     ]);
+
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -450,8 +453,8 @@ print_r($commandsArray);*/
 
 function dvz_shoutbox_bot_create_instance()
 {
-    global $mybb, $db, $lang, $PL, $bot;
+    global $mybb, $db, $lang, $plugins, $PL, $bot;
     $PL or require_once PLUGINLIBRARY;
 
-    $bot = Bot::createInstance($mybb, $db, $lang, $PL);
+    $bot = Bot::createInstance($mybb, $db, $lang, $plugins, $PL);
 }

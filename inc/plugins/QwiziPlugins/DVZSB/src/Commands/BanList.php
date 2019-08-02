@@ -15,6 +15,7 @@ class BanList extends Base
 
         if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
             $mybb = $this->bot->getMybb();
+            $plugins = $this->bot->getPlugins();
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
@@ -48,6 +49,14 @@ class BanList extends Base
             $this->message = $lang->bot_banlist_list_banned;
 
             $this->shout();
+
+            $this->returned_value = [
+                'banned' => $implode,
+                'message' => $this->message,
+                'error' => $this->error
+            ];
+
+            $plugins->run_hooks("dvz_shoutbox_bot_commands_banlist_commit", $this->returned_value);
         }
     }
 

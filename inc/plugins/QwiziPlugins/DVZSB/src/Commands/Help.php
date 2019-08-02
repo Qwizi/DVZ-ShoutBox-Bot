@@ -11,6 +11,7 @@ class Help extends Base
     {
         if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
             $PL = $this->bot->getPL();
+            $plugins = $this->bot->getPlugins();
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
@@ -38,6 +39,13 @@ class Help extends Base
             $this->message = $command;
 
             $this->shout();
+
+            $this->returned_value = [
+                'message' => $this->message,
+                'error' => $this->error
+            ];
+
+            $plugins->run_hooks("dvz_shoutbox_bot_commands_help_commit", $this->returned_value);
         }
     }
 }
