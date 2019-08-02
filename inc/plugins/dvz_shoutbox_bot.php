@@ -420,6 +420,9 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                         if (!class_exists($commandClassName)) {
                             throw new CommandNotFoundException('Class ' . $commandClassName . " not exists", 404);
                         }
+                        $commandClass = new $commandClassName(Bot::getInstance());
+                        $commandClass->doAction($data);
+                        
                     } catch (ApplicationException $e) {
                         echo 'Error message: ' . $e->getMessage();
                     }
