@@ -422,14 +422,9 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                         }
                         $commandClass = new $commandClassName(Bot::getInstance());
                         $commandClass->doAction($data);
-                        
+
                     } catch (ApplicationException $e) {
                         echo 'Error message: ' . $e->getMessage();
-                    }
-
-                    if (class_exists($commandClassName)) {
-                        $commandClass = new $commandClassName(Bot::getInstance());
-                        $commandClass->doAction($data);
                     }
                 }
             }
