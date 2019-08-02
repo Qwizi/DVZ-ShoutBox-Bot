@@ -3,6 +3,8 @@ declare (strict_types = 1);
 
 namespace Qwizi\DVZSB\Commands;
 
+use Qwizi\DVZSB\Exceptions\ApplicationException;
+
 class BanList extends Base
 {
     public function doAction(array $data): void
@@ -17,11 +19,15 @@ class BanList extends Base
 
             $lang->load('dvz_shoutbox_bot');
 
-            $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
+            try {
+                $this->bot->rebuildSettings();
+                
+                $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
-            if (in_array('', $explodeBannedUsers)) {
-                $this->error = $lang->bot_banlist_empty_list;
-            } else {
+                if (in_array('', $explodeBannedUsers)) {
+                    throw new ApplicationException($lang->bot_banlist_empty_list);
+                }
+
                 $usernamesArray = [];
 
                 for ($i = 0; $i < count($explodeBannedUsers); $i++) {
@@ -32,6 +38,9 @@ class BanList extends Base
                     $usernames[] = "@\"{$index['username']}\"";
                 }
                 $implode = implode(", ", $usernames);
+
+            } catch (ApplicationException $e) {
+                $this->error = $e->getMessage();
             }
 
             $lang->bot_banlist_list_banned = $lang->sprintf($lang->bot_banlist_list_banned, $implode);

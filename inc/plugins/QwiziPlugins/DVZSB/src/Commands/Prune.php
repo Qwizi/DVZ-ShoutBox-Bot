@@ -3,6 +3,9 @@ declare (strict_types = 1);
 
 namespace Qwizi\DVZSB\Commands;
 
+use Qwizi\DVZSB\Exceptions\ApplicationException;
+use Qwizi\DVZSB\Exceptions\UserNotFoundException;
+
 class Prune extends Base
 {
     public function doAction(array $data): void
@@ -16,15 +19,27 @@ class Prune extends Base
         }
 
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
-            $user = $this->bot->getUserInfoFromUid($data['uid']);
-            $target = $this->bot->getUserInfoFromUsername($matches[1]);
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
 
-            $this->bot->delete("id={$data['shout_id']}");
+            try {
+                $target = $this->bot->getUserInfoFromUsername($matches[1]);
+                $user = $this->bot->getUserInfoFromUid((int) $data['uid']);
 
-            $this->bot->delete("uid={$target['uid']}");
+                if (empty($target)) {
+                    throw new UserNotFoundException($lang->bot_ban_error_empty_user);
+                }
+
+                if (empty($user)) {
+                    throw new UserNotFoundException($lang->bot_ban_error_empty_user);
+                }
+
+                $this->bot->delete("uid={$target['uid']}");
+
+            } catch (ApplicationException $e) {
+                $this->error = $e->getMessage();
+            }
 
             $lang->bot_prune_message_user_success = $lang->sprintf($lang->bot_prune_message_user_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
 

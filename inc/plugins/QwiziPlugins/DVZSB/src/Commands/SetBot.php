@@ -3,6 +3,9 @@ declare (strict_types = 1);
 
 namespace Qwizi\DVZSB\Commands;
 
+use Qwizi\DVZSB\Exceptions\ApplicationException;
+use Qwizi\DVZSB\Exceptions\UserNotFoundException;
+
 class SetBot extends Base
 {
     public function doAction(array $data): void
@@ -12,20 +15,31 @@ class SetBot extends Base
         }
 
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
-            $user = $this->bot->getUserInfoFromUid($data['uid']);
-            $target = $this->bot->getUserInfoFromUsername($matches[1]);
+            
             $db = $this->bot->getDB();
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
 
-            if (empty($target)) {
-                $this->error = $lang->bot_setbot_error_empty_user;
-            } else {
-                $db->update_query('settings', ['value' => $db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
-            }
+            try {
+                $user = $this->bot->getUserInfoFromUid($data['uid']);
+                $target = $this->bot->getUserInfoFromUsername($matches[1]);
 
-            $this->bot->rebuildSettings();
+                if (empty($target)) {
+                    throw new UserNotFoundException($lang->bot_ban_error_empty_user);
+                }
+
+                if (empty($user)) {
+                    throw new UserNotFoundException($lang->bot_ban_error_empty_user);
+                }
+
+                $db->update_query('settings', ['value' => $db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
+
+                $this->bot->rebuildSettings();
+
+            } catch (ApplicationException $e) {
+                $this->error = $e->getMessage();
+            }
 
             $lang->bot_setbot_message_success = $lang->sprintf($lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
 

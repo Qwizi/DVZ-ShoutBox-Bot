@@ -3,6 +3,9 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
+use Qwizi\DVZSB\Exceptions\ApplicationException;
+use Qwizi\DVZSB\Exceptions\UserNotFoundException;
+
 class SteamID32 extends Base
 {
     private function getIDFromCommunity($id)
@@ -24,20 +27,24 @@ class SteamID32 extends Base
     public function doAction(array $data): void
     {
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
-            $target = $matches[1];
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
 
-            if (isset($target) && !empty($target)) {
-                if (strpos($target, 'STEAM') === false) {
-                    $steamid = $this->getIDFromCommunity($target);
-                } else {
-                    $this->error = $lang->bot_steamid32_error;
-                }
+            try {
+                $target = $this->bot->getUserInfoFromUsername($matches[1]);
 
-            } else {
-                $this->error = $lang->bot_steamid32_error;
+                if (empty($target)) {
+                    throw new UserNotFoundException($lang->bot_steamid32_error);
+                }
+                if (strpos($target, 'STEAM') === true) {
+                    throw new ApplicationException($lang->bot_steamid32_error);
+                }
+                
+                $steamid = $this->getIDFromCommunity($target);
+
+            } catch (ApplicationException $e) {
+                $this->error = $e->getMessage();
             }
 
             $this->message = "SteamID32 -> {$steamid}";

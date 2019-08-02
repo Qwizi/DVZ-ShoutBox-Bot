@@ -3,6 +3,10 @@ declare (strict_types = 1);
 
 namespace Qwizi\DVZSB\Commands;
 
+use Qwizi\DVZSB\Exceptions\ApplicationException;
+use Qwizi\DVZSB\Exceptions\CannotActionMyselfException;
+use Qwizi\DVZSB\Exceptions\UserNotFoundException;
+
 class UnBan extends Base
 {
     public function doAction(array $data): void
@@ -12,40 +16,50 @@ class UnBan extends Base
         }
 
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
-            $user = $this->bot->getUserInfoFromUid($data['uid']);
-            $target = $this->bot->getUserInfoFromUsername($matches[1]);
-
             $mybb = $this->bot->getMybb();
             $db = $this->bot->getDB();
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
 
-            $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
+            try {
+                $target = $this->bot->getUserInfoFromUsername($matches[1]);
+                $user = $this->bot->getUserInfoFromUid((int) $data['uid']);
+                $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
-            if (empty($target)) {
-                $this->error = $lang->bot_unban_empty_user;
-            } else {
-                if ($target['uid'] != $mybb->user['uid']) {
-                    if (in_array($target['uid'], $explodeBannedUsers)) {
-                        if (($key = array_search($target['uid'], $explodeBannedUsers)) !== false) {
-                            unset($explodeBannedUsers[$key]);
-                        }
-                        $implodeBannedUsers = implode(",", $explodeBannedUsers);
-                        $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
-                    } else {
-                        $this->error = $lang->bot_unban_no_ban;
-                    }
-                } else {
-                    $this->error = $lang->bot_unban_error_unban_myself;
+                if (empty($target)) {
+                    throw new UserNotFoundException($lang->bot_ban_error_empty_user);
                 }
+
+                if (empty($user)) {
+                    throw new UserNotFoundException($lang->bot_ban_error_empty_user);
+                }
+
+                if ($target['uid'] == $mybb->user['uid']) {
+                    throw new CannotActionMyselfException($lang->bot_ban_error_ban_myself);
+                }
+
+                if (!in_array($target['uid'], $explodeBannedUsers)) {
+                    throw new ApplicationException($lang->bot_unban_no_ban);
+                }
+
+                if (($key = array_search($target['uid'], $explodeBannedUsers)) !== false) {
+                    unset($explodeBannedUsers[$key]);
+                }
+                
+                $implodeBannedUsers = implode(",", $explodeBannedUsers);
+                $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
+
+                $this->bot->rebuildSettings();
+
+            } catch (ApplicationException $e) {
+                $this->error = $e->getMessage();
             }
 
-            $this->bot->rebuildSettings();
-            
             $lang->bot_unban_message_success = $lang->sprintf($lang->bot_unban_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
 
             $this->message = $lang->bot_unban_message_success;
+
             $this->shout();
         }
     }

@@ -1,7 +1,9 @@
 <?php
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace Qwizi\DVZSB\Commands;
+
+use Qwizi\DVZSB\Exceptions\ApplicationException;
 
 class Help extends Base
 {
@@ -13,23 +15,28 @@ class Help extends Base
 
             $lang->load('dvz_shoutbox_bot');
 
-            $commandPrefix = $this->bot->settings('commands_prefix');
+            try {
+                $commandPrefix = $this->bot->settings('commands_prefix');
 
-            $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
-            $commandsArray = $pluginCache['commands'];
+                $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+                $commandsArray = $pluginCache['commands'];
 
-            if (!empty($commandsArray)) {
+                if (empty($commandsArray)) {
+                    throw new ApplicationException($lang->bot_help_error);
+                }
+
                 $command = '';
                 for ($i = 0; $i < count($commandsArray); $i++) {
                     // [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]
                     $command .= "{$commandPrefix}{$commandsArray[$i]['command']} - {$commandsArray[$i]['description']}\n";
                 }
-            } else {
-                $this->error = $lang->bot_help_error;
+
+            } catch (ApplicationException $e) {
+                $this->error = $e->getMessage();
             }
 
             $this->message = $command;
-            
+
             $this->shout();
         }
     }
