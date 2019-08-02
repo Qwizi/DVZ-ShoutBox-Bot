@@ -3,7 +3,6 @@ declare (strict_types = 1);
 
 use Qwizi\Core\ClassLoader;
 use Qwizi\DVZSB\Bot;
-use Qwizi\DVZSB\Exceptions\ApplicationException;
 use Qwizi\DVZSB\Exceptions\CommandNotFoundException;
 
 defined('IN_MYBB') or die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
@@ -426,7 +425,7 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                         $commandClass = new $commandClassName(Bot::getInstance());
                         $commandClass->doAction($data);
 
-                    } catch (ApplicationException $e) {
+                    } catch (CommandNotFoundException $e) {
                         echo 'Error message: ' . $e->getMessage();
                     }
                 }
