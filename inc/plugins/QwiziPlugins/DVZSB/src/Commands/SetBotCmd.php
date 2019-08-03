@@ -6,7 +6,7 @@ namespace Qwizi\DVZSB\Commands;
 use Qwizi\DVZSB\Exceptions\ApplicationException;
 use Qwizi\DVZSB\Exceptions\UserNotFoundException;
 
-class Prune extends Base
+class SetBotCmd extends Base
 {
     public function pattern(string $commandData): string
     {
@@ -27,23 +27,17 @@ class Prune extends Base
             return;
         }
 
-        if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
-            $plugins = $this->bot->getPlugins();
-
-            $this->bot->delete();
-
-            $plugins->run_hooks("dvz_shoutbox_bot_commands_prune_all_commit");
-        }
-
         if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
+            
+            $db = $this->bot->getDB();
             $plugins = $this->bot->getPlugins();
             $lang = $this->bot->getLang();
 
             $lang->load('dvz_shoutbox_bot');
 
             try {
+                $user = $this->bot->getUserInfoFromUid($data['uid']);
                 $target = $this->bot->getUserInfoFromUsername($matches[1]);
-                $user = $this->bot->getUserInfoFromUid((int) $data['uid']);
 
                 if (empty($target)) {
                     throw new UserNotFoundException($lang->bot_ban_error_empty_user);
@@ -53,27 +47,28 @@ class Prune extends Base
                     throw new UserNotFoundException($lang->bot_ban_error_empty_user);
                 }
 
-                $this->bot->delete("uid={$target['uid']}");
+                $db->update_query('settings', ['value' => $db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
+
+                $this->bot->rebuildSettings();
 
             } catch (ApplicationException $e) {
                 $this->error = $e->getMessage();
             }
 
-            $lang->bot_prune_message_user_success = $lang->sprintf($lang->bot_prune_message_user_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+            $lang->bot_setbot_message_success = $lang->sprintf($lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
 
-            $this->message = $lang->bot_prune_message_user_success;
-
+            $this->message = $lang->bot_setbot_message_success;
+            
             $this->shout();
 
             $this->returned_value = [
                 'uid' => $user['uid'],
                 'tuid' => $target['uid'],
                 'message' => $this->message,
-                'error' => $this->error,
+                'error' => $this->error
             ];
 
-            $plugins->run_hooks("dvz_shoutbox_bot_commands_prune_commit", $this->returned_value);
+            $plugins->run_hooks("dvz_shoutbox_bot_commands_setbot_commit", $this->returned_value);
         }
     }
-
 }

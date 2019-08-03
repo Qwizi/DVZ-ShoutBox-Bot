@@ -402,7 +402,7 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                     $data['command'] = $command['command'];
 
                     $nameSpace = 'Qwizi\\DVZSB\\Commands\\';
-                    $commandClassName = $nameSpace . ucfirst($command['tag']);
+                    $commandClassName = $nameSpace . ucfirst($command['tag']).'Cmd';
 
                     try {
                         if (!class_exists($commandClassName)) {

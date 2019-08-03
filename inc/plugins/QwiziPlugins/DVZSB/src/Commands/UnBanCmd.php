@@ -7,7 +7,7 @@ use Qwizi\DVZSB\Exceptions\ApplicationException;
 use Qwizi\DVZSB\Exceptions\CannotActionMyselfException;
 use Qwizi\DVZSB\Exceptions\UserNotFoundException;
 
-class UnBan extends Base
+class UnBanCmd extends Base
 {
     public function pattern(string $commandData): string
     {

@@ -5,7 +5,7 @@ namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Exceptions\ApplicationException;
 
-class BanList extends Base
+class BanListCmd extends Base
 {
     public function pattern(string $commandData): string
     {

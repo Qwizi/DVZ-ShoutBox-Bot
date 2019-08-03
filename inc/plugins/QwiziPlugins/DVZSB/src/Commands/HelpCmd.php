@@ -6,7 +6,7 @@ namespace Qwizi\DVZSB\Commands;
 use Qwizi\DVZSB\Exceptions\ApplicationException;
 use Qwizi\DVZSB\Pagination;
 
-class Help extends Base
+class HelpCmd extends Base
 {
     public function pattern(string $commandData): string
     {
