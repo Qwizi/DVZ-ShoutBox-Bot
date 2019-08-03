@@ -7,6 +7,19 @@ use Qwizi\DVZSB\Exceptions\ApplicationException;
 
 class BanList extends Base
 {
+    public function pattern(string $commandData): string
+    {
+        /* $pattern = '/^\\' . $this->bot->settings('commands_prefix') . preg_quote($command) . '$/'; */
+
+        $command = $this->baseCommandPattern($commandData);
+
+        $pattern = '(' . $command . '|' . $command . '[\s]([0-9]+))';
+
+        $ReturnedPattern = '/^' . $pattern . '$/';
+
+        return $ReturnedPattern;
+    }
+    
     public function doAction(array $data): void
     {
         if (!$this->bot->accessMod()) {

@@ -8,6 +8,19 @@ use Qwizi\DVZSB\Exceptions\UserNotFoundException;
 
 class Prune extends Base
 {
+    public function pattern(string $commandData): string
+    {
+        /* $pattern = '/^\\' . $this->bot->settings('commands_prefix') . preg_quote($command) . '$/'; */
+
+        $command = $this->baseCommandPattern($commandData);
+
+        $pattern = '(' . $command . '|' . $command . '[\s]([0-9]+))';
+
+        $ReturnedPattern = '/^' . $pattern . '$/';
+
+        return $ReturnedPattern;
+    }
+
     public function doAction(array $data): void
     {
         if (!$this->bot->accessMod()) {
@@ -56,7 +69,7 @@ class Prune extends Base
                 'uid' => $user['uid'],
                 'tuid' => $target['uid'],
                 'message' => $this->message,
-                'error' => $this->error
+                'error' => $this->error,
             ];
 
             $plugins->run_hooks("dvz_shoutbox_bot_commands_prune_commit", $this->returned_value);

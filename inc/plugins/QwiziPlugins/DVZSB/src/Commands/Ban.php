@@ -9,13 +9,26 @@ use Qwizi\DVZSB\Exceptions\CannotActionMyselfException;
 
 class Ban extends Base
 {
+    public function pattern(string $commandData): string
+    {
+        /* $pattern = '/^\\' . $this->bot->settings('commands_prefix') . preg_quote($command) . '$/'; */
+
+        $command = $this->baseCommandPattern($commandData);
+
+        $pattern = '(' . $command . '|' . $command . '[\s]+(.*))';
+
+        $ReturnedPattern = '/^' . $pattern . '$/';
+
+        return $ReturnedPattern;
+    }
+
     public function doAction(array $data): void
     {
         if (!$this->bot->accessMod()) {
             return;
         }
 
-        if (preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/', $data['text'], $matches)) {
+        if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
             $mybb = $this->bot->getMybb();
             $db = $this->bot->getDB();
             $plugins = $this->bot->getPlugins();
@@ -24,7 +37,12 @@ class Ban extends Base
             $lang->load('dvz_shoutbox_bot');
 
             try {
-                $target = $this->bot->getUserInfoFromUsername($matches[1]);
+
+                if (empty($matches[2])) {
+                    throw new ApplicationException("Uzyj ".$this->getCommandPrefix().$data['command']." <nazwa_uzytkownika>");
+                }
+
+                $target = $this->bot->getUserInfoFromUsername($matches[2]);
                 $user = $this->bot->getUserInfoFromUid((int) $data['uid']);
                 $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
 

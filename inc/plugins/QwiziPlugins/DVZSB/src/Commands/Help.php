@@ -4,12 +4,26 @@ declare (strict_types = 1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Exceptions\ApplicationException;
+use Qwizi\DVZSB\Pagination;
 
 class Help extends Base
 {
+    public function pattern(string $commandData): string
+    {
+        /* $pattern = '/^\\' . $this->bot->settings('commands_prefix') . preg_quote($command) . '$/'; */
+
+        $command = $this->baseCommandPattern($commandData);
+
+        $pattern = '(' . $command . '|' . $command . '[\s]([0-9]+))';
+
+        $ReturnedPattern = '/^' . $pattern . '$/';
+
+        return $ReturnedPattern;
+    }
+
     public function doAction(array $data): void
     {
-        if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
+        if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
             $PL = $this->bot->getPL();
             $plugins = $this->bot->getPlugins();
             $lang = $this->bot->getLang();
@@ -26,10 +40,19 @@ class Help extends Base
                     throw new ApplicationException($lang->bot_help_error);
                 }
 
+
+                $pagination = new Pagination;
+
+                $paginationCommandsArray = $pagination->paginate($commandsArray, (int)$matches[2]);
+
+                if (empty($paginationCommandsArray)) {
+                    throw new ApplicationException($lang->bot_help_error);
+                }
+
                 $command = '';
-                for ($i = 0; $i < count($commandsArray); $i++) {
+                for ($i = 0; $i < count($paginationCommandsArray); $i++) {
                     // [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]
-                    $command .= "{$commandPrefix}{$commandsArray[$i]['command']} - {$commandsArray[$i]['description']}\n";
+                    $command .= "{$commandPrefix}{$paginationCommandsArray[$i]['command']} - {$paginationCommandsArray[$i]['description']}\n";
                 }
 
             } catch (ApplicationException $e) {
@@ -42,7 +65,7 @@ class Help extends Base
 
             $this->returned_value = [
                 'message' => $this->message,
-                'error' => $this->error
+                'error' => $this->error,
             ];
 
             $plugins->run_hooks("dvz_shoutbox_bot_commands_help_commit", $this->returned_value);

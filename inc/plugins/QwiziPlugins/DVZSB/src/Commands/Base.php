@@ -11,15 +11,22 @@ abstract class Base
     public $error;
     public $message;
     public $returned_value = [];
+    public $commandPrefix;
 
     public function __construct(Bot $bot)
     {
         $this->bot = $bot;
+        $this->commandPrefix = $this->bot->settings('commands_prefix');
     }
 
     public function getBot()
     {
         return $this->bot;
+    }
+
+    public function getCommandPrefix()
+    {
+        return $this->commandPrefix;
     }
 
     public function shout()
@@ -31,5 +38,12 @@ abstract class Base
         }
     }
 
+    public function baseCommandPattern(string $command): string
+    {
+        $pattern = "\\".$this->getCommandPrefix().preg_quote($command);
+        return $pattern;
+    }
+    
+    abstract protected function pattern(string $commandData): string;
     abstract protected function doAction(array $data): void;
 }

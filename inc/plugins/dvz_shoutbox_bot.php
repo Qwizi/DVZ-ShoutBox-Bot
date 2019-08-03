@@ -192,21 +192,7 @@ function dvz_shoutbox_bot_install()
             'command' => 'help',
             'description' => $lang->bot_commandsData_help_desc,
             'activated' => 1,
-        ],
-        [
-            'tag' => 'steamID64',
-            'name' => 'SteamID32 -> SteamID64',
-            'command' => 'steamid64',
-            'description' => $lang->bot_commandsData_steamID64_desc,
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'steamID32',
-            'name' => 'SteamID64 -> SteamID32',
-            'command' => 'steamid32',
-            'description' => $lang->bot_commandsData_steamID32_desc,
-            'activated' => 1,
-        ],
+        ]
     ];
 
     //! ADD COMMANDS
@@ -443,11 +429,9 @@ function dvz_shoutbox_bot_index()
 
     $commandsArray = $pluginCache['commands'];
     $lang = Bot::getInstance()->getLang();
-    print_r($lang->load('dvz_shoutbox_bot'));
-/*     $key = array_search('test', array_column($commandsArray, 'tag'));
-unset($commandsArray[$key]);
-print_r($key);
-print_r($commandsArray);*/
+    // "\\".$this->getCommandPrefix.preg_quote($command);
+    // print_r($commandsArray);
+    // print_r(preg_quote(Bot::getInstance()->settings('commands_prefix').'help'));
 }
 
 function dvz_shoutbox_bot_create_instance()
