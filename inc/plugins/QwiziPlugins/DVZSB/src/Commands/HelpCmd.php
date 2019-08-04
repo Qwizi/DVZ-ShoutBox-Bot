@@ -3,10 +3,11 @@ declare (strict_types = 1);
 
 namespace Qwizi\DVZSB\Commands;
 
+use Qwizi\DVZSB\Interfaces\CommandInterface;
 use Qwizi\DVZSB\Exceptions\ApplicationException;
 use Qwizi\DVZSB\Pagination;
 
-class HelpCmd extends Base
+class HelpCmd extends Base implements CommandInterface
 {
     public function pattern(string $commandData): string
     {
@@ -24,20 +25,17 @@ class HelpCmd extends Base
     public function doAction(array $data): void
     {
         if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
-            $PL = $this->bot->getPL();
-            $plugins = $this->bot->getPlugins();
-            $lang = $this->bot->getLang();
 
-            $lang->load('dvz_shoutbox_bot');
+            $this->lang->load('dvz_shoutbox_bot');
 
             try {
-                $commandPrefix = $this->bot->settings('commands_prefix');
+                $commandPrefix = $this->getCommandPrefix();
 
-                $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+                $pluginCache = $this->PL->cache_read('dvz_shoutbox_bot');
                 $commandsArray = $pluginCache['commands'];
 
                 if (empty($commandsArray)) {
-                    throw new ApplicationException($lang->bot_help_error);
+                    throw new ApplicationException($this->lang->bot_help_error);
                 }
 
 
@@ -46,7 +44,7 @@ class HelpCmd extends Base
                 $paginationCommandsArray = $pagination->paginate($commandsArray, (int)$matches[2]);
 
                 if (empty($paginationCommandsArray)) {
-                    throw new ApplicationException($lang->bot_help_error);
+                    throw new ApplicationException($this->lang->bot_help_error);
                 }
 
                 $command = '';
@@ -56,19 +54,19 @@ class HelpCmd extends Base
                 }
 
             } catch (ApplicationException $e) {
-                $this->error = $e->getMessage();
+                $this->setError($e->getMessage());
             }
 
-            $this->message = $command;
+            $this->setMessage($command);
 
-            $this->shout();
+            $this->send();
 
             $this->returned_value = [
-                'message' => $this->message,
-                'error' => $this->error,
+                'message' => $this->getMessage(),
+                'error' => $this->getError(),
             ];
 
-            $plugins->run_hooks("dvz_shoutbox_bot_commands_help_commit", $this->returned_value);
+            $this->plugins->run_hooks("dvz_shoutbox_bot_commands_help_commit", $this->returned_value);
         }
     }
 }

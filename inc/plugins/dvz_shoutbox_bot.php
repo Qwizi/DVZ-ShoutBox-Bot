@@ -14,12 +14,14 @@ defined('QWIZI_PLUGINS_CORE_PATH') || define('QWIZI_PLUGINS_CORE_PATH', __DIR__ 
 define('DVZSB_PLUGIN_PATH', __DIR__ . '/QwiziPlugins/DVZSB');
 
 require_once QWIZI_PLUGINS_CORE_PATH . '/src/ClassLoader.php';
+
 $classLoader = ClassLoader::getInstance();
 $classLoader->registerNamespace(
     'Qwizi\\DVZSB\\',
     DVZSB_PLUGIN_PATH . '/src/'
 );
 $classLoader->register();
+
 
 // TODO Usunąć hooka index_end
 $plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');

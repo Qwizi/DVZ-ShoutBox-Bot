@@ -3,9 +3,10 @@ declare (strict_types = 1);
 
 namespace Qwizi\DVZSB\Commands;
 
+use Qwizi\DVZSB\Interfaces\CommandInterface;
 use Qwizi\DVZSB\Exceptions\ApplicationException;
 
-class BanListCmd extends Base
+class BanListCmd extends Base implements CommandInterface
 {
     public function pattern(string $commandData): string
     {
@@ -13,7 +14,7 @@ class BanListCmd extends Base
 
         $command = $this->baseCommandPattern($commandData);
 
-        $pattern = '(' . $command . '|' . $command . '[\s]([0-9]+))';
+        $pattern = '(' . $command . ')';
 
         $ReturnedPattern = '/^' . $pattern . '$/';
 
@@ -22,30 +23,26 @@ class BanListCmd extends Base
     
     public function doAction(array $data): void
     {
-        if (!$this->bot->accessMod()) {
+        if (!$this->accessMod()) {
             return;
         }
-
-        if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
-            $mybb = $this->bot->getMybb();
-            $plugins = $this->bot->getPlugins();
-            $lang = $this->bot->getLang();
-
-            $lang->load('dvz_shoutbox_bot');
+        // $data['text'] == $this->bot->settings('commands_prefix') . $data['command']
+        if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
+            $this->lang->load('dvz_shoutbox_bot');
 
             try {
-                $this->bot->rebuildSettings();
+                $this->rebuildSettings();
                 
-                $explodeBannedUsers = explode(",", $mybb->settings['dvz_sb_blocked_users']);
+                $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
 
                 if (in_array('', $explodeBannedUsers)) {
-                    throw new ApplicationException($lang->bot_banlist_empty_list);
+                    throw new ApplicationException($this->lang->bot_banlist_empty_list);
                 }
 
                 $usernamesArray = [];
 
                 for ($i = 0; $i < count($explodeBannedUsers); $i++) {
-                    array_push($usernamesArray, $this->bot->getUserInfoFromUid((int) $explodeBannedUsers[$i]));
+                    array_push($usernamesArray, $this->getUserNameFromId((int) $explodeBannedUsers[$i]));
                 }
 
                 foreach ($usernamesArray as $index) {
@@ -54,22 +51,22 @@ class BanListCmd extends Base
                 $implode = implode(", ", $usernames);
 
             } catch (ApplicationException $e) {
-                $this->error = $e->getMessage();
+                $this->setError($e->getMessage());
             }
 
-            $lang->bot_banlist_list_banned = $lang->sprintf($lang->bot_banlist_list_banned, $implode);
+            $this->lang->bot_banlist_list_banned = $this->lang->sprintf($this->lang->bot_banlist_list_banned, $implode);
 
-            $this->message = $lang->bot_banlist_list_banned;
+            $this->setMessage($this->lang->bot_banlist_list_banned);
 
-            $this->shout();
+            $this->send();
 
             $this->returned_value = [
                 'banned' => $implode,
-                'message' => $this->message,
-                'error' => $this->error
+                'message' => $this->getMessage(),
+                'error' => $this->getError()
             ];
 
-            $plugins->run_hooks("dvz_shoutbox_bot_commands_banlist_commit", $this->returned_value);
+            $this->plugins->run_hooks("dvz_shoutbox_bot_commands_banlist_commit", $this->returned_value);
         }
     }
 
