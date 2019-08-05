@@ -15,7 +15,7 @@ class SetBotCmd extends Base implements CommandInterface
 
         $command = $this->baseCommandPattern($commandData);
 
-        $pattern = '(' . $command . '|' . $command . '[\s]([0-9]+))';
+        $pattern = '(' . $command . '|' . $command . '[\s](.*))';
 
         $ReturnedPattern = '/^' . $pattern . '$/';
 
@@ -32,8 +32,8 @@ class SetBotCmd extends Base implements CommandInterface
             $this->lang->load('dvz_shoutbox_bot');
 
             try {
-                $user = $this->getUserIdFromUsername($data['uid']);
-                $target = $this->getUserNameFromId($matches[2]);
+                $user = $this->getUserInfoFromId($data['uid']);
+                $target = $this->getUserInfoFromUsername($matches[2]);
 
                 if (empty($target)) {
                     throw new UserNotFoundException($this->lang->bot_ban_error_empty_user);

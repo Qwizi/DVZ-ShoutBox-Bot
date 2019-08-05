@@ -13,6 +13,7 @@ class Base
     private $commandPrefix;
     private $error;
     private $message;
+    private $sendMessage;
 
     protected $mybb;
     protected $db;
@@ -29,6 +30,7 @@ class Base
         $this->plugins = $this->bot->getPlugins();
         $this->PL = $this->bot->getPL();
         $this->commandPrefix = $this->bot->settings('commands_prefix');
+        $this->sendMessage = true;
     }
 
     public function getMessage()
@@ -56,16 +58,29 @@ class Base
         $this->error = $error;
     }
 
+    public function getSendMessage()
+    {
+        return $this->sendMessage;
+    }
+
+    public function setSendMessage(bool $value)
+    {
+        $this->sendMessage = $value;
+    }
+
     public function send(): void
     {
-        if (isset($this->error)) {
-            $this->bot->shout($this->error);
-        } else {
-            $this->bot->shout($this->message);
+        if ((bool) $this->getSendMessage())
+        {
+            if (isset($this->error)) {
+                $this->bot->shout($this->error);
+            } else {
+                $this->bot->shout($this->message);
+            }
         }
     }
 
-    public function deleteShout($where = ""): void
+    public function deleteShout($where = "")
     {
         $this->bot->delete($where);
     }
@@ -144,5 +159,15 @@ class Base
         $db = $this->db;
         $user = $db->fetch_array($db->simple_select('users', "username", 'uid="' . $uid . '"'));
         return $user;
+    }
+
+    public function getUserInfoFromUsername($username)
+    {
+        return $this->db->fetch_array($this->db->simple_select('users', '*', 'username="'.$username.'"'));
+    }
+
+    public function getUserInfoFromId($uid)
+    {
+        return $this->db->fetch_array($this->db->simple_select('users', '*', 'uid="' . $uid . '"'));
     }
 }

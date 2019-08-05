@@ -38,7 +38,6 @@ class HelpCmd extends Base implements CommandInterface
                     throw new ApplicationException($this->lang->bot_help_error);
                 }
 
-
                 $pagination = new Pagination;
 
                 $paginationCommandsArray = $pagination->paginate($commandsArray, (int)$matches[2]);
@@ -57,8 +56,11 @@ class HelpCmd extends Base implements CommandInterface
                 $this->setError($e->getMessage());
             }
 
-            $this->setMessage($command);
+            if ($command) {
+                $this->setMessage($command);
 
+            }
+            
             $this->send();
 
             $this->returned_value = [

@@ -16,7 +16,7 @@ class BanCmd extends Base implements CommandInterface
 
         $command = $this->baseCommandPattern($commandData);
 
-        $pattern = '(' . $command . '|' . $command . '[\s]+(.*))';
+        $pattern = '(' . $command . '|' . $command . '[\s](.*))';
 
         $ReturnedPattern = '/^' . $pattern . '$/';
 

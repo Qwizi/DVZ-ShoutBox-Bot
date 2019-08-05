@@ -1,5 +1,6 @@
 <?php
-declare (strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
@@ -15,7 +16,7 @@ class PruneCmd extends Base implements CommandInterface
 
         $command = $this->baseCommandPattern($commandData);
 
-        $pattern = '(' . $command . '|' . $command . '[\s]([0-9]+))';
+        $pattern = '(' . $command . '|' . $command . '[\s](.*))';
 
         $ReturnedPattern = '/^' . $pattern . '$/';
 
@@ -28,37 +29,36 @@ class PruneCmd extends Base implements CommandInterface
             return;
         }
 
-        /* if ($data['text'] == $this->bot->settings('commands_prefix') . $data['command']) {
-            $this->deleteShout();
-
-            $this->plugins->run_hooks("dvz_shoutbox_bot_commands_prune_all_commit");
-        } */
-        // preg_match('/^\\' . $this->bot->settings('commands_prefix') . preg_quote($data['command']) . '[\s]+(.*)$/'
         if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
 
             $this->lang->load('dvz_shoutbox_bot');
 
             try {
-                $target = $this->getUserIdFromUsername($matches[2]);
-                $user = $this->getUserNameFromId((int) $data['uid']);
+                $target = $this->getUserInfoFromUsername($matches[2]);
+                $user = $this->getUserInfoFromId((int) $data['uid']);
 
-                if (empty($target)) {
+                if (empty($matches[2])) {
                     $this->deleteShout();
+                    $this->plugins->run_hooks("dvz_shoutbox_bot_commands_prune_all_commit", $this->returned_value);
+                    $this->setSendMessage(false);
+                } else {
+                    if (empty($user)) {
+                        throw new UserNotFoundException($this->lang->bot_ban_error_empty_user);
+                    }
+
+                    if (empty($target)) {
+                        throw new UserNotFoundException($this->lang->bot_ban_error_empty_user);
+                    }
+
+                    $this->deleteShout("uid={$target['uid']}");
+                    $this->setSendMessage(true);
+                    $this->lang->bot_prune_message_user_success = $this->lang->sprintf($this->lang->bot_prune_message_user_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+
+                    $this->setMessage($this->lang->bot_prune_message_user_success);
                 }
-
-                if (empty($user)) {
-                    throw new UserNotFoundException($this->lang->bot_ban_error_empty_user);
-                }
-
-                $this->deleteShout("uid={$target['uid']}");
-
             } catch (ApplicationException $e) {
                 $this->setError($e->getMessage());
             }
-
-            $this->lang->bot_prune_message_user_success = $this->lang->sprintf($this->lang->bot_prune_message_user_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
-
-            $this->setMessage($this->lang->bot_prune_message_user_success);
 
             $this->send();
 
@@ -72,5 +72,4 @@ class PruneCmd extends Base implements CommandInterface
             $this->plugins->run_hooks("dvz_shoutbox_bot_commands_prune_commit", $this->returned_value);
         }
     }
-
 }

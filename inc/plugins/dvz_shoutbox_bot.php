@@ -431,9 +431,6 @@ function dvz_shoutbox_bot_index()
 
     $commandsArray = $pluginCache['commands'];
     $lang = Bot::getInstance()->getLang();
-    // "\\".$this->getCommandPrefix.preg_quote($command);
-    // print_r($commandsArray);
-    // print_r(preg_quote(Bot::getInstance()->settings('commands_prefix').'help'));
 }
 
 function dvz_shoutbox_bot_create_instance()

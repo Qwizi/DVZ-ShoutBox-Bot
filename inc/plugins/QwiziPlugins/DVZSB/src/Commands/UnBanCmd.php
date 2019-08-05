@@ -16,7 +16,7 @@ class UnBanCmd extends Base implements CommandInterface
 
         $command = $this->baseCommandPattern($commandData);
 
-        $pattern = '(' . $command . '|' . $command . '[\s]([0-9]+))';
+        $pattern = '(' . $command . '|' . $command . '[\s](.*))';
 
         $ReturnedPattern = '/^' . $pattern . '$/';
 
