@@ -14,12 +14,14 @@ defined('QWIZI_PLUGINS_CORE_PATH') || define('QWIZI_PLUGINS_CORE_PATH', __DIR__ 
 define('DVZSB_PLUGIN_PATH', __DIR__ . '/QwiziPlugins/DVZSB');
 
 require_once QWIZI_PLUGINS_CORE_PATH . '/src/ClassLoader.php';
+
 $classLoader = ClassLoader::getInstance();
 $classLoader->registerNamespace(
     'Qwizi\\DVZSB\\',
     DVZSB_PLUGIN_PATH . '/src/'
 );
 $classLoader->register();
+
 
 // TODO Usunąć hooka index_end
 $plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');
@@ -192,21 +194,7 @@ function dvz_shoutbox_bot_install()
             'command' => 'help',
             'description' => $lang->bot_commandsData_help_desc,
             'activated' => 1,
-        ],
-        [
-            'tag' => 'steamID64',
-            'name' => 'SteamID32 -> SteamID64',
-            'command' => 'steamid64',
-            'description' => $lang->bot_commandsData_steamID64_desc,
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'steamID32',
-            'name' => 'SteamID64 -> SteamID32',
-            'command' => 'steamid32',
-            'description' => $lang->bot_commandsData_steamID32_desc,
-            'activated' => 1,
-        ],
+        ]
     ];
 
     //! ADD COMMANDS
@@ -416,7 +404,7 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                     $data['command'] = $command['command'];
 
                     $nameSpace = 'Qwizi\\DVZSB\\Commands\\';
-                    $commandClassName = $nameSpace . ucfirst($command['tag']);
+                    $commandClassName = $nameSpace . ucfirst($command['tag']).'Cmd';
 
                     try {
                         if (!class_exists($commandClassName)) {
@@ -443,11 +431,6 @@ function dvz_shoutbox_bot_index()
 
     $commandsArray = $pluginCache['commands'];
     $lang = Bot::getInstance()->getLang();
-    print_r($lang->load('dvz_shoutbox_bot'));
-/*     $key = array_search('test', array_column($commandsArray, 'tag'));
-unset($commandsArray[$key]);
-print_r($key);
-print_r($commandsArray);*/
 }
 
 function dvz_shoutbox_bot_create_instance()
