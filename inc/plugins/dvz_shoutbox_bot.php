@@ -34,8 +34,6 @@ $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
 $plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit');
 $plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
 $plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
-// TODO TEST HOOKA OD KOMENDY
-// $plugins->add_hook('dvz_shoutbox_bot_commands_ban_commit', 'dvz_shoutbox_bot_commands_ban_commit');
 
 function dvz_shoutbox_bot_info()
 {
@@ -45,7 +43,7 @@ function dvz_shoutbox_bot_info()
     return [
         'name' => $db->escape_string($lang->bot_title),
         'description' => $db->escape_string($lang->bot_desc),
-        'author' => 'Adrian \'Qwizi\' Ciołek, Poftorek',
+        'author' => 'Adrian \'Qwizi\' Ciołek',
         'authorsite' => 'https://github.com/Qwizi',
         'version' => '1.5.0',
         'compatibility' => '18*',
@@ -55,7 +53,7 @@ function dvz_shoutbox_bot_info()
 
 function dvz_shoutbox_bot_install()
 {
-    global $db, $PL, $lang;
+    global $db, $PL, $lang, $cache;
 
     if (!file_exists(PLUGINLIBRARY)) {
         flash_message("PluginLibrary is missing.", "error");
@@ -198,13 +196,6 @@ function dvz_shoutbox_bot_install()
             'description' => $lang->bot_commandsData_help_desc,
             'activated' => 1,
         ],
-        [
-            'tag' => 'myShouts',
-            'name' => 'Moje wpisy',
-            'command' => 'myshouts',
-            'description' => 'Komenda pokazuje liczbe wpisow na sb',
-            'activated' => 1,
-        ]
     ];
 
     //! ADD COMMANDS
@@ -212,9 +203,26 @@ function dvz_shoutbox_bot_install()
 
     //! UPDATE CACHE
     $PL->cache_update('dvz_shoutbox_bot', [
-        'version' => dvz_shoutbox_bot_info()['version'],
         'commands' => $commandsData,
     ]);
+
+    $new_task = [
+        'title'            => 'DVZ ShoutBox Bot',
+        'description'    => 'Task delete shouts when text = null.',
+        'file'            => 'dvz_shoutbox_bot',
+        'minute'        => '*',
+        'hour'            => '6',
+        'day'            => '*',
+        'month'            => '*',
+        'weekday'        => '*',
+        'enabled'        => '1',
+        'logging'        => '1',
+    ];
+
+    $new_task['nextrun'] = 0;
+
+    $db->insert_query('tasks', $new_task);
+    $cache->update_tasks();
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -230,6 +238,7 @@ function dvz_shoutbox_bot_uninstall()
 
     $PL->settings_delete('dvz_sb_bot', true);
     $PL->cache_delete('dvz_shoutbox_bot');
+    $db->delete_query('tasks', 'file=\'dvz_shoutbox_bot\'');
 
     //! Delete old settings
     $query = $db->simple_select('settinggroups', 'gid', "name='dvz_shoutbox_bot'");
@@ -254,19 +263,6 @@ function dvz_shoutbox_bot_is_installed()
     global $db;
     $query = $db->simple_select('settinggroups', 'gid', "name='dvz_sb_bot'");
     return (bool) $db->num_rows($query);
-}
-
-function dvz_shoutbox_bot_activate()
-{
-    global $PL;
-    $PL or require_once PLUGINLIBRARY;
-
-    $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
-
-    if (isset($pluginCache['version']) && version_compare($pluginCache['version'], dvz_shoutbox_bot_info()['version']) == -1) {
-        $pluginCache['version'] = dvz_shoutbox_bot_info()['version'];
-        $PL->update_cache('dvz_shoutbox_bot', ['version' => $pluginCache]);
-    }
 }
 
 function dvz_shoutbox_bot_admin_user_menu(&$sub_menu)
@@ -436,8 +432,13 @@ function dvz_shoutbox_bot_index()
     $PL = Bot::i()->getPL();
 
     $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+    
+    global $db;
+    $shouts = Bot::i()->get(true, "text", "", []);
 
-    $message = "Siema {username}, {pid}z";
+    var_dump($shouts);
+
+    /* $message = "Siema {username}, {pid}z";
     $data = [
         'username' => 'Wojtek',
         'pid'  => '1'
@@ -450,7 +451,6 @@ function dvz_shoutbox_bot_index()
     /* $message = Bot::i()->convert('register', [
         'username' => $data['username']
     ]);
-
     var_dump($message); */
 }
 

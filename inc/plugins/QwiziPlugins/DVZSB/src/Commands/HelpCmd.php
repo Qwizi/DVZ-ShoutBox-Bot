@@ -49,7 +49,6 @@ class HelpCmd extends Base implements CommandInterface
             if (!$this->getError()) {
                 $command = '';
                 for ($i = 0; $i < count($paginationCommandsArray); $i++) {
-                    // [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]
                     $command .= "{$commandPrefix}{$paginationCommandsArray[$i]['command']} - {$paginationCommandsArray[$i]['description']}\n";
                 }
 

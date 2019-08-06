@@ -11,8 +11,6 @@ class PruneCmd extends Base implements CommandInterface, ModRequiredInterface
 {
     public function pattern(string $commandData): string
     {
-        /* $pattern = '/^\\' . $this->bot->settings('commands_prefix') . preg_quote($command) . '$/'; */
-
         $command = $this->baseCommandPattern($commandData);
 
         $pattern = '(' . $command . '|' . $command . '[\s](.*))';
@@ -28,14 +26,13 @@ class PruneCmd extends Base implements CommandInterface, ModRequiredInterface
 
             $this->lang->load('dvz_shoutbox_bot');
 
-            $target = $this->getUserInfoFromUsername($matches[2]);
-            $user = $this->getUserInfoFromId((int) $data['uid']);
-
             if (empty($matches[2])) {
-                $this->deleteShout();
-                $this->plugins->run_hooks("dvz_shoutbox_bot_commands_prune_all_commit", $this->returned_value);
                 $this->setSendMessage(false);
+                $this->deleteShout();
+                $this->run_hook('dvz_shoutbox_bot_commands_prune_all_commit');
             } else {
+                $target = $this->getUserInfoFromUsername($matches[2]);
+                $user = $this->getUserInfoFromId((int) $data['uid']);
                 if (empty($user)) {
                     $this->setError($this->lang->bot_ban_error_empty_user);
                 }
@@ -51,14 +48,15 @@ class PruneCmd extends Base implements CommandInterface, ModRequiredInterface
 
                     $this->setMessage($this->lang->bot_prune_message_user_success);
                 }
-            }
 
-            $this->send()->setReturnedValue([
-                'uid' => $user['uid'],
-                'tuid' => $target['uid'],
-                'message' => $this->getMessage(),
-                'error' => $this->getError(),
-            ])->run_hook('dvz_shoutbox_bot_commands_prune_commit');
+
+                $this->send()->setReturnedValue([
+                    'uid' => $user['uid'],
+                    'tuid' => $target['uid'],
+                    'message' => $this->getMessage(),
+                    'error' => $this->getError(),
+                ])->run_hook('dvz_shoutbox_bot_commands_prune_commit');
+            }
         }
     }
 }
