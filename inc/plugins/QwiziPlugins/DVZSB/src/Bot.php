@@ -167,6 +167,7 @@ class Bot
     }
 
     public function convert(string $action, array $dataArray)
+
     {
         $message = $this->settings($action.'_message');
 
@@ -188,5 +189,13 @@ class Bot
         return (
             ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod'])
         );
+    }
+
+    public function accessMod()
+    {
+        $array = explode(",", $this->mybb->settings['dvz_sb_groups_mod']);
+
+        return (
+            ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod']));
     }
 }

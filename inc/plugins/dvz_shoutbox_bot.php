@@ -451,7 +451,6 @@ function dvz_shoutbox_bot_index()
     /* $message = Bot::i()->convert('register', [
         'username' => $data['username']
     ]);
-
     var_dump($message); */
 }
 

@@ -33,7 +33,6 @@ class PruneCmd extends Base implements CommandInterface, ModRequiredInterface
             } else {
                 $target = $this->getUserInfoFromUsername($matches[2]);
                 $user = $this->getUserInfoFromId((int) $data['uid']);
-
                 if (empty($user)) {
                     $this->setError($this->lang->bot_ban_error_empty_user);
                 }
