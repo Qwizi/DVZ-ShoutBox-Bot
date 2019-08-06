@@ -100,8 +100,7 @@ class Bot
 
     public function settings(string $setting): string
     {
-        $mybb = $this->getMybb();
-        return $mybb->settings[$this->getSettingsGroupName() . '_' . $setting];
+        return $this->mybb->settings[$this->getSettingsGroupName() . '_' . $setting];
     }
 
     public function get(bool $many = false, string $fields, string $where, array $optionsArray): array
@@ -127,39 +126,34 @@ class Bot
         return $this->db->insert_query($this->getTableName(), $data);
     }
 
-    public function delete($where = "")
+    public function update($updateArray, $where, $limit, $cos)
+    {
+        return $this->db->update_query($this->getTableName(), $updateArray, $where, $limit, $cos);
+    }
+
+    public function delete($where="")
     {
         if ($this->mybb->settings['dvz_sb_sync']) {
-            $result = $this->db->update_query('dvz_shoutbox', [
+            $this->update([
                 'text' => 'NULL',
                 'modified' => time(),
             ], $where, false, true);
-            if (isset($result)) {
-                return $this->db->delete_query($this->getTableName(), $where);
-            }
         } else {
             return $this->db->delete_query($this->getTableName(), $where);
         }
     }
 
-    public function update($updateArray, $where, $limit)
-    {
-        return $this->db->update_query($this->getTableName(), $updateArray, $where);
-    }
-
     public function shout(string $message)
     {
-        $db = $this->getDB();
-        $mybb = $this->getMybb();
         $data = [
             'uid' => $this->getBotID(),
             'text' => $message,
-            'ipaddress' => $db->escape_binary(my_inet_pton(get_ip())),
+            'ipaddress' => $this->db->escape_binary(my_inet_pton(get_ip())),
             'date' => TIME_NOW,
         ];
         foreach ($data as $key => &$value) {
-            if (!in_array($key, array_keys($mybb->binary_fields['dvz_shoutbox']))) {
-                $value = $db->escape_string($value);
+            if (!in_array($key, array_keys($this->mybb->binary_fields['dvz_shoutbox']))) {
+                $value = $this->db->escape_string($value);
             }
         }
         return $this->create($data);
@@ -167,10 +161,8 @@ class Bot
 
     public function createLink(string $url, string $title): string
     {
-        $mybb = $this->getMybb();
-        $db = $this->getDB();
         $title = htmlspecialchars_uni($title);
-        $link = "[url=" . $mybb->settings['bburl'] . "/" . $url . "]" . $title . "[/url]";
+        $link = "[url=" . $this->mybb->settings['bburl'] . "/" . $url . "]" . $title . "[/url]";
         return $link;
     }
 
@@ -189,39 +181,12 @@ class Bot
         return $this;
     }
 
-    public function createMsg(string $action, array $data): string
-    {
-        $db = $this->getDB();
-
-        $message = $this->settings($action . '_message');
-        $db->escape_string(htmlspecialchars_uni($message));
-        if (is_array($data)) {
-            if (!empty($data['username'])) {
-                $message = str_replace('{username}', $data['username'], $message);
-            }
-
-            if (!empty($data['subject'])) {
-                $message = str_replace('{subject}', $data['subject'], $message);
-            }
-
-            if (!empty($data['forum'])) {
-                $message = str_replace('{forum}', $data['forum'], $message);
-            }
-
-            if (!empty($data['message'])) {
-                $message = str_replace('{message}', $data['message'], $message);
-                $message = str_replace('{pid}', $data['pid'], $message);
-                $message = str_replace('{dateline}', $data['dateline'], $message);
-            }
-        }
-        return $message;
-    }
-
     public function accessMod()
     {
         $array = explode(",", $this->mybb->settings['dvz_sb_groups_mod']);
 
         return (
-            ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod']));
+            ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod'])
+        );
     }
 }
