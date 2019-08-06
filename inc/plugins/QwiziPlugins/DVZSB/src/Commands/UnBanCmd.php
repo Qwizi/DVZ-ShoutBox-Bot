@@ -1,14 +1,13 @@
 <?php
-declare (strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Interfaces\CommandInterface;
-use Qwizi\DVZSB\Exceptions\ApplicationException;
-use Qwizi\DVZSB\Exceptions\CannotActionMyselfException;
-use Qwizi\DVZSB\Exceptions\UserNotFoundException;
+use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
-class UnBanCmd extends Base implements CommandInterface
+class UnBanCmd extends Base implements CommandInterface, ModRequiredInterface
 {
     public function pattern(string $commandData): string
     {
@@ -25,61 +24,50 @@ class UnBanCmd extends Base implements CommandInterface
 
     public function doAction(array $data): void
     {
-        if (!$this->accessMod()) {
-            return;
-        }
-
         if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
             $this->lang->load('dvz_shoutbox_bot');
 
-            try {
-                $target = $this->getUserIdFromUsername($matches[2]);
-                $user = $this->getUserNameFromId((int) $data['uid']);
-                $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
+            $target = $this->getUserInfoFromUsername($matches[2]);
+            $user = $this->getUserInfoFromId((int) $data['uid']);
+            $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
 
-                if (empty($target)) {
-                    throw new UserNotFoundException($this->lang->bot_ban_error_empty_user);
-                }
+            if (empty($target)) {
+                $this->setError($this->lang->bot_ban_error_empty_user);
+            }
 
-                if (empty($user)) {
-                    throw new UserNotFoundException($this->lang->bot_ban_error_empty_user);
-                }
+            if (empty($user)) {
+                $this->setError($this->lang->bot_ban_error_empty_user);
+            }
 
-                if ($target['uid'] == $this->mybb->user['uid']) {
-                    throw new CannotActionMyselfException($this->lang->bot_ban_error_ban_myself);
-                }
+            if ($target['uid'] == $this->mybb->user['uid']) {
+                $this->setError($this->lang->bot_ban_error_ban_myself);
+            }
 
-                if (!in_array($target['uid'], $explodeBannedUsers)) {
-                    throw new ApplicationException($this->lang->bot_unban_no_ban);
-                }
+            if (!in_array($target['uid'], $explodeBannedUsers)) {
+                $this->setError($this->lang->bot_unban_no_ban);
+            }
 
+            if (!$this->getError()) {
                 if (($key = array_search($target['uid'], $explodeBannedUsers)) !== false) {
                     unset($explodeBannedUsers[$key]);
                 }
-                
+
                 $implodeBannedUsers = implode(",", $explodeBannedUsers);
                 $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
 
-                $this->rebuildSettings();
+                $this->lang->bot_unban_message_success = $this->lang->sprintf($this->lang->bot_unban_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
 
-            } catch (ApplicationException $e) {
-                $this->setError($e->getMessage());
+                $this->setMessage($this->lang->bot_unban_message_success);
+
+                rebuild_settings();
             }
 
-            $this->lang->bot_unban_message_success = $this->lang->sprintf($this->lang->bot_unban_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
-
-            $this->setMessage($this->lang->bot_unban_message_success);
-
-            $this->send();
-
-            $this->returned_value = [
+            $this->send()->setReturnedValue([
                 'uid' => $user['uid'],
                 'tuid' => $target['uid'],
                 'message' => $this->getMessage(),
                 'error' => $this->getError()
-            ];
-
-            $this->plugins->run_hooks("dvz_shoutbox_bot_commands_unban_commit", $this->returned_value);
+            ])->run_hook('dvz_shoutbox_bot_commands_unban_commit');
         }
     }
 }

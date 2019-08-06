@@ -21,12 +21,12 @@ $l['bot_ignore_title'] = 'Ignorowanie for';
 $l['bot_ignore_desc'] = 'Wybierz z listy fora, którę mają być ignorowane przez bota.';
 $l['bot_thread_message_title'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy wątek';
 $l['bot_thread_message_desc'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login, <b>{subject}</b>, aby pobrać tytuł wątku, <b>{forum}</b>, aby pobrać nazwe działu.';
-$l['bot_thread_message_example'] = 'Nowy wątek - {subject} w dziale {forum}. Napisany przez {username}';
+$l['bot_thread_message_example'] = 'Nowy wątek - {subject} w dziale {forum}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
 $l['bot_post_title'] = 'Czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post?';
 $l['bot_post_desc'] = 'Określa, czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post.';
 $l['bot_post_message_title'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy post';
 $l['bot_post_message_desc'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login. A <b>{subject}</b>, aby pobrać tytuł postu.';
-$l['bot_post_message_example'] = 'Nowy post - {subject}. Napisany przez {username}';
+$l['bot_post_message_example'] = 'Nowy post - {subject}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
 
 //TODO: dodać langi poniższe do /english
 $l['bot_commands_onoff_title'] = 'Komendy włączone/wyłączone';

@@ -1,8 +1,12 @@
 <?php
-declare (strict_types = 1);
+
+declare(strict_types=1);
 
 use Qwizi\Core\ClassLoader;
 use Qwizi\DVZSB\Bot;
+use Qwizi\DVZSB\Commands\Base;
+use Qwizi\DVZSB\Interfaces\CommandInterface;
+use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 use Qwizi\DVZSB\Exceptions\CommandNotFoundException;
 
 defined('IN_MYBB') or die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
@@ -19,8 +23,7 @@ $classLoader = ClassLoader::getInstance();
 $classLoader->registerNamespace(
     'Qwizi\\DVZSB\\',
     DVZSB_PLUGIN_PATH . '/src/'
-);
-$classLoader->register();
+)->register();
 
 
 // TODO Usunąć hooka index_end
@@ -194,6 +197,13 @@ function dvz_shoutbox_bot_install()
             'command' => 'help',
             'description' => $lang->bot_commandsData_help_desc,
             'activated' => 1,
+        ],
+        [
+            'tag' => 'myShouts',
+            'name' => 'Moje wpisy',
+            'command' => 'myshouts',
+            'description' => 'Komenda pokazuje liczbe wpisow na sb',
+            'activated' => 1,
         ]
     ];
 
@@ -205,7 +215,6 @@ function dvz_shoutbox_bot_install()
         'version' => dvz_shoutbox_bot_info()['version'],
         'commands' => $commandsData,
     ]);
-
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -276,14 +285,13 @@ function dvz_shoutbox_bot_user_action_handler(&$actions)
 
 function dvz_shoutbox_bot_register()
 {
-    global $user;
     dvz_shoutbox_bot_create_instance();
 
-    if (Bot::getInstance()->settings('register_onoff')) {
-        $message = Bot::getInstance()->createMsg('register', [
-            'username' => $user['username'],
-        ]);
-        Bot::getInstance()->shout($message);
+    if (Bot::i()->settings('register_onoff')) {
+        global $user;
+        Bot::i()->convert('register', [
+            'username' => $user['username']
+        ])->shout(Bot::i()->getMessage());
     }
 }
 
@@ -291,24 +299,24 @@ function dvz_shoutbox_bot_thread(&$data)
 {
     dvz_shoutbox_bot_create_instance();
 
-    if (Bot::getInstance()->settings('thread_onoff')) {
+    if (Bot::i()->settings('thread_onoff')) {
         $data = (array) $data;
 
         if ($data['return_values']['visible'] != -2) {
 
             $thread = get_thread($data['return_values']['tid']);
             $forum = get_forum($thread['fid']);
-            $forumIgnore = explode(",", Bot::getInstance()->settings('forum_ignore'));
+            $forumIgnore = explode(",", Bot::i()->settings('forum_ignore'));
 
             if (!in_array($forum['fid'], $forumIgnore) && !in_array("-1", $forumIgnore)) {
 
                 $threadLink = get_thread_link($thread['tid']);
                 $threadTitle = htmlspecialchars_uni($thread['subject']);
-                $threadFullLink = Bot::getInstance()->createLink($threadLink, $threadTitle);
+                $threadFullLink = Bot::i()->createLink($threadLink, $threadTitle);
 
                 $forumLink = get_forum_link($forum['fid']);
                 $forumTitle = htmlspecialchars_uni($forum['name']);
-                $forumFullLink = Bot::getInstance()->createLink($forumLink, $forumTitle);
+                $forumFullLink = Bot::i()->createLink($forumLink, $forumTitle);
 
                 $post = get_post($data['return_values']['pid']);
 
@@ -326,18 +334,15 @@ function dvz_shoutbox_bot_thread(&$data)
                     $post['message'] = my_substr($post['message'], 0, 800) . '...';
                 }
 
-                $message = Bot::getInstance()->createMsg('thread', [
+                Bot::i()->convert('thread', [
                     'username' => $thread['username'],
                     'subject' => $threadFullLink,
                     'forum' => $forumFullLink,
                     'message' => $post['message'],
                     'pid' => $post['pid'],
                     'dateline' => $thread['dateline'],
-                ]);
-
-                Bot::getInstance()->shout($message);
+                ])->shout(Bot::i()->getMessage());
             }
-
         }
     }
 }
@@ -346,18 +351,18 @@ function dvz_shoutbox_bot_post(&$data)
 {
     dvz_shoutbox_bot_create_instance();
 
-    if (Bot::getInstance()->settings('post_onoff')) {
+    if (Bot::i()->settings('post_onoff')) {
         $data = (array) $data;
 
         $post = get_post($data['return_values']['pid']);
 
-        $forumIgnore = explode(",", Bot::getInstance()->settings('forum_ignore'));
+        $forumIgnore = explode(",", Bot::i()->settings('forum_ignore'));
 
         if (!in_array($post['fid'], $forumIgnore) && !in_array("-1", $forumIgnore)) {
             $postLink = get_post_link($post['pid'], $post['tid']);
             $postLinkPid = $postLink . '#pid' . $post['pid'];
             $postTitle = htmlspecialchars_uni($post['subject']);
-            $postFullLink = Bot::getInstance()->createLink($postLinkPid, $postTitle);
+            $postFullLink = Bot::i()->createLink($postLinkPid, $postTitle);
 
             require_once MYBB_ROOT . "inc/class_parser.php";
             $parser = new postParser;
@@ -373,15 +378,13 @@ function dvz_shoutbox_bot_post(&$data)
                 $post['message'] = my_substr($post['message'], 0, 800) . '...';
             }
 
-            $message = Bot::getInstance()->createMsg('post', [
+            Bot::i()->convert('post', [
                 'username' => $post['username'],
                 'subject' => $postFullLink,
                 'message' => $post['message'],
                 'pid' => $post['pid'],
                 'dateline' => $post['dateline'],
-            ]);
-
-            Bot::getInstance()->shout($message);
+            ])->shout(Bot::i()->getMessage());
         }
     }
 }
@@ -390,8 +393,8 @@ function dvz_shoutbox_bot_shout_commit(&$data)
 {
     dvz_shoutbox_bot_create_instance();
 
-    if (Bot::getInstance()->settings('commands_onoff')) {
-        $PL = Bot::getInstance()->getPL();
+    if (Bot::i()->settings('commands_onoff')) {
+        $PL = Bot::i()->getPL();
         $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
         $commandsArray = $pluginCache['commands'];
@@ -404,15 +407,20 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                     $data['command'] = $command['command'];
 
                     $nameSpace = 'Qwizi\\DVZSB\\Commands\\';
-                    $commandClassName = $nameSpace . ucfirst($command['tag']).'Cmd';
+                    $commandClassName = $nameSpace . ucfirst($command['tag']) . 'Cmd';
 
                     try {
                         if (!class_exists($commandClassName)) {
                             throw new CommandNotFoundException('Class ' . $commandClassName . " not exists", 404);
                         }
-                        $commandClass = new $commandClassName(Bot::getInstance());
-                        $commandClass->doAction($data);
+                        $commandClass = new $commandClassName(Bot::i());
 
+                        if ($commandClass instanceof Base && $commandClass instanceof CommandInterface) {
+                            if ($commandClass instanceof ModRequiredInterface && !Bot::i()->accessMod()) {
+                                continue;
+                            }
+                            $commandClass->doAction($data);
+                        }
                     } catch (CommandNotFoundException $e) {
                         echo 'Error message: ' . $e->getMessage();
                     }
@@ -425,12 +433,25 @@ function dvz_shoutbox_bot_shout_commit(&$data)
 function dvz_shoutbox_bot_index()
 {
     dvz_shoutbox_bot_create_instance();
-    $PL = Bot::getInstance()->getPL();
+    $PL = Bot::i()->getPL();
 
     $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
-    $commandsArray = $pluginCache['commands'];
-    $lang = Bot::getInstance()->getLang();
+    $message = "Siema {username}, {pid}z";
+    $data = [
+        'username' => 'Wojtek',
+        'pid'  => '1'
+    ];
+
+    foreach ($data as $d => $key) {
+        Bot::i()->setMessage(str_replace('{' . $d . '}', $data[$d], $message));
+    }
+
+    /* $message = Bot::i()->convert('register', [
+        'username' => $data['username']
+    ]);
+
+    var_dump($message); */
 }
 
 function dvz_shoutbox_bot_create_instance()
