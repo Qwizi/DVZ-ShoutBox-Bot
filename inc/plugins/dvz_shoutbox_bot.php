@@ -53,7 +53,7 @@ function dvz_shoutbox_bot_info()
 
 function dvz_shoutbox_bot_install()
 {
-    global $db, $PL, $lang;
+    global $db, $PL, $lang, $cache;
 
     if (!file_exists(PLUGINLIBRARY)) {
         flash_message("PluginLibrary is missing.", "error");
@@ -205,6 +205,24 @@ function dvz_shoutbox_bot_install()
     $PL->cache_update('dvz_shoutbox_bot', [
         'commands' => $commandsData,
     ]);
+
+    $new_task = [
+        'title'            => 'DVZ ShoutBox Bot',
+        'description'    => 'Task delete shouts when text = null.',
+        'file'            => 'dvz_shoutbox_bot',
+        'minute'        => '*',
+        'hour'            => '6',
+        'day'            => '*',
+        'month'            => '*',
+        'weekday'        => '*',
+        'enabled'        => '1',
+        'logging'        => '1',
+    ];
+
+    $new_task['nextrun'] = 0;
+
+    $db->insert_query('tasks', $new_task);
+    $cache->update_tasks();
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -220,6 +238,7 @@ function dvz_shoutbox_bot_uninstall()
 
     $PL->settings_delete('dvz_sb_bot', true);
     $PL->cache_delete('dvz_shoutbox_bot');
+    $db->delete_query('tasks', 'file=\'dvz_shoutbox_bot\'');
 
     //! Delete old settings
     $query = $db->simple_select('settinggroups', 'gid', "name='dvz_shoutbox_bot'");
@@ -413,8 +432,13 @@ function dvz_shoutbox_bot_index()
     $PL = Bot::i()->getPL();
 
     $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+    
+    global $db;
+    $shouts = Bot::i()->get(true, "text", "", []);
 
-    $message = "Siema {username}, {pid}z";
+    var_dump($shouts);
+
+    /* $message = "Siema {username}, {pid}z";
     $data = [
         'username' => 'Wojtek',
         'pid'  => '1'
