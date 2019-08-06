@@ -34,8 +34,6 @@ $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
 $plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit');
 $plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
 $plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
-// TODO TEST HOOKA OD KOMENDY
-// $plugins->add_hook('dvz_shoutbox_bot_commands_ban_commit', 'dvz_shoutbox_bot_commands_ban_commit');
 
 function dvz_shoutbox_bot_info()
 {
@@ -45,7 +43,7 @@ function dvz_shoutbox_bot_info()
     return [
         'name' => $db->escape_string($lang->bot_title),
         'description' => $db->escape_string($lang->bot_desc),
-        'author' => 'Adrian \'Qwizi\' Ciołek, Poftorek',
+        'author' => 'Adrian \'Qwizi\' Ciołek',
         'authorsite' => 'https://github.com/Qwizi',
         'version' => '1.5.0',
         'compatibility' => '18*',
@@ -198,13 +196,6 @@ function dvz_shoutbox_bot_install()
             'description' => $lang->bot_commandsData_help_desc,
             'activated' => 1,
         ],
-        [
-            'tag' => 'myShouts',
-            'name' => 'Moje wpisy',
-            'command' => 'myshouts',
-            'description' => 'Komenda pokazuje liczbe wpisow na sb',
-            'activated' => 1,
-        ]
     ];
 
     //! ADD COMMANDS
@@ -212,7 +203,6 @@ function dvz_shoutbox_bot_install()
 
     //! UPDATE CACHE
     $PL->cache_update('dvz_shoutbox_bot', [
-        'version' => dvz_shoutbox_bot_info()['version'],
         'commands' => $commandsData,
     ]);
 }
@@ -254,19 +244,6 @@ function dvz_shoutbox_bot_is_installed()
     global $db;
     $query = $db->simple_select('settinggroups', 'gid', "name='dvz_sb_bot'");
     return (bool) $db->num_rows($query);
-}
-
-function dvz_shoutbox_bot_activate()
-{
-    global $PL;
-    $PL or require_once PLUGINLIBRARY;
-
-    $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
-
-    if (isset($pluginCache['version']) && version_compare($pluginCache['version'], dvz_shoutbox_bot_info()['version']) == -1) {
-        $pluginCache['version'] = dvz_shoutbox_bot_info()['version'];
-        $PL->update_cache('dvz_shoutbox_bot', ['version' => $pluginCache]);
-    }
 }
 
 function dvz_shoutbox_bot_admin_user_menu(&$sub_menu)
