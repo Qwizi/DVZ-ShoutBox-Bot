@@ -4,15 +4,12 @@ declare (strict_types = 1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Interfaces\CommandInterface;
-use Qwizi\DVZSB\Exceptions\ApplicationException;
-use Qwizi\DVZSB\Exceptions\UserNotFoundException;
+use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
-class SetBotCmd extends Base implements CommandInterface
+class SetBotCmd extends Base implements CommandInterface, ModRequiredInterface
 {
     public function pattern(string $commandData): string
     {
-        /* $pattern = '/^\\' . $this->bot->settings('commands_prefix') . preg_quote($command) . '$/'; */
-
         $command = $this->baseCommandPattern($commandData);
 
         $pattern = '(' . $command . '|' . $command . '[\s](.*))';
@@ -24,47 +21,36 @@ class SetBotCmd extends Base implements CommandInterface
 
     public function doAction(array $data): void
     {
-        if (!$this->accessMod()) {
-            return;
-        }
-
         if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
             $this->lang->load('dvz_shoutbox_bot');
 
-            try {
-                $user = $this->getUserInfoFromId($data['uid']);
-                $target = $this->getUserInfoFromUsername($matches[2]);
+            $user = $this->getUserInfoFromId($data['uid']);
+            $target = $this->getUserInfoFromUsername($matches[2]);
 
-                if (empty($target)) {
-                    throw new UserNotFoundException($this->lang->bot_ban_error_empty_user);
-                }
-
-                if (empty($user)) {
-                    throw new UserNotFoundException($this->lang->bot_ban_error_empty_user);
-                }
-
-                $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
-
-                $this->rebuildSettings();
-
-            } catch (ApplicationException $e) {
-                $this->setError($e->getMessage());
+            if (empty($target)) {
+                $this->setError($this->lang->bot_ban_error_empty_user);
             }
 
-            $this->lang->bot_setbot_message_success = $this->lang->sprintf($this->lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+            if (empty($user)) {
+                $this->setError($this->lang->bot_ban_error_empty_user);
+            }
 
-            $this->setMessage($this->lang->bot_setbot_message_success);
-            
-            $this->send();
+            if (!$this->getError()) {
+                $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
 
-            $this->returned_value = [
+                $this->lang->bot_setbot_message_success = $this->lang->sprintf($this->lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+    
+                $this->setMessage($this->lang->bot_setbot_message_success);
+
+                rebuild_settings();
+            }
+
+            $this->send()->setReturnedValue([
                 'uid' => $user['uid'],
                 'tuid' => $target['uid'],
                 'message' => $this->getMessage(),
                 'error' => $this->getError()
-            ];
-
-            $this->plugins->run_hooks("dvz_shoutbox_bot_commands_setbot_commit", $this->returned_value);
+            ])->run_hook('dvz_shoutbox_bot_commands_setbot_commit');
         }
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Qwizi\DVZSB;
@@ -19,6 +20,7 @@ class Bot
     private $tableName = 'dvz_shoutbox';
     private $settingsGroupName = 'dvz_sb_bot';
     private $botID;
+    private $message;
 
     public function __construct(Mybb $mybb, DB_Base $db, MyLanguage $lang, PluginSystem $plugins, $PL)
     {
@@ -38,7 +40,7 @@ class Bot
         return static::$instance;
     }
 
-    public static function getInstance()
+    public static function i()
     {
         if (static::$instance === null) {
             return false;
@@ -86,6 +88,16 @@ class Bot
         return $this->settingsGroupName;
     }
 
+    public function getMessage()
+    {
+        return $this->message;
+    }
+
+    public function setMessage(string $message)
+    {
+        $this->message = $message;
+    }
+
     public function settings(string $setting): string
     {
         $mybb = $this->getMybb();
@@ -122,8 +134,7 @@ class Bot
                 'text' => 'NULL',
                 'modified' => time(),
             ], $where, false, true);
-
-            if ($result['modified']) {
+            if (isset($result)) {
                 return $this->db->delete_query($this->getTableName(), $where);
             }
         } else {
@@ -163,6 +174,21 @@ class Bot
         return $link;
     }
 
+    public function convert(string $action, array $dataArray)
+    {
+        $message = $this->settings($action.'_message');
+
+        if (is_array($dataArray) && !empty($dataArray)) {
+            foreach ($dataArray as $key => $value) {
+                $message = str_replace('{'.$key.'}', $value, $message);
+            }
+        }
+
+        $this->setMessage($message);
+
+        return $this;
+    }
+
     public function createMsg(string $action, array $data): string
     {
         $db = $this->getDB();
@@ -189,5 +215,13 @@ class Bot
             }
         }
         return $message;
+    }
+
+    public function accessMod()
+    {
+        $array = explode(",", $this->mybb->settings['dvz_sb_groups_mod']);
+
+        return (
+            ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod']));
     }
 }
