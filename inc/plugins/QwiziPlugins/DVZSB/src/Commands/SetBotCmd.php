@@ -6,43 +6,35 @@ namespace Qwizi\DVZSB\Commands;
 use Qwizi\DVZSB\Interfaces\CommandInterface;
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
-class SetBotCmd extends Base implements CommandInterface, ModRequiredInterface
+class SetBotCmd extends AbstractCommandBase implements ModRequiredInterface
 {
-    public function pattern(string $commandData): string
-    {
-        $command = $this->baseCommandPattern($commandData);
-
-        $pattern = '(' . $command . '|' . $command . '[\s](.*))';
-
-        $ReturnedPattern = '/^' . $pattern . '$/';
-
-        return $ReturnedPattern;
-    }
+    private $pattern = "/^({command}|{command}[\s](.*))$/";
 
     public function doAction(array $data): void
     {
-        if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
+        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
             $this->lang->load('dvz_shoutbox_bot');
 
-            $user = $this->getUserInfoFromId($data['uid']);
-            $target = $this->getUserInfoFromUsername($matches[2]);
+            if (empty($matches[2])) {
+                $this->setError("Uzyj " . $this->getCommandPrefix() . $data['command'] . " <nazwa_uzytkownika>");
+            } else {
 
-            if (empty($target)) {
-                $this->setError($this->lang->bot_ban_error_empty_user);
-            }
+                $user = get_user((int) $data['uid']);
+                $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
 
-            if (empty($user)) {
-                $this->setError($this->lang->bot_ban_error_empty_user);
-            }
+                if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
+                    $this->setError($this->lang->bot_ban_error_empty_user);
+                }
 
-            if (!$this->getError()) {
-                $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
+                if (!$this->getError()) {
+                    $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
 
-                $this->lang->bot_setbot_message_success = $this->lang->sprintf($this->lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
-    
-                $this->setMessage($this->lang->bot_setbot_message_success);
+                    $this->lang->bot_setbot_message_success = $this->lang->sprintf($this->lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+        
+                    $this->setMessage($this->lang->bot_setbot_message_success);
 
-                rebuild_settings();
+                    rebuild_settings();
+                }
             }
 
             $this->send()->setReturnedValue([

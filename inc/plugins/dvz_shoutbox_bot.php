@@ -1,11 +1,9 @@
 <?php
-
 declare(strict_types=1);
 
 use Qwizi\Core\ClassLoader;
 use Qwizi\DVZSB\Bot;
-use Qwizi\DVZSB\Commands\Base;
-use Qwizi\DVZSB\Interfaces\CommandInterface;
+use Qwizi\DVZSB\Commands\AbstractCommandBase;
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 use Qwizi\DVZSB\Exceptions\CommandNotFoundException;
 
@@ -24,7 +22,6 @@ $classLoader->registerNamespace(
     'Qwizi\\DVZSB\\',
     DVZSB_PLUGIN_PATH . '/src/'
 )->register();
-
 
 // TODO Usunąć hooka index_end
 $plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');
@@ -411,7 +408,7 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                         }
                         $commandClass = new $commandClassName(Bot::i());
 
-                        if ($commandClass instanceof Base && $commandClass instanceof CommandInterface) {
+                        if ($commandClass instanceof AbstractCommandBase) {
                             if ($commandClass instanceof ModRequiredInterface && !Bot::i()->accessMod()) {
                                 continue;
                             }
@@ -430,28 +427,10 @@ function dvz_shoutbox_bot_index()
 {
     dvz_shoutbox_bot_create_instance();
     $PL = Bot::i()->getPL();
-
-    $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
-    
-    global $db;
-    $shouts = Bot::i()->get(true, "text", "", []);
-
-    var_dump($shouts);
-
-    /* $message = "Siema {username}, {pid}z";
-    $data = [
-        'username' => 'Wojtek',
-        'pid'  => '1'
-    ];
-
-    foreach ($data as $d => $key) {
-        Bot::i()->setMessage(str_replace('{' . $d . '}', $data[$d], $message));
-    }
-
-    /* $message = Bot::i()->convert('register', [
-        'username' => $data['username']
+    $user = get_user_by_username("Test", [
+        'fields' => 'uid, username'
     ]);
-    var_dump($message); */
+    var_dump($user);
 }
 
 function dvz_shoutbox_bot_create_instance()

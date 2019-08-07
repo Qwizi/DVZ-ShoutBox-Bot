@@ -4,25 +4,15 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
-use Qwizi\DVZSB\Interfaces\CommandInterface;
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
-class PruneCmd extends Base implements CommandInterface, ModRequiredInterface
+class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
 {
-    public function pattern(string $commandData): string
-    {
-        $command = $this->baseCommandPattern($commandData);
-
-        $pattern = '(' . $command . '|' . $command . '[\s](.*))';
-
-        $ReturnedPattern = '/^' . $pattern . '$/';
-
-        return $ReturnedPattern;
-    }
+    private $pattern = "/^({command}|{command}[\s](.*))$/";
 
     public function doAction(array $data): void
     {
-        if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
+        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
 
             $this->lang->load('dvz_shoutbox_bot');
 
@@ -31,13 +21,10 @@ class PruneCmd extends Base implements CommandInterface, ModRequiredInterface
                 $this->deleteShout();
                 $this->run_hook('dvz_shoutbox_bot_commands_prune_all_commit');
             } else {
-                $target = $this->getUserInfoFromUsername($matches[2]);
-                $user = $this->getUserInfoFromId((int) $data['uid']);
-                if (empty($user)) {
-                    $this->setError($this->lang->bot_ban_error_empty_user);
-                }
+                $user = get_user((int) $data['uid']);
+                $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
 
-                if (empty($target)) {
+                if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
                     $this->setError($this->lang->bot_ban_error_empty_user);
                 }
 
