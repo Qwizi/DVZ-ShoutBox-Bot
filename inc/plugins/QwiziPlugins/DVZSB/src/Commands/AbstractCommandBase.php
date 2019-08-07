@@ -103,19 +103,19 @@ abstract class AbstractCommandBase
         return "\\" . $this->getCommandPrefix() . preg_quote($command);
     }
 
-    public function run_hook($name)
+    public function createPattern(string $command, string $pattern): string
     {
-        $this->plugins->run_hooks($name, $this->getReturnedValue());
+        $command = $this->baseCommandPattern($command);
+        return $pattern = str_replace('{command}', $command, $pattern);
     }
 
-    public function getUserInfoFromUsername($username)
+    public function isValidUser($user)
     {
-        return $this->db->fetch_array($this->db->simple_select('users', '*', 'username="' . $username . '"'));
-    }
-
-    public function getUserInfoFromId($uid)
-    {
-        return $this->db->fetch_array($this->db->simple_select('users', '*', 'uid="' . $uid . '"'));
+        if (is_array($user) && !empty($user)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public function mentionUsername($username)
@@ -123,10 +123,9 @@ abstract class AbstractCommandBase
         return "@\"" . $username . "\"";
     }
 
-    public function createPattern(string $command, string $pattern): string
+    public function run_hook($name)
     {
-        $command = $this->baseCommandPattern($command);
-        return $pattern = str_replace('{command}', $command, $pattern);
+        $this->plugins->run_hooks($name, $this->getReturnedValue());
     }
 
     abstract protected function doAction(array $data): void;

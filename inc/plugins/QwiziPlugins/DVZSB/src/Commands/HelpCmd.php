@@ -34,7 +34,7 @@ class HelpCmd extends AbstractCommandBase
             if (empty($paginationCommandsArray)) {
                 $this->setError($this->lang->bot_help_error);
             }
-            
+
             if (!$this->getError()) {
                 $command = '';
                 for ($i = 0; $i < count($paginationCommandsArray); $i++) {

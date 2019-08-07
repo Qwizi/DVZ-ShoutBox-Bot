@@ -1,6 +1,4 @@
-<<<<<<< HEAD
 <?php
-
 declare(strict_types=1);
 
 use Qwizi\Core\ClassLoader;
@@ -429,6 +427,10 @@ function dvz_shoutbox_bot_index()
 {
     dvz_shoutbox_bot_create_instance();
     $PL = Bot::i()->getPL();
+    $user = get_user_by_username("Test", [
+        'fields' => 'uid, username'
+    ]);
+    var_dump($user);
 }
 
 function dvz_shoutbox_bot_create_instance()

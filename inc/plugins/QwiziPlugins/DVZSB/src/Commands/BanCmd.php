@@ -16,19 +16,15 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
             $this->lang->load('dvz_shoutbox_bot');
             
-            if (empty($matches[2])) {
+            if (empty($matches[2]) || isset($matches[2])) {
                 $this->setError("Uzyj " . $this->getCommandPrefix() . $data['command'] . " <nazwa_uzytkownika>");
             }
 
-            $target = $this->getUserInfoFromUsername($matches[2]);
-            $user = $this->getUserInfoFromId((int) $data['uid']);
+            $user = get_user((int) $data['uid']);
+            $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
             $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
-
-            if (empty($target)) {
-                $this->setError($this->lang->bot_ban_error_empty_user);
-            }
-
-            if (empty($user)) {
+            
+            if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
                 $this->setError($this->lang->bot_ban_error_empty_user);
             }
 

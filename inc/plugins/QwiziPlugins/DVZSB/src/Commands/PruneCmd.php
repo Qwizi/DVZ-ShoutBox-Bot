@@ -21,13 +21,10 @@ class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
                 $this->deleteShout();
                 $this->run_hook('dvz_shoutbox_bot_commands_prune_all_commit');
             } else {
-                $target = $this->getUserInfoFromUsername($matches[2]);
-                $user = $this->getUserInfoFromId((int) $data['uid']);
-                if (empty($user)) {
-                    $this->setError($this->lang->bot_ban_error_empty_user);
-                }
+                $user = get_user((int) $data['uid']);
+                $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
 
-                if (empty($target)) {
+                if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
                     $this->setError($this->lang->bot_ban_error_empty_user);
                 }
 

@@ -28,7 +28,7 @@ class BanListCmd extends AbstractCommandBase implements  ModRequiredInterface
                 $usernamesArray = [];
 
                 for ($i = 0; $i < count($explodeBannedUsers); $i++) {
-                    array_push($usernamesArray, $this->getUserInfoFromId((int) $explodeBannedUsers[$i]));
+                    array_push($usernamesArray, get_user((int) $explodeBannedUsers[$i]));
                 }
 
                 foreach ($usernamesArray as $index) {
