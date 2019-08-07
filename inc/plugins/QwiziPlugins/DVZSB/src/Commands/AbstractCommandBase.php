@@ -113,9 +113,8 @@ abstract class AbstractCommandBase
     {
         if (is_array($user) && !empty($user)) {
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public function mentionUsername($username)
