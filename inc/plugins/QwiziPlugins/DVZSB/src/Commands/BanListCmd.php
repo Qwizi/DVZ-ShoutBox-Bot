@@ -4,25 +4,15 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
-use Qwizi\DVZSB\Interfaces\CommandInterface;
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
-class BanListCmd extends Base implements CommandInterface, ModRequiredInterface
+class BanListCmd extends AbstractCommandBase implements  ModRequiredInterface
 {
-    public function pattern(string $commandData): string
-    {
-        $command = $this->baseCommandPattern($commandData);
-
-        $pattern = '(' . $command . ')';
-
-        $ReturnedPattern = '/^' . $pattern . '$/';
-
-        return $ReturnedPattern;
-    }
+    private $pattern = "/^({command})$/";
 
     public function doAction(array $data): void
     {
-        if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
+        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
             $this->lang->load('dvz_shoutbox_bot');
 
             $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);

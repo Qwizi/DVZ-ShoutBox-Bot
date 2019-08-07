@@ -1,11 +1,12 @@
 <?php
-declare (strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Bot;
 
-class Base
+abstract class AbstractCommandBase
 {
     public $returned_value = [];
 
@@ -73,15 +74,15 @@ class Base
         $this->sendMessage = $value;
     }
 
-    public function setReturnedValue(array $value) {
+    public function setReturnedValue(array $value)
+    {
         $this->returned_value = $value;
         return $this;
     }
 
     public function send()
     {
-        if ((bool) $this->getSendMessage())
-        {
+        if ((bool) $this->getSendMessage()) {
             if (isset($this->error)) {
                 $this->bot->shout($this->error);
                 return $this;
@@ -99,21 +100,34 @@ class Base
 
     public function baseCommandPattern(string $command): string
     {
-        $pattern = "\\" . $this->getCommandPrefix() . preg_quote($command);
-        return $pattern;
+        return "\\" . $this->getCommandPrefix() . preg_quote($command);
     }
 
-    public function run_hook($name) {
+    public function run_hook($name)
+    {
         $this->plugins->run_hooks($name, $this->getReturnedValue());
     }
 
     public function getUserInfoFromUsername($username)
     {
-        return $this->db->fetch_array($this->db->simple_select('users', '*', 'username="'.$username.'"'));
+        return $this->db->fetch_array($this->db->simple_select('users', '*', 'username="' . $username . '"'));
     }
 
     public function getUserInfoFromId($uid)
     {
         return $this->db->fetch_array($this->db->simple_select('users', '*', 'uid="' . $uid . '"'));
     }
+
+    public function mentionUsername($username)
+    {
+        return "@\"" . $username . "\"";
+    }
+
+    public function createPattern(string $command, string $pattern): string
+    {
+        $command = $this->baseCommandPattern($command);
+        return $pattern = str_replace('{command}', $command, $pattern);
+    }
+
+    abstract protected function doAction(array $data): void;
 }

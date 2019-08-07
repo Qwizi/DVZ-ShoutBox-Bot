@@ -6,22 +6,13 @@ namespace Qwizi\DVZSB\Commands;
 use Qwizi\DVZSB\Interfaces\CommandInterface;
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
-class SetBotCmd extends Base implements CommandInterface, ModRequiredInterface
+class SetBotCmd extends AbstractCommandBase implements ModRequiredInterface
 {
-    public function pattern(string $commandData): string
-    {
-        $command = $this->baseCommandPattern($commandData);
-
-        $pattern = '(' . $command . '|' . $command . '[\s](.*))';
-
-        $ReturnedPattern = '/^' . $pattern . '$/';
-
-        return $ReturnedPattern;
-    }
+    private $pattern = "/^({command}|{command}[\s](.*))$/";
 
     public function doAction(array $data): void
     {
-        if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
+        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
             $this->lang->load('dvz_shoutbox_bot');
 
             $user = $this->getUserInfoFromId($data['uid']);

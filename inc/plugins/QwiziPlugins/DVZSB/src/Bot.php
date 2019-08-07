@@ -131,7 +131,7 @@ class Bot
         return $this->db->update_query($this->getTableName(), $updateArray, $where, $limit, $cos);
     }
 
-    public function delete($where="")
+    public function delete($where = "")
     {
         if ($this->mybb->settings['dvz_sb_sync']) {
             $this->update([
@@ -168,11 +168,11 @@ class Bot
 
     public function convert(string $action, array $dataArray)
     {
-        $message = $this->settings($action.'_message');
+        $message = $this->settings($action . '_message');
 
         if (is_array($dataArray) && !empty($dataArray)) {
             foreach ($dataArray as $key => $value) {
-                $message = str_replace('{'.$key.'}', $value, $message);
+                $message = str_replace('{' . $key . '}', $value, $message);
             }
         }
 
@@ -186,7 +186,6 @@ class Bot
         $array = explode(",", $this->mybb->settings['dvz_sb_groups_mod']);
 
         return (
-            ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod'])
-        );
+            ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod']));
     }
 }

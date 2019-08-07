@@ -8,24 +8,13 @@ use Qwizi\DVZSB\Interfaces\CommandInterface;
 
 use Qwizi\DVZSB\Pagination;
 
-class HelpCmd extends Base implements CommandInterface
+class HelpCmd extends AbstractCommandBase
 {
-    public function pattern(string $commandData): string
-    {
-        /* $pattern = '/^\\' . $this->bot->settings('commands_prefix') . preg_quote($command) . '$/'; */
-
-        $command = $this->baseCommandPattern($commandData);
-
-        $pattern = '(' . $command . '|' . $command . '[\s]([0-9]+))';
-
-        $ReturnedPattern = '/^' . $pattern . '$/';
-
-        return $ReturnedPattern;
-    }
+    private $pattern = "/^({command}|{command}[\s]([0-9]+))$/";
 
     public function doAction(array $data): void
     {
-        if (preg_match($this->pattern($data['command']), $data['text'], $matches)) {
+        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
 
             $this->lang->load('dvz_shoutbox_bot');
 
