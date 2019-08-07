@@ -15,21 +15,26 @@ class SetBotCmd extends AbstractCommandBase implements ModRequiredInterface
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
             $this->lang->load('dvz_shoutbox_bot');
 
-            $user = get_user((int) $data['uid']);
-            $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
+            if (empty($matches[2])) {
+                $this->setError("Uzyj " . $this->getCommandPrefix() . $data['command'] . " <nazwa_uzytkownika>");
+            } else {
 
-            if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
-                $this->setError($this->lang->bot_ban_error_empty_user);
-            }
-            
-            if (!$this->getError()) {
-                $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
+                $user = get_user((int) $data['uid']);
+                $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
 
-                $this->lang->bot_setbot_message_success = $this->lang->sprintf($this->lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
-    
-                $this->setMessage($this->lang->bot_setbot_message_success);
+                if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
+                    $this->setError($this->lang->bot_ban_error_empty_user);
+                }
 
-                rebuild_settings();
+                if (!$this->getError()) {
+                    $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
+
+                    $this->lang->bot_setbot_message_success = $this->lang->sprintf($this->lang->bot_setbot_message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+        
+                    $this->setMessage($this->lang->bot_setbot_message_success);
+
+                    rebuild_settings();
+                }
             }
 
             $this->send()->setReturnedValue([

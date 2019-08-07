@@ -15,42 +15,42 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
     {
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
             $this->lang->load('dvz_shoutbox_bot');
-            
-            if (empty($matches[2]) || isset($matches[2])) {
+
+            if (empty($matches[2])) {
                 $this->setError("Uzyj " . $this->getCommandPrefix() . $data['command'] . " <nazwa_uzytkownika>");
-            }
+            } else {
+                $user = get_user((int) $data['uid']);
+                $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
+                $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
 
-            $user = get_user((int) $data['uid']);
-            $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
-            $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
-            
-            if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
-                $this->setError($this->lang->bot_ban_error_empty_user);
-            }
-
-            if ($target['uid'] == $this->mybb->user['uid']) {
-                $this->setError($this->lang->bot_ban_error_ban_myself);
-            }
-
-            if (in_array($target['uid'], $explodeBannedUsers)) {
-                $this->setError($this->lang->bot_ban_error_multiban_user);
-            }
-
-            if (!$this->getError()) {
-                if (in_array('', $explodeBannedUsers)) {
-                    $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_blocked_users'");
-                } else {
-                    array_push($explodeBannedUsers, $target['uid']);
-                    $implodeBannedUsers = implode(",", $explodeBannedUsers);
-
-                    $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
+                if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
+                    $this->setError($this->lang->bot_ban_error_empty_user);
                 }
 
-                $this->lang->bot_ban_message_success = $this->lang->sprintf($this->lang->bot_ban_message_success, $this->mentionUsername($user['username']), "@\"{$target['username']}\"");
+                if ($target['uid'] == $this->mybb->user['uid']) {
+                    $this->setError($this->lang->bot_ban_error_ban_myself);
+                }
 
-                $this->setMessage($this->lang->bot_ban_message_success);
+                if (in_array($target['uid'], $explodeBannedUsers)) {
+                    $this->setError($this->lang->bot_ban_error_multiban_user);
+                }
 
-                rebuild_settings();
+                if (!$this->getError()) {
+                    if (in_array('', $explodeBannedUsers)) {
+                        $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_blocked_users'");
+                    } else {
+                        array_push($explodeBannedUsers, $target['uid']);
+                        $implodeBannedUsers = implode(",", $explodeBannedUsers);
+
+                        $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
+                    }
+
+                    $this->lang->bot_ban_message_success = $this->lang->sprintf($this->lang->bot_ban_message_success, $this->mentionUsername($user['username']), "@\"{$target['username']}\"");
+
+                    $this->setMessage($this->lang->bot_ban_message_success);
+
+                    rebuild_settings();
+                }
             }
 
             $this->send()->setReturnedValue([
