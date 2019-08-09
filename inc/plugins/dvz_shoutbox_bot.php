@@ -196,6 +196,20 @@ function dvz_shoutbox_bot_install()
             'description' => $lang->bot_commandsData_help_desc,
             'activated' => 1,
         ],
+        [
+            'tag' => 'myShouts',
+            'name' => 'MyShouts',
+            'command' => 'myshouts',
+            'description' => 'Komenda wyświetla ile napisałeś wpisów na sb.',
+            'activated' => 1,
+        ],
+        [
+            'tag' => 'topShouters',
+            'name' => 'TopShouters',
+            'command' => 'top10',
+            'description' => 'Komenda wyświetla top 10 spamerów.',
+            'activated' => 1,
+        ],
     ];
 
     //! ADD COMMANDS

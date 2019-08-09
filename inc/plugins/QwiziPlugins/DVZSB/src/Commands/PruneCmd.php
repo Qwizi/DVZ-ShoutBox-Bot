@@ -8,7 +8,7 @@ use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
 class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
 {
-    private $pattern = "/^({command}|{command}[\s](.*))$/";
+    private $pattern = "/^({command}|{command}[\s](--all|(.*)))$/";
 
     public function doAction(array $data): void
     {
@@ -16,7 +16,8 @@ class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
 
             $this->lang->load('dvz_shoutbox_bot');
 
-            if (empty($matches[2])) {
+            if ($matches[2] == "--all") {
+
                 $this->setSendMessage(false);
                 $this->deleteShout();
                 $this->run_hook('dvz_shoutbox_bot_commands_prune_all_commit');
