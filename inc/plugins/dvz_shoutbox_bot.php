@@ -1,8 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 use Qwizi\Core\ClassLoader;
 use Qwizi\DVZSB\Bot;
+use Qwizi\DVZSB\Command;
 use Qwizi\DVZSB\Commands\AbstractCommandBase;
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 use Qwizi\DVZSB\Exceptions\CommandNotFoundException;
@@ -29,6 +31,7 @@ $plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
 $plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit');
+$plugins->add_hook('dvz_shoutbox_shout', 'dvz_shoutbox_bot_shout');
 $plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
 $plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
 
@@ -387,15 +390,13 @@ function dvz_shoutbox_bot_shout_commit(&$data)
     dvz_shoutbox_bot_create_instance();
 
     if (Bot::i()->settings('commands_onoff')) {
-        $PL = Bot::i()->getPL();
-        $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
-        $commandsArray = $pluginCache['commands'];
+        $commandsArray = Command::i()->getCommands();
 
         if (!empty($commandsArray)) {
             foreach ($commandsArray as &$command) {
 
-                if ($command['activated'] == 1) {
+                if ((bool)$command['activated']) {
 
                     $data['command'] = $command['command'];
 
@@ -412,6 +413,7 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                             if ($commandClass instanceof ModRequiredInterface && !Bot::i()->accessMod()) {
                                 continue;
                             }
+
                             $commandClass->doAction($data);
                         }
                     } catch (CommandNotFoundException $e) {
@@ -423,14 +425,29 @@ function dvz_shoutbox_bot_shout_commit(&$data)
     }
 }
 
+function dvz_shoutbox_bot_shout(&$data)
+{
+    dvz_shoutbox_bot_create_instance();
+
+    if (Bot::i()->settings('commands_onoff')) {
+        $commandsArray = Command::i()->getCommands();
+        if (!empty($commandsArray)) {
+            foreach ($commandsArray as &$command) {
+                if ((bool)$command['activated']) {
+                    if (!Bot::i()->antiflood_pass('/' . $command['command'])) {
+                        die('A');
+                    }
+                }
+            }
+        }
+    }
+}
+
 function dvz_shoutbox_bot_index()
 {
     dvz_shoutbox_bot_create_instance();
-    $PL = Bot::i()->getPL();
-    $user = get_user_by_username("Test", [
-        'fields' => 'uid, username'
-    ]);
-    var_dump($user);
+    $commandArray = Command::i()->getCommands();
+    print_r($commandArray);
 }
 
 function dvz_shoutbox_bot_create_instance()
@@ -439,4 +456,5 @@ function dvz_shoutbox_bot_create_instance()
     $PL or require_once PLUGINLIBRARY;
 
     $bot = Bot::createInstance($mybb, $db, $lang, $plugins, $PL);
+    $command = Command::createInstance($PL);
 }

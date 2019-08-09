@@ -13,7 +13,9 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
 
     public function doAction(array $data): void
     {
+
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
+
             $this->lang->load('dvz_shoutbox_bot');
 
             if (empty($matches[2])) {
