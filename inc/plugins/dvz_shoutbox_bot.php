@@ -454,7 +454,7 @@ function dvz_shoutbox_bot_create_instance()
 {
     global $mybb, $db, $lang, $plugins, $PL, $bot;
     $PL or require_once PLUGINLIBRARY;
-
+  
     $bot = Bot::createInstance($mybb, $db, $lang, $plugins);
     $command = Command::createInstance($PL);
 }
