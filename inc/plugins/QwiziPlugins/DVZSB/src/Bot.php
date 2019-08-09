@@ -16,26 +16,24 @@ class Bot
     private $db;
     private $lang;
     private $plugins;
-    private $PL;
     private $tableName = 'dvz_shoutbox';
     private $settingsGroupName = 'dvz_sb_bot';
     private $botID;
     private $message;
 
-    public function __construct(Mybb $mybb, DB_Base $db, MyLanguage $lang, PluginSystem $plugins, $PL)
+    public function __construct(Mybb $mybb, DB_Base $db, MyLanguage $lang, PluginSystem $plugins)
     {
         $this->mybb = $mybb;
         $this->db = $db;
         $this->lang = $lang;
         $this->plugins = $plugins;
-        $this->PL = $PL;
         $this->botID = (int) $this->mybb->settings['dvz_sb_bot_id'];
     }
 
-    public static function createInstance(Mybb $mybb, DB_BASE $db, MyLanguage $lang, PluginSystem $plugins, $PL)
+    public static function createInstance(Mybb $mybb, DB_BASE $db, MyLanguage $lang, PluginSystem $plugins)
     {
         if (static::$instance === null) {
-            static::$instance = new self($mybb, $db, $lang, $plugins, $PL);
+            static::$instance = new self($mybb, $db, $lang, $plugins);
         }
         return static::$instance;
     }
@@ -56,11 +54,6 @@ class Bot
     public function getMybb()
     {
         return $this->mybb;
-    }
-
-    public function getPL()
-    {
-        return $this->PL;
     }
 
     public function getLang()
@@ -188,5 +181,23 @@ class Bot
 
         return (
             ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod']));
+    }
+
+    public function user_last_shout_time($uid, $matches)
+    {
+        return $this->db->fetch_field(
+            $this->db->simple_select('dvz_shoutbox s', 'date', 'uid=' . (int)$uid . ' AND s.text="'.$matches.'"', [
+                'order_by'  => 'date',
+                'order_dir' => 'desc',
+                'limit'     => 1,
+            ]),
+            'date'
+        );
+    }
+
+    public function antiflood_pass($matches)
+    {
+        return (( TIME_NOW - $this->user_last_shout_time($this->mybb->user['uid'], $matches) ) > $this->settings['dvz_sb_antiflood']
+        );
     }
 }

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
-use Qwizi\DVZSB\Interfaces\CommandInterface;
-
+use Qwizi\DVZSB\Command;
 use Qwizi\DVZSB\Pagination;
 
 class HelpCmd extends AbstractCommandBase
@@ -18,10 +17,14 @@ class HelpCmd extends AbstractCommandBase
 
             $this->lang->load('dvz_shoutbox_bot');
 
+            Command::createInstance($this->PL);
+
             $commandPrefix = $this->getCommandPrefix();
 
-            $pluginCache = $this->PL->cache_read('dvz_shoutbox_bot');
-            $commandsArray = $pluginCache['commands'];
+            /* $pluginCache = $this->PL->cache_read('dvz_shoutbox_bot'); 
+            $commandsArray = $pluginCache['commands'];*/
+            
+            $commandsArray = Command::i()->getCommands();
 
             if (empty($commandsArray)) {
                 $this->setError($this->lang->bot_help_error);
