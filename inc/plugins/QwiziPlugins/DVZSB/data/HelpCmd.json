@@ -1,0 +1,7 @@
+{
+  "tag": "help",
+  "name": "Help",
+  "command": "help",
+  "description": "Lista komend",
+  "activated": 1
+}

@@ -34,6 +34,7 @@ $plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit')
 $plugins->add_hook('dvz_shoutbox_shout', 'dvz_shoutbox_bot_shout');
 $plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
 $plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
+$plugins->add_hook('admin_dvz_shoutbox_bot_reload', 'dvz_shoutbox_bot_reload_commands');
 
 function dvz_shoutbox_bot_info()
 {
@@ -152,71 +153,45 @@ function dvz_shoutbox_bot_install()
             PRIMARY KEY (`cid`)
         ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
     ");
+  
+    $commandsDataJson = getCommandsDataJson();
 
-    $commandsData = [
-        [
-            'tag' => 'ban',
-            'name' => $lang->bot_commandsData_ban_name,
-            'command' => 'ban',
-            'description' => $lang->bot_commandsData_ban_desc,
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'unBan',
-            'name' => $lang->bot_commandsData_unBan_name,
-            'command' => 'unban',
-            'description' => $lang->bot_commandsData_unBan_desc,
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'banList',
-            'name' => $lang->bot_commandsData_banList_name,
-            'command' => 'banlist',
-            'description' => $lang->bot_commandsData_banList_desc,
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'prune',
-            'name' => $lang->bot_commandsData_prune_name,
-            'command' => 'prune',
-            'description' => $lang->bot_commandsData_prune_desc,
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'setBot',
-            'name' => $lang->bot_commandsData_setBot_name,
-            'command' => 'setbot',
-            'description' => $lang->bot_commandsData_setBot_desc,
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'help',
-            'name' => $lang->bot_commandsData_help_name,
-            'command' => 'help',
-            'description' => $lang->bot_commandsData_help_desc,
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'myShouts',
-            'name' => 'MyShouts',
-            'command' => 'myshouts',
-            'description' => 'Komenda wyświetla ile napisałeś wpisów na sb.',
-            'activated' => 1,
-        ],
-        [
-            'tag' => 'topShouters',
-            'name' => 'TopShouters',
-            'command' => 'top10',
-            'description' => 'Komenda wyświetla top 10 spamerów.',
-            'activated' => 1,
-        ],
-    ];
+    foreach ($commandsDataJson as $key => $value) {
+        $commandsData[$value['tag']] = $commandsDataJson[$key];
+    }
+
+    foreach ($commandsDataJson as $key => $value) {
+        $commandsDataDb[] = $commandsDataJson[$key];
+    }
+
+    /* for ($i = 0; $i < count($commandsDataJson); $i++) {
+        $commandsData[$commandsDataJson[$i]['tag']] = [
+            'tag' => $commandsDataJson[$i]['tag'],
+            'name' => $commandsDataJson[$i]['values']['name'],
+            'command' => $commandsDataJson[$i]['values']['command'],
+            'description' => $commandsDataJson[$i]['values']['description'],
+            'activated' => isset($commandsDataJson[$i]['values']['activated']) ? $commandsDataJson[$i]['values']['activated'] : 1
+
+        ];
+    }
+ */
+    /* for ($i = 0; $i < count($commandsDataJson); $i++) {
+        $commandsDataDb[] = [
+            'tag' => $commandsDataJson[$i]['tag'],
+            'name' => $commandsDataJson[$i]['values']['name'],
+            'command' => $commandsDataJson[$i]['values']['command'],
+            'description' => $commandsDataJson[$i]['values']['description'],
+            'activated' => isset($commandsDataJson[$i]['values']['activated']) ? $commandsDataJson[$i]['values']['activated'] : 1
+
+        ];
+    } */
 
     //! ADD COMMANDS
-    $db->insert_query_multiple('dvz_shoutbox_bot_commands', $commandsData);
-
+    if (!empty($commandsData)) {
+        $db->insert_query_multiple('dvz_shoutbox_bot_commands', $commandsDataDb);
+    }
     //! UPDATE CACHE
-    $PL->cache_update('dvz_shoutbox_bot', [
+    $cache->update('dvz_shoutbox_bot', [
         'commands' => $commandsData,
     ]);
 
@@ -241,7 +216,7 @@ function dvz_shoutbox_bot_install()
 
 function dvz_shoutbox_bot_uninstall()
 {
-    global $db, $PL;
+    global $db, $PL, $cache;
 
     if (!file_exists(PLUGINLIBRARY)) {
         flash_message("PluginLibrary is missing.", "error");
@@ -251,7 +226,8 @@ function dvz_shoutbox_bot_uninstall()
     $PL or require_once PLUGINLIBRARY;
 
     $PL->settings_delete('dvz_sb_bot', true);
-    $PL->cache_delete('dvz_shoutbox_bot');
+
+    $cache->delete('dvz_shoutbox_bot');
     $db->delete_query('tasks', 'file=\'dvz_shoutbox_bot\'');
 
     //! Delete old settings
@@ -279,6 +255,7 @@ function dvz_shoutbox_bot_is_installed()
     return (bool) $db->num_rows($query);
 }
 
+
 function dvz_shoutbox_bot_admin_user_menu(&$sub_menu)
 {
     $sub_menu[count($sub_menu) - 1] = [
@@ -291,6 +268,55 @@ function dvz_shoutbox_bot_admin_user_menu(&$sub_menu)
 function dvz_shoutbox_bot_user_action_handler(&$actions)
 {
     $actions['dvz-shoutbox-bot'] = ['active' => 'dvz-shoutbox-bot', 'file' => 'dvz_shoutbox_bot.php'];
+}
+
+function dvz_shoutbox_bot_reload_commands()
+{
+    global $db, $PL;
+    $PL or require_once PLUGINLIBRARY;
+
+    dvz_shoutbox_bot_create_instance();
+    $dataCommands = Command::i()->getCommands();
+    $dataJson = getCommandsDataJson();
+
+
+    foreach ($dataJson as $key => $value) {
+        $commandsData[$value['tag']] = $dataJson[$key];
+    }
+    /* echo "<pre>";
+    print_r($dataCommands);
+    echo "</pre>"; */
+
+    /* for ($i = 0; $i < count($dataJson); $i++) {
+        $commandsData[$dataJson[$i]['tag']] = [
+            'tag' => $dataJson[$i]['tag'],
+            'name' => $dataJson[$i]['values']['name'],
+            'command' => $dataJson[$i]['values']['command'],
+            'description' => $dataJson[$i]['values']['description'],
+            'activated' => isset($dataJson[$i]['values']['activated']) ? $dataJson[$i]['values']['activated'] : 1
+
+        ];
+    } */
+
+    $new = array_diff_key($commandsData, $dataCommands);
+    if (!empty($new)) {
+
+        foreach ($new as $key => $value) {
+            $commandsDataDb[] = $new[$key];
+        }
+
+        echo "<pre>";
+        print_r($commandsDataDb);
+        echo "</pre>";
+
+        if (count($commandsDataDb) >  1) {
+            $db->insert_query_multiple("dvz_shoutbox_bot_commands", $commandsDataDb);;
+        } else {
+            $db->insert_query("dvz_shoutbox_bot_commands", $commandsDataDb);
+        }
+        Command::i()->updateCache();
+    }
+    admin_redirect("index.php?module=user-dvz-shoutbox-bot");
 }
 
 function dvz_shoutbox_bot_register()
@@ -410,7 +436,7 @@ function dvz_shoutbox_bot_shout_commit(&$data)
         if (!empty($commandsArray)) {
             foreach ($commandsArray as &$command) {
 
-                if ((bool)$command['activated']) {
+                if ((bool) $command['activated']) {
 
                     $data['command'] = $command['command'];
 
@@ -425,6 +451,10 @@ function dvz_shoutbox_bot_shout_commit(&$data)
 
                         if ($commandClass instanceof AbstractCommandBase) {
                             if ($commandClass instanceof ModRequiredInterface && !Bot::i()->accessMod()) {
+                                continue;
+                            }
+
+                            if (!property_exists($commandClass, 'pattern')) {
                                 continue;
                             }
 
@@ -447,7 +477,7 @@ function dvz_shoutbox_bot_shout(&$data)
         $commandsArray = Command::i()->getCommands();
         if (!empty($commandsArray)) {
             foreach ($commandsArray as &$command) {
-                if ((bool)$command['activated']) {
+                if ((bool) $command['activated']) {
                     if (!Bot::i()->antiflood_pass('/' . $command['command'])) {
                         die('A');
                     }
@@ -459,16 +489,120 @@ function dvz_shoutbox_bot_shout(&$data)
 
 function dvz_shoutbox_bot_index()
 {
+    global $PL;
+    $PL or require_once PLUGINLIBRARY;
     dvz_shoutbox_bot_create_instance();
-    $commandArray = Command::i()->getCommands();
-    print_r($commandArray);
+
+    $array1 = [
+        'test' => [
+            'name' => 'Test',
+            'command' => 'test',
+            'description' => 'TEST'
+        ],
+        'test2' => [
+            'name' => 'Test2',
+            'command' => 'test2',
+            'description' => 'TEST2'
+        ]
+    ];
+
+    $array2 = [
+        'test' => [
+            'name' => 'Test',
+            'command' => 'test',
+            'description' => 'TEST'
+        ],
+        'test2' => [
+            'name' => 'Test2',
+            'command' => 'test2',
+            'description' => 'TEST2'
+        ],
+        'test3' => [
+            'name' => 'Test3',
+            'command' => 'test3',
+            'description' => 'TEST3'
+        ],
+        'test4' => [
+            'name' => 'Test4',
+            'command' => 'test4',
+            'description' => 'TEST4'
+        ]
+    ];
+
+    $key = array_diff_key($array2, $array1);
+
+
+    echo "<pre>";
+    // print_r($key);
+    print_r(Command::i()->getCommands());
+    echo "</pre>";
+}
+
+function getCommandsDataJson()
+{
+    global $db;
+
+    $dir = new DirectoryIterator(DVZSB_PLUGIN_PATH . '/data');
+
+    foreach ($dir as $file) {
+        if (!$file->isDot() && !$file->isDir() && pathinfo($file->getPathname(), PATHINFO_EXTENSION) === 'json') {
+            $fileArray = json_decode(file_get_contents($file->getPathname()), true);
+            foreach ($fileArray as $value => $key) {
+                $db->escape_string($value);
+            }
+            $commandsDataFromJson[] = $fileArray;
+        }
+    }
+    return $commandsDataFromJson;
 }
 
 function dvz_shoutbox_bot_create_instance()
 {
-    global $mybb, $db, $lang, $plugins, $PL, $bot;
+    global $mybb, $db, $lang, $plugins, $cache, $bot;
     $PL or require_once PLUGINLIBRARY;
-  
+
     $bot = Bot::createInstance($mybb, $db, $lang, $plugins);
-    $command = Command::createInstance($PL);
+    $command = Command::createInstance($cache, $db);
 }
+
+function array_equal($a, $b)
+{
+    return (is_array($a)
+        && is_array($b)
+        && count($a) == count($b)
+        && array_diff($a, $b) === array_diff($b, $a));
+}
+
+function array_compare($array1, $array2)
+{
+    $diff = false;
+    // Left-to-right
+    foreach ($array1 as $key => $value) {
+        if (!array_key_exists($key, $array2)) {
+            $diff[0][$key] = $value;
+        } elseif (is_array($value)) {
+            if (!is_array($array2[$key])) {
+                $diff[0][$key] = $value;
+                $diff[1][$key] = $array2[$key];
+            } else {
+                $new = array_compare($value, $array2[$key]);
+                if ($new !== false) {
+                    if (isset($new[0])) $diff[0][$key] = $new[0];
+                    if (isset($new[1])) $diff[1][$key] = $new[1];
+                };
+            };
+        } elseif ($array2[$key] !== $value) {
+            $diff[0][$key] = $value;
+            $diff[1][$key] = $array2[$key];
+        };
+    };
+    // Right-to-left
+    foreach ($array2 as $key => $value) {
+        if (!array_key_exists($key, $array1)) {
+            $diff[1][$key] = $value;
+        };
+        // No direct comparsion because matching keys were compared in the
+        // left-to-right loop earlier, recursively.
+    };
+    return $diff;
+};

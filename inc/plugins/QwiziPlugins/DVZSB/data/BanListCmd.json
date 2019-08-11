@@ -1,0 +1,7 @@
+{
+  "tag": "banList",
+  "name": "Lista banów",
+  "command": "banlist",
+  "description": "Komenda ta pokazuje aktualnie kto jest zbanowany",
+  "activated": 1
+}

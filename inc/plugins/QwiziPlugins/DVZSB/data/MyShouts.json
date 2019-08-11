@@ -1,0 +1,7 @@
+{
+  "tag": "myShouts",
+  "name": "MyShouts",
+  "command": "myshouts",
+  "description": "Komenda wyświetla ile napisałeś wpisów na sb.",
+  "activated": 1
+}
