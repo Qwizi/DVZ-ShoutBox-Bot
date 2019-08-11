@@ -1,0 +1,7 @@
+{
+  "tag": "unBan",
+  "name": "UnBan",
+  "command": "unban",
+  "description": "Komenda ta pozwala zdejmować blokady użytkowników",
+  "activated": 1
+}

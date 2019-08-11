@@ -1,0 +1,7 @@
+{
+  "tag": "prune",
+  "name": "Prune",
+  "command": "prune",
+  "description": "Komenda ta pozwala na usuwanie wpisów",
+  "activated": 1
+}

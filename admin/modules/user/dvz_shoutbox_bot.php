@@ -16,16 +16,23 @@ $lang->load('dvz_shoutbox_bot');
 $page->add_breadcrumb_item('Komendy', MODULE_LINK);
 
 if ($mybb->input['action'] == 'add' || !$mybb->input['action']) {
-    $sub_tabs['manage_commands'] = [
-        'title' => 'Zarządzaj komendami',
-        'link' => MODULE_LINK,
-        'description' => 'Zarzadzaj komendami',
-    ];
 
-    $sub_tabs['add_command'] = [
-        'title' => 'Dodaj komende',
-        'link' => MODULE_LINK . '&amp;action=add',
-        'description' => 'Zarzadzaj komendami',
+    $sub_tabs = [
+        'manage_commands' => [
+            'title' => 'Zarządzaj komendami',
+            'link' => MODULE_LINK,
+            'description' => 'Zarzadzaj komendami',
+        ],
+        'add_command' => [
+            'title' => 'Dodaj komende',
+            'link' => MODULE_LINK . '&amp;action=add',
+            'description' => 'Zarzadzaj komendami',
+        ],
+        'reload_commands' => [
+            'title' => 'Przeladuj komendy',
+            'link' => MODULE_LINK . '&amp;action=reload',
+            'description' => 'Przeladuj komendy',
+        ]
     ];
 }
 
@@ -237,8 +244,12 @@ if ($mybb->input['action'] == 'delete') {
 
         admin_redirect(MODULE_LINK);
     } else {
-        $page->output_confirm_action(MODULE_LINK."&amp;action=delete&amp;cid={$commandQ['cid']}", "Napewno chcesz usunąc komende?");
+        $page->output_confirm_action(MODULE_LINK . "&amp;action=delete&amp;cid={$commandQ['cid']}", "Napewno chcesz usunąc komende?");
     }
+}
+
+if ($mybb->input['action'] == 'reload') {
+    $plugins->run_hooks("admin_dvz_shoutbox_bot_reload");
 }
 
 if (!$mybb->input['action']) {

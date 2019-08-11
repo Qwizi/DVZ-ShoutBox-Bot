@@ -1,0 +1,7 @@
+{
+  "tag": "ban",
+  "name": "Ban",
+  "command": "ban",
+  "description": "Komenda ta pozwala banować użytkowników",
+  "activated": 1
+}
