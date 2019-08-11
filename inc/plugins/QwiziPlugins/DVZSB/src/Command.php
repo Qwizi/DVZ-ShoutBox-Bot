@@ -53,13 +53,6 @@ class Command
 
     public function updateCache()
     {
-        /* $commandsArray = [];
-        $query = $this->db->simple_select($this->tableName, "*");
-        while($row = $this->db->fetch_array($query)) {
-            $commandsArray['commands'] = $row;
-        }
-        $this->cache->update($this->cacheTableName, $commandsArray); */
-
 		$query = $this->db->simple_select($this->tableName);
 		$cmds = [];
 		while($c = $this->db->fetch_array($query))
