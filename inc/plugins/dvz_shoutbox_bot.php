@@ -164,28 +164,6 @@ function dvz_shoutbox_bot_install()
         $commandsDataDb[] = $commandsDataJson[$key];
     }
 
-    /* for ($i = 0; $i < count($commandsDataJson); $i++) {
-        $commandsData[$commandsDataJson[$i]['tag']] = [
-            'tag' => $commandsDataJson[$i]['tag'],
-            'name' => $commandsDataJson[$i]['values']['name'],
-            'command' => $commandsDataJson[$i]['values']['command'],
-            'description' => $commandsDataJson[$i]['values']['description'],
-            'activated' => isset($commandsDataJson[$i]['values']['activated']) ? $commandsDataJson[$i]['values']['activated'] : 1
-
-        ];
-    }
- */
-    /* for ($i = 0; $i < count($commandsDataJson); $i++) {
-        $commandsDataDb[] = [
-            'tag' => $commandsDataJson[$i]['tag'],
-            'name' => $commandsDataJson[$i]['values']['name'],
-            'command' => $commandsDataJson[$i]['values']['command'],
-            'description' => $commandsDataJson[$i]['values']['description'],
-            'activated' => isset($commandsDataJson[$i]['values']['activated']) ? $commandsDataJson[$i]['values']['activated'] : 1
-
-        ];
-    } */
-
     //! ADD COMMANDS
     if (!empty($commandsData)) {
         $db->insert_query_multiple('dvz_shoutbox_bot_commands', $commandsDataDb);
@@ -283,20 +261,6 @@ function dvz_shoutbox_bot_reload_commands()
     foreach ($dataJson as $key => $value) {
         $commandsData[$value['tag']] = $dataJson[$key];
     }
-    /* echo "<pre>";
-    print_r($dataCommands);
-    echo "</pre>"; */
-
-    /* for ($i = 0; $i < count($dataJson); $i++) {
-        $commandsData[$dataJson[$i]['tag']] = [
-            'tag' => $dataJson[$i]['tag'],
-            'name' => $dataJson[$i]['values']['name'],
-            'command' => $dataJson[$i]['values']['command'],
-            'description' => $dataJson[$i]['values']['description'],
-            'activated' => isset($dataJson[$i]['values']['activated']) ? $dataJson[$i]['values']['activated'] : 1
-
-        ];
-    } */
 
     $new = array_diff_key($commandsData, $dataCommands);
     if (!empty($new)) {
@@ -304,10 +268,6 @@ function dvz_shoutbox_bot_reload_commands()
         foreach ($new as $key => $value) {
             $commandsDataDb[] = $new[$key];
         }
-
-        echo "<pre>";
-        print_r($commandsDataDb);
-        echo "</pre>";
 
         if (count($commandsDataDb) >  0) {
             $db->insert_query_multiple("dvz_shoutbox_bot_commands", $commandsDataDb);;
@@ -492,50 +452,6 @@ function dvz_shoutbox_bot_index()
     global $PL;
     $PL or require_once PLUGINLIBRARY;
     dvz_shoutbox_bot_create_instance();
-
-    $array1 = [
-        'test' => [
-            'name' => 'Test',
-            'command' => 'test',
-            'description' => 'TEST'
-        ],
-        'test2' => [
-            'name' => 'Test2',
-            'command' => 'test2',
-            'description' => 'TEST2'
-        ]
-    ];
-
-    $array2 = [
-        'test' => [
-            'name' => 'Test',
-            'command' => 'test',
-            'description' => 'TEST'
-        ],
-        'test2' => [
-            'name' => 'Test2',
-            'command' => 'test2',
-            'description' => 'TEST2'
-        ],
-        'test3' => [
-            'name' => 'Test3',
-            'command' => 'test3',
-            'description' => 'TEST3'
-        ],
-        'test4' => [
-            'name' => 'Test4',
-            'command' => 'test4',
-            'description' => 'TEST4'
-        ]
-    ];
-
-    $key = array_diff_key($array2, $array1);
-
-
-    echo "<pre>";
-    // print_r($key);
-    print_r(Command::i()->getCommands());
-    echo "</pre>";
 }
 
 function getCommandsDataJson()
@@ -559,50 +475,7 @@ function getCommandsDataJson()
 function dvz_shoutbox_bot_create_instance()
 {
     global $mybb, $db, $lang, $plugins, $cache, $bot;
-    $PL or require_once PLUGINLIBRARY;
 
     $bot = Bot::createInstance($mybb, $db, $lang, $plugins);
     $command = Command::createInstance($cache, $db);
 }
-
-function array_equal($a, $b)
-{
-    return (is_array($a)
-        && is_array($b)
-        && count($a) == count($b)
-        && array_diff($a, $b) === array_diff($b, $a));
-}
-
-function array_compare($array1, $array2)
-{
-    $diff = false;
-    // Left-to-right
-    foreach ($array1 as $key => $value) {
-        if (!array_key_exists($key, $array2)) {
-            $diff[0][$key] = $value;
-        } elseif (is_array($value)) {
-            if (!is_array($array2[$key])) {
-                $diff[0][$key] = $value;
-                $diff[1][$key] = $array2[$key];
-            } else {
-                $new = array_compare($value, $array2[$key]);
-                if ($new !== false) {
-                    if (isset($new[0])) $diff[0][$key] = $new[0];
-                    if (isset($new[1])) $diff[1][$key] = $new[1];
-                };
-            };
-        } elseif ($array2[$key] !== $value) {
-            $diff[0][$key] = $value;
-            $diff[1][$key] = $array2[$key];
-        };
-    };
-    // Right-to-left
-    foreach ($array2 as $key => $value) {
-        if (!array_key_exists($key, $array1)) {
-            $diff[1][$key] = $value;
-        };
-        // No direct comparsion because matching keys were compared in the
-        // left-to-right loop earlier, recursively.
-    };
-    return $diff;
-};
