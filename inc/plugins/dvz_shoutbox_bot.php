@@ -153,7 +153,7 @@ function dvz_shoutbox_bot_install()
             PRIMARY KEY (`cid`)
         ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
     ");
-
+  
     $commandsDataJson = getCommandsDataJson();
 
     foreach ($commandsDataJson as $key => $value) {
