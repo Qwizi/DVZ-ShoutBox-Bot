@@ -309,7 +309,7 @@ function dvz_shoutbox_bot_reload_commands()
         print_r($commandsDataDb);
         echo "</pre>";
 
-        if (count($commandsDataDb) >  1) {
+        if (count($commandsDataDb) >  0) {
             $db->insert_query_multiple("dvz_shoutbox_bot_commands", $commandsDataDb);;
         } else {
             $db->insert_query("dvz_shoutbox_bot_commands", $commandsDataDb);
