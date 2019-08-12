@@ -14,15 +14,13 @@ class HelpCmd extends AbstractCommandBase
     public function doAction(array $data): void
     {
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
+            global $cache;
 
             $this->lang->load('dvz_shoutbox_bot');
 
-            Command::createInstance($this->PL);
+            Command::createInstance($cache, $this->db);
 
             $commandPrefix = $this->getCommandPrefix();
-
-            /* $pluginCache = $this->PL->cache_read('dvz_shoutbox_bot'); 
-            $commandsArray = $pluginCache['commands'];*/
             
             $commandsArray = Command::i()->getCommands();
 
@@ -31,6 +29,7 @@ class HelpCmd extends AbstractCommandBase
             }
 
             $pagination = new Pagination;
+            $pagination->setPerPage(9);
 
             $paginationCommandsArray = $pagination->paginate($commandsArray, (int) $matches[2]);
 
@@ -39,9 +38,10 @@ class HelpCmd extends AbstractCommandBase
             }
 
             if (!$this->getError()) {
+
                 $command = '';
-                for ($i = 0; $i < count($paginationCommandsArray); $i++) {
-                    $command .= "{$commandPrefix}{$paginationCommandsArray[$i]['command']} - {$paginationCommandsArray[$i]['description']}\n";
+                foreach ($paginationCommandsArray as $key => $value) {
+                    $command .= "{$commandPrefix}{$value['command']} - {$value['description']} \r\n";
                 }
 
                 $this->setMessage($command);
