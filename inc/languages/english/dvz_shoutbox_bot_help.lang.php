@@ -1,0 +1,2 @@
+<?php
+$l['error'] = "Error";
