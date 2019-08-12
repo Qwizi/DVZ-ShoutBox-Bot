@@ -25,8 +25,6 @@ $classLoader->registerNamespace(
     DVZSB_PLUGIN_PATH . '/src/'
 )->register();
 
-// TODO Usunąć hooka index_end
-$plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');
 $plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
@@ -436,13 +434,6 @@ function dvz_shoutbox_bot_shout(&$data)
             }
         }
     }
-}
-
-function dvz_shoutbox_bot_index()
-{
-    global $PL;
-    $PL or require_once PLUGINLIBRARY;
-    dvz_shoutbox_bot_create_instance();
 }
 
 function getCommandsDataJson()
