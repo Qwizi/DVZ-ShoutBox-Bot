@@ -186,7 +186,7 @@ class Bot
     public function user_last_shout_time($uid, $matches)
     {
         return $this->db->fetch_field(
-            $this->db->simple_select('dvz_shoutbox s', 'date', 'uid=' . (int)$uid . ' AND s.text="'.$matches.'"', [
+            $this->db->simple_select('dvz_shoutbox s', 'date', 'uid=' . (int) $uid . ' AND s.text="' . $matches . '"', [
                 'order_by'  => 'date',
                 'order_dir' => 'desc',
                 'limit'     => 1,
@@ -197,7 +197,6 @@ class Bot
 
     public function antiflood_pass($matches)
     {
-        return (( TIME_NOW - $this->user_last_shout_time($this->mybb->user['uid'], $matches) ) > $this->settings['dvz_sb_antiflood']
-        );
+        return ((TIME_NOW - $this->user_last_shout_time($this->mybb->user['uid'], $matches)) > $this->settings['dvz_sb_antiflood']);
     }
 }

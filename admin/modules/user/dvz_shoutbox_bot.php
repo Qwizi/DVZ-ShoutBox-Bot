@@ -1,5 +1,7 @@
 <?php
 
+use Qwizi\DVZSB\Command;
+
 if (!defined("IN_MYBB")) {
     die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
@@ -23,11 +25,11 @@ if ($mybb->input['action'] == 'add' || !$mybb->input['action']) {
             'link' => MODULE_LINK,
             'description' => 'Zarzadzaj komendami',
         ],
-        'add_command' => [
+        /*         'add_command' => [
             'title' => 'Dodaj komende',
             'link' => MODULE_LINK . '&amp;action=add',
             'description' => 'Zarzadzaj komendami',
-        ],
+        ], */
         'reload_commands' => [
             'title' => 'Przeladuj komendy',
             'link' => MODULE_LINK . '&amp;action=reload',
@@ -38,7 +40,7 @@ if ($mybb->input['action'] == 'add' || !$mybb->input['action']) {
 
 $plugins->run_hooks("admin_dvz_shoutbox_bot_begin");
 
-if ($mybb->input['action'] == 'add') {
+/* if ($mybb->input['action'] == 'add') {
     $plugins->run_hooks("admin_dvz_shoutbox_bot_add");
 
     if ($mybb->request_method == 'post') {
@@ -72,13 +74,11 @@ if ($mybb->input['action'] == 'add') {
 
             $cid = $db->insert_query('dvz_shoutbox_bot_commands', $new_command);
 
-            $PL or require_once PLUGINLIBRARY;
+            require_once MYBB_ROOT .'/inc/plugins/QwiziPlugins/DVZSB/src/Command.php';
 
-            $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+            Command::createInstance($cache, $db);
 
-            array_push($pluginCache['commands'], $new_command);
-
-            $PL->cache_update('dvz_shoutbox_bot', ['commands' => $pluginCache['commands']]);
+            Command::i()->updateCache();
 
             $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit_end", $cid);
 
@@ -109,7 +109,7 @@ if ($mybb->input['action'] == 'add') {
     $form->end();
 
     $page->output_footer();
-}
+} */
 
 if ($mybb->input['action'] == 'edit') {
 
@@ -153,22 +153,13 @@ if ($mybb->input['action'] == 'edit') {
 
             $cid = $db->update_query('dvz_shoutbox_bot_commands', $updated_command, "cid=\"" . $mybb->get_input('cid', MyBB::INPUT_INT) . "\"");
 
-            $PL or require_once PLUGINLIBRARY;
+            /* $PL or require_once PLUGINLIBRARY; */
 
-            $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
+            require_once MYBB_ROOT . '/inc/plugins/QwiziPlugins/DVZSB/src/Command.php';
 
-            foreach ($pluginCache['commands'] as &$command) {
-                if ($command['tag'] == $commandQ['tag']) {
+            Command::createInstance($cache, $db);
 
-                    $command['name'] = $mybb->input['name'];
-                    $command['description'] = $mybb->input['description'];
-                    $command['tag'] = $mybb->input['tag'];
-                    $command['command'] = $mybb->input['command'];
-                    $command['activated'] = $mybb->input['activated'];
-                }
-            }
-
-            $PL->cache_update('dvz_shoutbox_bot', ['commands' => $pluginCache['commands']]);
+            Command::i()->updateCache();
 
             $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit_end", $cid);
 
@@ -231,7 +222,13 @@ if ($mybb->input['action'] == 'delete') {
     if ($mybb->request_method == 'post') {
         $db->delete_query('dvz_shoutbox_bot_commands', "cid='{$commandQ['cid']}'");
 
-        $PL or require_once PLUGINLIBRARY;
+        require_once MYBB_ROOT . '/inc/plugins/QwiziPlugins/DVZSB/src/Command.php';
+
+        Command::createInstance($cache, $db);
+
+        Command::i()->updateCache();
+
+        /* $PL or require_once PLUGINLIBRARY;
 
         $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
 
@@ -240,7 +237,7 @@ if ($mybb->input['action'] == 'delete') {
         $key = array_search($commandQ['tag'], array_column($commandsArray, 'tag'));
         unset($commandsArray[$key]);
 
-        $PL->cache_update('dvz_shoutbox_bot', ['commands' => $commandsArray]);
+        $PL->cache_update('dvz_shoutbox_bot', ['commands' => $commandsArray]); */
 
         admin_redirect(MODULE_LINK);
     } else {
