@@ -13,12 +13,13 @@ class BanListCmd extends AbstractCommandBase implements  ModRequiredInterface
     public function doAction(array $data): void
     {
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
-            $this->lang->load('dvz_shoutbox_bot');
+
+            $this->lang->load('dvz_shoutbox_bot_banlist');
 
             $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
 
             if (in_array('', $explodeBannedUsers)) {
-                $this->setError($this->lang->bot_banlist_empty_list);
+                $this->setError($this->lang->empty_list);
             }
 
             if (!$this->getError()) {
@@ -36,9 +37,9 @@ class BanListCmd extends AbstractCommandBase implements  ModRequiredInterface
                 }
                 $implode = implode(", ", $usernames);
 
-                $this->lang->bot_banlist_list_banned = $this->lang->sprintf($this->lang->bot_banlist_list_banned, $implode);
+                $this->lang->list_banned = $this->lang->sprintf($this->lang->list_banned, $implode);
 
-                $this->setMessage($this->lang->bot_banlist_list_banned);
+                $this->setMessage($this->lang->list_banned) ;
             }
 
             $this->send()->setReturnedValue([

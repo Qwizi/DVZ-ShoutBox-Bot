@@ -1,52 +1,66 @@
 <?php
-$l['bot_title'] = 'DVZ ShoutBox Bot';
-$l['bot_desc'] = 'Bot sending messages on chat if user will register or write new thread/post. Responds to messages provided by the admin..';
-$l['bot_setting_desc'] = 'Settings for plugin DVZ ShoutBox Bot.';
-$l['bot_onoff_title'] = 'Plugin on/off';
-$l['bot_onoff_desc'] = 'Plugin enabled/disabled?';
-$l['bot_link_title'] = 'Get a login link?';
-$l['bot_link_desc'] = 'Specifies whether the plugin is to get a link to the profile. Example @Nick.';
-$l['bot_action_title'] = 'Should the bot react to messages entered in the chat?';
-$l['bot_action_desc'] = 'Determines whether the bot should respond to messages provided in the admin panel. You can manage them <a href="index.php?module=user-dvz_shoutbox_bot">here</a>.';
-$l['bot_id_title'] = 'Bot\'s ID';
-$l['bot_id_desc'] = 'Enter the id of the user who will be sending the message in the chat.';
-$l['bot_register_title'] = 'Should the bot send a chat message when the user registers?';
-$l['bot_register_desc'] = 'Determines wheter bot should be sending a message on chat if user will register.';
-$l['bot_register_message_title'] = 'Message sent to the chat, if the user registers.';
-$l['bot_register_message_desc'] = 'Message that will be sent by the bot. Use <b>{username}</b> to replace the login.';
-$l['bot_register_message_example'] = 'The player {username} has just registered. Welcome!';
-$l['bot_thread_title'] = 'Should the bot send a chat message if the user will writes a new thread?';
-$l['bot_thread_desc'] = 'Determines wheter bot should send message on chat if user write new thread.';
-$l['bot_ignore_title'] = 'Ignoring forums';
-$l['bot_ignore_desc'] = 'Choose from list of that the bot should ignore.';
-$l['bot_thread_message_title'] = 'Message sent on chat if user will write new thread';
-$l['bot_thread_message_desc'] = 'Message that will be sent by the bot. Use <b>{username}</b> to replace the login, <b>{subject}</b> to download thread subject, <b>{forum}</b> to get name of forum.';
-$l['bot_thread_message_example'] = 'New thread - {subject} in forum {forum}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
-$l['bot_post_title'] = 'Should the bot send a chat message if the user will write a new post?';
-$l['bot_post_desc'] = 'Determines wheter bot should sent message on chat if user will write new post.';
-$l['bot_post_message_title'] = 'Message sent to the chat, if the user writes a new post';
-$l['bot_post_message_desc'] = 'Message that will be sent by the bot. Use <b>{username}</b> to replace the login, <b>{subject}</b> to get title of post.';
-$l['bot_post_message_example'] = 'New post - {subject}.[quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
+//! BOT ID
+$l['id_t'] = 'Bot\'s ID';
+$l['id_d'] = 'Enter the id of the user who will be sending the message in the chat.';
 
-$l['bot_panel_view_title'] = 'View';
-$l['bot_panel_view_desc'] = 'Manage messages';
-$l['bot_panel_add_title'] = 'Add';
-$l['bot_panel_add_desc'] = "Add new action";
-$l['bot_panel_edit_title'] = 'Edit';
-$l['bot_panel_edit_desc'] = "Edit action";
-$l['bot_panel_delete_title'] = 'Delete';
-$l['bot_panel_delete_desc'] = "Delete action";
-$l['bot_panel_message'] = 'Message';
-$l['bot_panel_message_desc'] = 'Enter your message here';
-$l['bot_panel_nomessage'] = 'No messages';
-$l['bot_panel_answer'] = 'Answer';
-$l['bot_panel_answer_desc'] = 'Enter your answer here';
-$l['bot_panel_options'] = 'Options';
-$l['bot_panel_empty_fields'] = 'The fields can not be empty';
-$l['bot_panel_characters_m'] = 'There are illegal characters in the message';
-$l['bot_panel_characters_a'] = 'There are illegal characters in the answer';
-$l['bot_panel_action_success'] = 'Actions have been added successfully';
-$l['bot_panel_action_edit_success'] = 'Actions were successfully edited';
-$l['bot_panel_delete'] = 'Do you really want to delete?';
-$l['bot_panel_yes'] = 'Yes';
-$l['bot_panel_no'] = 'No';
+//! REGISTER ACTION SETTINGS
+$l['register_t'] = 'Should the bot send a chat message when the user registers?';
+$l['register_d'] = 'Determines wheter bot should be sending a message on chat if user will register.';
+$l['register_message_t'] = 'Message sent to the chat, if the user registers';
+$l['register_message_d'] = 'Message that will be sent by the bot. Use <b>{username}</b> to replace the login.';
+$l['register_message_example'] = 'The player {username} has just registered. Welcome!';
+
+//! THREAD ACTION SETTINGS
+$l['thread_t'] = 'Should the bot send a chat message if the user will writes a new thread?';
+$l['thread_d'] = 'Determines wheter bot should send message on chat if user write new thread.';
+$l['thread_message_t'] = 'Message sent on chat if user will write new thread.';
+$l['thread_message_d'] = 'Message that will be sent by the bot. Use <b>{username}</b> to replace the login, <b>{subject}</b> to get thread subject, <b>{forum}</b> to get name of forum';
+$l['thread_message_example'] = 'New thread - {subject} in forum {forum}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
+
+//! POST ACTION SETTINGS
+$l['post_t'] = 'Should the bot send a chat message if the user will write a new post?';
+$l['post_d'] = 'Determines wheter bot should sent message on chat if user will write new post.';
+$l['post_message_t'] = 'Message sent to the chat, if the user writes a new post';
+$l['post_message_d'] = 'Message that will be sent by the bot. Use <b>{username}</b> to replace the login, <b>{subject}</b> to get title of post.';
+$l['post_message_example'] = 'New post - {subject}.[quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
+
+//! INGORE FORUMS
+$l['ignore_t'] = "Ignoring forums";
+$l['ignore_d'] = "Choose from list of that the bot should ignore";
+
+//! COMMANDS
+$l['commands_t'] = "Should the bot respond to commands?";
+$l['commands_d'] = "Determines whether the bot should respond to commands.";
+$l['commands_prefix_t'] = "Prefix for commands";
+$l['commands_prefix_d'] = "Specifies the prefix for commands";
+
+$l['manage_commands_t'] = "Manage commands";
+$l['manage_commands_d'] = "Manage commands";
+$l['reload_commands_t'] = "Reload commands";
+$l['reload_commands_d'] = "Reload commands";
+$l['edit_command_t'] = "Edit command";
+$l['edit_command_d'] = "Edit command";
+
+$l['row_name_t'] = "Name";
+$l['row_name_d'] = "Name of the command";
+$l['row_description_t'] = "Description";
+$l['row_description_d'] = "Description of the command";
+$l['row_command_t'] = "Command";
+$l['row_command_d'] = "The command that will be entered in the chat";
+$l['row_activated_t'] = "Active";
+$l['row_activated_d'] = "Whether the command is to be active";
+$l['row_activated_y'] = "yes";
+$l['row_activated_n'] = "no";
+$l['row_options'] = "Options";
+$l['row_options_e'] = "Edit";
+$l['row_options_d'] = "Delete";
+$l['row_empty'] = "No commands";
+
+$l['row_m_name'] = 'Missing name';
+$l['row_m_description'] = "Missing description";
+$l['row_m_command'] = "Missing command";
+
+$l['edit_command_success_message'] = "The command has been successfully edited";
+$l['command_not_found'] = "Command not found";
+$l['delete_question'] = "Are you sure you want to delete the command?";
+$l['save'] = "Save";

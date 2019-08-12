@@ -14,7 +14,7 @@ class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
     {
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
 
-            $this->lang->load('dvz_shoutbox_bot');
+            $this->lang->load('dvz_shoutbox_bot_prune');
 
             if ($matches[2] == "--all") {
 
@@ -26,15 +26,15 @@ class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
                 $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
 
                 if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
-                    $this->setError($this->lang->bot_ban_error_empty_user);
+                    $this->setError($this->lang->error_empty_user);
                 }
 
                 if (!$this->getError()) {
                     $this->deleteShout("uid={$target['uid']}");
                     $this->setSendMessage(true);
-                    $this->lang->bot_prune_message_user_success = $this->lang->sprintf($this->lang->bot_prune_message_user_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+                    $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
 
-                    $this->setMessage($this->lang->bot_prune_message_user_success);
+                    $this->setMessage($this->lang->message_success);
                 }
 
 

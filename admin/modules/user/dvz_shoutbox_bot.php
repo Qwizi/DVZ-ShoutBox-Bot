@@ -6,110 +6,29 @@ if (!defined("IN_MYBB")) {
     die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
 
-if (!defined("PLUGINLIBRARY")) {
-    define("PLUGINLIBRARY", MYBB_ROOT . "inc/plugins/pluginlibrary.php");
-}
-
 define("MODULE_LINK", 'index.php?module=user-dvz-shoutbox-bot');
 
 $lang->load('dvz_shoutbox_bot');
 
-// TODO Poftorek możesz używać tutaj langów teraz
-$page->add_breadcrumb_item('Komendy', MODULE_LINK);
+$page->add_breadcrumb_item('DVZ ShoutBox Bot', MODULE_LINK);
 
 if ($mybb->input['action'] == 'add' || !$mybb->input['action']) {
 
     $sub_tabs = [
         'manage_commands' => [
-            'title' => 'Zarządzaj komendami',
+            'title' => $lang->manage_commands_t,
             'link' => MODULE_LINK,
-            'description' => 'Zarzadzaj komendami',
+            'description' => $lang->manage_commands_d,
         ],
-        /*         'add_command' => [
-            'title' => 'Dodaj komende',
-            'link' => MODULE_LINK . '&amp;action=add',
-            'description' => 'Zarzadzaj komendami',
-        ], */
         'reload_commands' => [
-            'title' => 'Przeladuj komendy',
+            'title' => $lang->reload_commands_t,
             'link' => MODULE_LINK . '&amp;action=reload',
-            'description' => 'Przeladuj komendy',
+            'description' => $lang->reload_commands_d,
         ]
     ];
 }
 
 $plugins->run_hooks("admin_dvz_shoutbox_bot_begin");
-
-/* if ($mybb->input['action'] == 'add') {
-    $plugins->run_hooks("admin_dvz_shoutbox_bot_add");
-
-    if ($mybb->request_method == 'post') {
-
-        if (!trim($mybb->input['name'])) {
-            $errors[] = 'Nieprawidłowa nazwa';
-        }
-
-        if (!trim($mybb->input['description'])) {
-            $errors[] = 'Nieprawidłowy opis';
-        }
-
-        if (!trim($mybb->input['tag'])) {
-            $errors[] = 'Nieprawidłwy tag';
-        }
-
-        if (!trim($mybb->input['command'])) {
-            $errors[] = 'Nieprawidłowa komenda';
-        }
-
-        if (!$errors) {
-            $new_command = [
-                'name' => $db->escape_string($mybb->input['name']),
-                'description' => $db->escape_string($mybb->input['description']),
-                'tag' => $db->escape_string($mybb->input['tag']),
-                'command' => $db->escape_string($mybb->input['command']),
-                'activated' => 1,
-            ];
-
-            $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit");
-
-            $cid = $db->insert_query('dvz_shoutbox_bot_commands', $new_command);
-
-            require_once MYBB_ROOT .'/inc/plugins/QwiziPlugins/DVZSB/src/Command.php';
-
-            Command::createInstance($cache, $db);
-
-            Command::i()->updateCache();
-
-            $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit_end", $cid);
-
-            flash_message('Pomyślnie dodano komende', 'success');
-            admin_redirect(MODULE_LINK);
-        }
-    }
-
-    $page->output_header('Dodaj komende');
-    $page->output_nav_tabs($sub_tabs, 'add_command');
-
-    $form = new Form(MODULE_LINK . '&amp;action=add', 'post');
-
-    $form_container = new FormContainer('Dodaj komende');
-    $form_container->output_row("Nazwa <em>*</em>", "", $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
-    $form_container->output_row("Opis <em>*</em>", "", $form->generate_text_area('description', $mybb->input['description'], ['id' => 'description'], 'description'));
-    $form_container->output_row("Tag <em>*</em>", "", $form->generate_text_box('tag', $mybb->input['tag'], ['id' => 'tag'], 'tag'));
-    $form_container->output_row("Komenda <em>*</em>", "", $form->generate_text_box('command', $mybb->input['command'], ['id' => 'command'], 'command'));
-    // $form_container->output_row("Nazwa <em>*</em>", "", $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
-
-    $form_container->construct_row();
-
-    $form_container->end();
-
-    $buttons = [];
-    $buttons[] = $form->generate_submit_button('Zapisz komende');
-    $form->output_submit_wrapper($buttons);
-    $form->end();
-
-    $page->output_footer();
-} */
 
 if ($mybb->input['action'] == 'edit') {
 
@@ -117,7 +36,7 @@ if ($mybb->input['action'] == 'edit') {
     $commandQ = $db->fetch_array($query);
 
     if (!$commandQ['cid']) {
-        flash_message('Nie znaleziono komendy', 'error');
+        flash_message($lang->command_not_found, 'error');
         admin_redirect(MODULE_LINK);
     }
 
@@ -125,26 +44,21 @@ if ($mybb->input['action'] == 'edit') {
 
     if ($mybb->request_method == 'post') {
         if (!trim($mybb->input['name'])) {
-            $errors[] = 'Nieprawidłowa nazwa';
+            $errors[] = $lang->row_m_name;
         }
 
         if (!trim($mybb->input['description'])) {
-            $errors[] = 'Nieprawidłowy opis';
-        }
-
-        if (!trim($mybb->input['tag'])) {
-            $errors[] = 'Nieprawidłwy tag';
+            $errors[] = $lang->row_m_description;
         }
 
         if (!trim($mybb->input['command'])) {
-            $errors[] = 'Nieprawidłowa komenda';
+            $errors[] = $lang->row_m_command;
         }
 
         if (!$errors) {
             $updated_command = [
                 'name' => $db->escape_string($mybb->input['name']),
                 'description' => $db->escape_string($mybb->input['description']),
-                'tag' => $db->escape_string($mybb->input['tag']),
                 'command' => $db->escape_string($mybb->input['command']),
                 'activated' => (int) $mybb->input['activated'],
             ];
@@ -152,8 +66,6 @@ if ($mybb->input['action'] == 'edit') {
             $plugins->run_hooks("admin_dvz_shoutbox_bot_edit_commit");
 
             $cid = $db->update_query('dvz_shoutbox_bot_commands', $updated_command, "cid=\"" . $mybb->get_input('cid', MyBB::INPUT_INT) . "\"");
-
-            /* $PL or require_once PLUGINLIBRARY; */
 
             require_once MYBB_ROOT . '/inc/plugins/QwiziPlugins/DVZSB/src/Command.php';
 
@@ -163,17 +75,18 @@ if ($mybb->input['action'] == 'edit') {
 
             $plugins->run_hooks("admin_dvz_shoutbox_bot_add_commit_end", $cid);
 
-            flash_message('Pomyślnie wyedytowano komende', 'success');
+            flash_message($lang->edit_command_success_message, 'success');
             admin_redirect(MODULE_LINK);
         }
     }
 
-    $page->output_header('Edytuj komende');
+    $page->output_header($lang->edit_command_t);
 
-    $sub_tabs = [];
-    $sub_tabs['edit_command'] = [
-        'title' => 'Edytuj komende',
-        'description' => 'Edytuj komende',
+    $sub_tabs = [
+        'edit_command' => [
+            'title' => $lang->edit_command_t,
+            'description' => $lang->edit_command_d,
+        ]
     ];
     $page->output_nav_tabs($sub_tabs, 'edit_command');
 
@@ -185,19 +98,18 @@ if ($mybb->input['action'] == 'edit') {
 
     $form = new Form(MODULE_LINK . "&amp;action=edit&amp;cid={$commandQ['cid']}", 'post');
 
-    $form_container = new FormContainer('Edytuj komende komende');
-    $form_container->output_row("Nazwa <em>*</em>", "", $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
-    $form_container->output_row("Opis <em>*</em>", "", $form->generate_text_area('description', $mybb->input['description'], ['id' => 'description'], 'description'));
-    $form_container->output_row("Tag <em>*</em>", "", $form->generate_text_box('tag', $mybb->input['tag'], ['id' => 'tag'], 'tag'));
-    $form_container->output_row("Komenda <em>*</em>", "", $form->generate_text_box('command', $mybb->input['command'], ['id' => 'command'], 'command'));
-    $form_container->output_row("Aktywna", "", $form->generate_check_box("activated", 1, 'Aktywna', ["checked" => $mybb->input['activated']]));
+    $form_container = new FormContainer($lang->edit_command_t);
+    $form_container->output_row($lang->row_name_t."<em>*</em>", $lang->row_name_d, $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
+    $form_container->output_row($lang->row_description_t."<em>*</em>", $lang->row_description_d, $form->generate_text_area('description', $mybb->input['description'], ['id' => 'description'], 'description'));
+    $form_container->output_row($lang->row_command_t."<em>*</em>", $lang->row_command_d, $form->generate_text_box('command', $mybb->input['command'], ['id' => 'command'], 'command'));
+    $form_container->output_row($lang->row_activated_t, $lang->row_activated_d, $form->generate_check_box("activated", 1, 'Aktywna', ["checked" => $mybb->input['activated']]));
 
     $form_container->construct_row();
 
     $form_container->end();
 
     $buttons = [];
-    $buttons[] = $form->generate_submit_button('Zapisz komende');
+    $buttons[] = $form->generate_submit_button($lang->save);
     $form->output_submit_wrapper($buttons);
     $form->end();
 
@@ -209,7 +121,7 @@ if ($mybb->input['action'] == 'delete') {
     $commandQ = $db->fetch_array($query);
 
     if (!$commandQ['cid']) {
-        flash_message('Nie znaleziono komendy', 'error');
+        flash_message($lang->command_not_found, 'error');
         admin_redirect(MODULE_LINK);
     }
 
@@ -228,20 +140,9 @@ if ($mybb->input['action'] == 'delete') {
 
         Command::i()->updateCache();
 
-        /* $PL or require_once PLUGINLIBRARY;
-
-        $pluginCache = $PL->cache_read('dvz_shoutbox_bot');
-
-        $commandsArray = $pluginCache['commands'];
-
-        $key = array_search($commandQ['tag'], array_column($commandsArray, 'tag'));
-        unset($commandsArray[$key]);
-
-        $PL->cache_update('dvz_shoutbox_bot', ['commands' => $commandsArray]); */
-
         admin_redirect(MODULE_LINK);
     } else {
-        $page->output_confirm_action(MODULE_LINK . "&amp;action=delete&amp;cid={$commandQ['cid']}", "Napewno chcesz usunąc komende?");
+        $page->output_confirm_action(MODULE_LINK . "&amp;action=delete&amp;cid={$commandQ['cid']}", $lang->delete_question);
     }
 }
 
@@ -254,17 +155,17 @@ if (!$mybb->input['action']) {
 
     // TODO Dodać metode post
 
-    $page->output_header('Zarządzaj komendami');
+    $page->output_header($lang->manage_commands_t);
     $page->output_nav_tabs($sub_tabs, 'manage_commands');
 
     //TODO ZAPYTANIA i FORMULARZ
     $form = new Form(MODULE_LINK, 'post', 'dvz-shoutbox-bot');
 
-    $form_container = new FormContainer('Zarządzaj komendami');
-    $form_container->output_row_header('Nazwa');
-    $form_container->output_row_header('Opis');
-    $form_container->output_row_header('Aktywna', ['class' => 'align_center']);
-    $form_container->output_row_header('Opcje', ['class' => 'align_center']);
+    $form_container = new FormContainer($lang->manage_commands_t);
+    $form_container->output_row_header($lang->row_name_t);
+    $form_container->output_row_header($lang->row_description_t);
+    $form_container->output_row_header($lang->row_activated_t, ['class' => 'align_center']);
+    $form_container->output_row_header($lang->row_options, ['class' => 'align_center']);
 
     $query = $db->simple_select('dvz_shoutbox_bot_commands', 'cid, name, description, activated');
 
@@ -273,11 +174,11 @@ if (!$mybb->input['action']) {
             $form_container->output_cell($row['name']);
             $form_container->output_cell($row['description']);
 
-            $form_container->output_cell($row['activated'] == 1 ? 'tak' : 'nie', ['class' => 'align_center']);
+            $form_container->output_cell($row['activated'] == 1 ? $lang->row_activated_y : $lang->row_activated_n, ['class' => 'align_center']);
 
             $popup = new PopupMenu("command_{$row['cid']}", 'Opcje');
-            $popup->add_item('Edytuj', MODULE_LINK . "&amp;action=edit&amp;cid={$row['cid']}");
-            $popup->add_item('Usuń', MODULE_LINK . "&amp;action=delete&amp;cid={$row['cid']}");
+            $popup->add_item($lang->row_options_e, MODULE_LINK . "&amp;action=edit&amp;cid={$row['cid']}");
+            $popup->add_item($lang->row_options_d, MODULE_LINK . "&amp;action=delete&amp;cid={$row['cid']}");
 
             $form_container->output_cell($popup->fetch(), ['class' => 'align_center']);
 
@@ -286,7 +187,7 @@ if (!$mybb->input['action']) {
     }
 
     if ($form_container->num_rows() == 0) {
-        $form_container->output_cell('Brak komend', array('colspan' => 5));
+        $form_container->output_cell($lang->row_empty, array('colspan' => 5));
         $form_container->construct_row();
     }
 

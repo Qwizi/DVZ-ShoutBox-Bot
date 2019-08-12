@@ -1,73 +1,66 @@
 <?php
-$l['bot_title'] = 'DVZ ShoutBox Bot';
-$l['bot_desc'] = 'Bot wysyłający wiadomość na czacie, jeżeli użytkownik dokona rejestracji lub napisze nowy wątek/post. Odpowiada na wiadomości podane przez admina.';
-$l['bot_setting_desc'] = 'Ustawienia pluginu DVZ ShoutBox Bot.';
-$l['bot_onoff_title'] = 'Plugin włączony/wyłączony';
-$l['bot_onoff_desc'] = 'Plugin ma być włączony/wyłączony?';
-$l['bot_link_title'] = 'Pobierac link do loginu?';
-$l['bot_link_desc'] = 'Określa, czy plugin ma pobierać link do profilu. Przykład @Nick.';
-$l['bot_action_title'] = 'Czy bot ma reagować na wiadomości wpisane na czacie?';
-$l['bot_action_desc'] = 'Określa czy bot ma odpowiadać na wiadomości podane w panelu admina. Można zarządzać nimi <a href="index.php?module=user-dvz-shoutbox-bot">tutaj</a>.';
-$l['bot_id_title'] = 'ID bota';
-$l['bot_id_desc'] = 'Podaj id użytkownika, który będzie wysyłał wiadomość na czacie.';
-$l['bot_register_title'] = 'Czy bot ma wysyłać wiadomość na czacie, gdy użytkownik dokona rejestracji?';
-$l['bot_register_desc'] = 'Określa czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik dokona rejestracji.';
-$l['bot_register_message_title'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik dokona rejestracji';
-$l['bot_register_message_desc'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b> aby zastąpić login.';
-$l['bot_register_message_example'] = 'Właśnie zarejestrował się {username}. Serdecznie witamy!';
-$l['bot_thread_title'] = 'Czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy wątek?';
-$l['bot_thread_desc'] = 'Określa, czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy wątek.';
-$l['bot_ignore_title'] = 'Ignorowanie for';
-$l['bot_ignore_desc'] = 'Wybierz z listy fora, którę mają być ignorowane przez bota.';
-$l['bot_thread_message_title'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy wątek';
-$l['bot_thread_message_desc'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login, <b>{subject}</b>, aby pobrać tytuł wątku, <b>{forum}</b>, aby pobrać nazwe działu.';
-$l['bot_thread_message_example'] = 'Nowy wątek - {subject} w dziale {forum}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
-$l['bot_post_title'] = 'Czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post?';
-$l['bot_post_desc'] = 'Określa, czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post.';
-$l['bot_post_message_title'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy post';
-$l['bot_post_message_desc'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login. A <b>{subject}</b>, aby pobrać tytuł postu.';
-$l['bot_post_message_example'] = 'Nowy post - {subject}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
+//! BOT ID
+$l['id_t'] = 'ID bota';
+$l['id_d'] = 'Podaj id użytkownika, który będzie wysyłał wiadomość na czacie.';
 
-//TODO: dodać langi poniższe do /english
-$l['bot_commands_onoff_title'] = 'Komendy włączone/wyłączone';
-$l['bot_commands_onoff_desc'] = 'Określa, czy komendy mają być włączone';
-$l['bot_commands_prefix_title'] = 'Prefix do komend';
-$l['bot_commands_prefix_desc'] = 'Określa prefix do komend';
-$l['bot_commandsData_ban_name'] = 'Ban';
-$l['bot_commandsData_ban_desc'] = 'Komenda ta pozwala banować użytkowników';
-$l['bot_commandsData_unBan_name'] = 'UnBan';
-$l['bot_commandsData_unBan_desc'] = 'Komenda ta pozwala zdejmować blokady użytkowników';
-$l['bot_commandsData_banList_name'] = 'Lista banów';
-$l['bot_commandsData_banList_desc'] = 'Komenda ta pokazuje aktualnie kto jest zbanowany';
-$l['bot_commandsData_prune_name'] = 'Prune';
-$l['bot_commandsData_prune_desc'] = 'Komenda ta pozwala na usuwanie wpisów';
-$l['bot_commandsData_setBot_name'] = 'SetBot';
-$l['bot_commandsData_setBot_desc'] = 'Komenda ta pozwala na ustawienie konta bota';
-$l['bot_commandsData_help_name'] = 'Help';
-$l['bot_commandsData_help_desc'] = 'Lista komend';
-$l['bot_commandsData_steamID64_desc'] = 'Konwertuje steamid32 do steamid64';
-$l['bot_commandsData_steamID32_desc'] = 'Konwertuje steamid64 do steamid32';
+//! REGISTER ACTION SETTINGS
+$l['register_t'] = 'Czy bot ma wysyłać wiadomość na czacie, gdy użytkownik dokona rejestracji?';
+$l['register_d'] = 'Określa czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik dokona rejestracji.';
+$l['register_message_t'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik dokona rejestracji';
+$l['register_message_d'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b> aby zastąpić login.';
+$l['register_message_example'] = 'Właśnie zarejestrował się {username}. Serdecznie witamy!';
 
-//admin/modules/user/dvz_shoutbox_bot.php
-$l['bot_panel_view_title'] = 'Widok';
-$l['bot_panel_view_desc'] = 'Zarządzaj wiadomościami';
-$l['bot_panel_add_title'] = 'Dodaj';
-$l['bot_panel_add_desc'] = "Dodaj nowe akcje";
-$l['bot_panel_edit_title'] = 'Edytuj';
-$l['bot_panel_edit_desc'] = "Edytuj akcje";
-$l['bot_panel_delete_title'] = 'Usuń';
-$l['bot_panel_delete_desc'] = "Usuń akcje";
-$l['bot_panel_message'] = 'Wiadomość';
-$l['bot_panel_message_desc'] = 'Wpisz tutaj wiadomość';
-$l['bot_panel_nomessage'] = 'Brak wiadomości';
-$l['bot_panel_answer'] = 'Odpowiedź';
-$l['bot_panel_answer_desc'] = 'Wpisz tutaj odpowiedź';
-$l['bot_panel_options'] = 'Opcje';
-$l['bot_panel_empty_fields'] = 'Pola nie mogą być puste';
-$l['bot_panel_characters_m'] = 'W wiadomości znajdują sie niedozwolone znaki';
-$l['bot_panel_characters_a'] = 'W odpowiedzi znajdują sie niedozwolone znaki';
-$l['bot_panel_action_success'] = 'Pomyślnie dodano akcje';
-$l['bot_panel_action_edit_success'] = 'Pomyślnie edytowano akcje';
-$l['bot_panel_delete'] = 'Czy napewno chcesz usunąc?';
-$l['bot_panel_yes'] = 'Tak';
-$l['bot_panel_no'] = 'Nie';
+//! THREAD ACTION SETTINGS
+$l['thread_t'] = 'Czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy wątek?';
+$l['thread_d'] = 'Określa, czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy wątek.';
+$l['thread_message_t'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy wątek';
+$l['thread_message_d'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login, <b>{subject}</b>, aby pobrać tytuł wątku, <b>{forum}</b>, aby pobrać nazwe działu.';
+$l['thread_message_example'] = 'Nowy wątek - {subject} w dziale {forum}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
+
+//! POST ACTION SETTINGS
+$l['post_t'] = 'Czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post?';
+$l['post_d'] = 'Określa, czy bot ma wysyłać wiadomość na czacie, jeżeli użytkownik napisze nowy post.';
+$l['post_message_t'] = 'Wiadomość wysyłana na czacie, jeżeli użytkownik napisze nowy post';
+$l['post_message_d'] = 'Wiadomość, która zostanie wysłana przez bota. Użyj <b>{username}</b>, aby zastąpić login. A <b>{subject}</b>, aby pobrać tytuł postu.';
+$l['post_message_example'] = 'Nowy post - {subject}. [quote="{username}" pid="{pid}" dateline="{dateline}"]{message}[/quote]';
+
+//! INGORE FORUMS
+$l['ignore_t'] = "Ignorowane fora";
+$l['ignore_d'] = "Określa ignorowane fora";
+
+//! COMMANDS
+$l['commands_t'] = "Czy bot ma reagować na komendy?";
+$l['commands_d'] = "Określa, czy bot ma reagować na komendy";
+$l['commands_prefix_t'] = "Prefix dla komend";
+$l['commands_prefix_d'] = "Określa prefix dla komend";
+
+$l['manage_commands_t'] = "Zarządzaj komendami";
+$l['manage_commands_d'] = "Zarzadzaj komendami";
+$l['reload_commands_t'] = "Przeładuj komendy";
+$l['reload_commands_d'] = "Przeładuj komendy";
+$l['edit_command_t'] = "Edytuj komende";
+$l['edit_command_d'] = "Edytuj komende";
+
+$l['row_name_t'] = "Nazwa";
+$l['row_name_d'] = "Nazwa komendy";
+$l['row_description_t'] = "Opis";
+$l['row_description_d'] = "Opis komendy";
+$l['row_command_t'] = "Komenda";
+$l['row_command_d'] = "Komenda, która będzie wpisywana na czacie";
+$l['row_activated_t'] = "Aktywna";
+$l['row_activated_d'] = "Czy komenda ma być aktywna";
+$l['row_activated_y'] = "tak";
+$l['row_activated_n'] = "nie";
+$l['row_options'] = "Opcje";
+$l['row_options_e'] = "Edytuj";
+$l['row_options_d'] = "Usuń";
+$l['row_empty'] = "Brak komend";
+
+$l['row_m_name'] = 'Nieprawidłowa nazwa';
+$l['row_m_description'] = "Nieprawidłowy opis";
+$l['row_m_command'] = "Nieprawidłowa komenda";
+
+$l['edit_command_success_message'] = "Pomyślnie wyedytowano komende";
+$l['command_not_found'] = "Nie znaleziono komendy";
+$l['delete_question'] = "Napewno chcesz usunąc komende?";
+$l['save'] = "Zapisz";

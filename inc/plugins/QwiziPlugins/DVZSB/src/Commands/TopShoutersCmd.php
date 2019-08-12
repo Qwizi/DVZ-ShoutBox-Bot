@@ -11,7 +11,7 @@ class TopShoutersCmd extends AbstractCommandBase
     public function doAction(array $data): void
     {
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
-            $this->lang->load('dvz_shoutbox_bot');
+            $this->lang->load('dvz_shoutbox_bot_topshouters');
 
             $topTeenArray = [];
 
