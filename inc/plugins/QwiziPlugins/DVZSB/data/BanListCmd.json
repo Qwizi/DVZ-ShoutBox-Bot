@@ -1,7 +1,7 @@
 {
   "tag": "banList",
-  "name": "Lista banów",
+  "name": "Ban List",
   "command": "banlist",
-  "description": "Komenda ta pokazuje aktualnie kto jest zbanowany",
+  "description": "This command currently shows who is banned",
   "activated": 1
 }

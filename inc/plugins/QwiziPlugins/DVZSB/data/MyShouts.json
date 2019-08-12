@@ -2,6 +2,6 @@
   "tag": "myShouts",
   "name": "MyShouts",
   "command": "myshouts",
-  "description": "Komenda wyświetla ile napisałeś wpisów na sb.",
+  "description": "The command displays how many entries you have written on shoutbox",
   "activated": 1
 }

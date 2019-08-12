@@ -2,6 +2,6 @@
   "tag": "help",
   "name": "Help",
   "command": "help",
-  "description": "Lista komend",
+  "description": "Commands List",
   "activated": 1
 }

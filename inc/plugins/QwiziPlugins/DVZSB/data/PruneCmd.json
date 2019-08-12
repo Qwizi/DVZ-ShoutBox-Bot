@@ -2,6 +2,6 @@
   "tag": "prune",
   "name": "Prune",
   "command": "prune",
-  "description": "Komenda ta pozwala na usuwanie wpisów",
+  "description": "This command allows you to delete entries",
   "activated": 1
 }

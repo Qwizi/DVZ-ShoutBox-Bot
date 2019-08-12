@@ -2,6 +2,6 @@
   "tag": "topShouters",
   "name": "TopShouters",
   "command": "top10",
-  "description": "Komenda wyświetla top 10 spamerów.",
+  "description": "Top 10",
   "activated": 1
 }
