@@ -38,12 +38,9 @@ $plugins->add_hook('admin_dvz_shoutbox_bot_reload', 'dvz_shoutbox_bot_reload_com
 
 function dvz_shoutbox_bot_info()
 {
-    global $lang, $db;
-    $lang->load('dvz_shoutbox_bot');
-
     return [
-        'name' => $db->escape_string($lang->bot_title),
-        'description' => $db->escape_string($lang->bot_desc),
+        'name' => 'DVZ ShoutBox Bot',
+        'description' => 'Bot sending messages on chat if user will register or write new thread/post and respond to commands',
         'author' => 'Adrian \'Qwizi\' Ciołek',
         'authorsite' => 'https://github.com/Qwizi',
         'version' => '1.5.0',
@@ -67,72 +64,66 @@ function dvz_shoutbox_bot_install()
 
     $PL->settings(
         'dvz_sb_bot',
-        $lang->bot_title,
-        $lang->bot_setting_desc,
+        'DVZ ShoutBox Bot',
+        'Settings of DVZ ShoutBox Bot',
         [
             'id' => [
-                'title' => $lang->bot_id_title,
-                'description' => $lang->bot_id_desc,
+                'title' => $lang->id_t,
+                'description' => $lang->id_d,
                 'optionscode' => 'numeric',
                 'value' => 1,
             ],
+            'forum_ignore' => [
+                'title' => $lang->ignore_t,
+                'description' => $lang->ignore_d,
+                'optionscode' => 'forumselect',
+                'value' => '',
+            ],
             'register_onoff' => [
-                'title' => $lang->bot_register_title,
-                'description' => $lang->bot_register_desc,
+                'title' => $lang->register_t,
+                'description' => $lang->register_d,
                 'optionscode' => 'onoff',
                 'value' => 1,
             ],
             'register_message' => [
-                'title' => $lang->bot_register_message_title,
-                'description' => $lang->bot_register_message_desc,
+                'title' => $lang->register_message_t,
+                'description' => $lang->register_message_d,
                 'optionscode' => 'textarea',
-                'value' => $lang->bot_register_message_example,
+                'value' => $lang->register_message_example,
             ],
             'thread_onoff' => [
-                'title' => $lang->bot_thread_title,
-                'description' => $lang->bot_thread_desc,
+                'title' => $lang->thread_t,
+                'description' => $lang->thread_d,
                 'optionscode' => 'onoff',
                 'value' => 1,
             ],
-            'forum_ignore' => [
-                'title' => $lang->bot_ignore_title,
-                'description' => $lang->bot_ignore_desc,
-                'optionscode' => 'forumselect',
-                'value' => '',
-            ],
             'thread_message' => [
-                'title' => $lang->bot_thread_message_title,
-                'description' => $lang->bot_thread_message_desc,
+                'title' => $lang->thread_message_t,
+                'description' => $lang->thread_message_d,
                 'optionscode' => 'textarea',
-                'value' => $lang->bot_thread_message_example,
-            ],
-            'thread_message' => [
-                'title' => $lang->bot_thread_message_title,
-                'description' => $lang->bot_thread_message_desc,
-                'optionscode' => 'textarea',
-                'value' => $lang->bot_thread_message_example,
+                'value' => $lang->thread_message_example,
             ],
             'post_onoff' => [
-                'title' => $lang->bot_post_title,
-                'description' => $lang->bot_post_desc,
+                'title' => $lang->post_t,
+                'description' => $post_d,
                 'optionscode' => 'onoff',
                 'value' => 1,
             ],
             'post_message' => [
-                'title' => $lang->bot_post_message_title,
-                'description' => $lang->bot_post_message_desc,
+                'title' => $lang->post_message_t,
+                'description' => $lang->post_message_d,
                 'optionscode' => 'textarea',
-                'value' => $lang->bot_post_message_example,
+                'value' => $lang->post_message_example,
             ],
-            'commands_onoff' => [ // TODO przetłumaczyć ustawienie komendy onoff
-                'title' => $lang->bot_commands_onoff_title,
-                'description' => $lang->bot_commands_onoff_desc,
+            'commands_onoff' => [
+                'title' => $lang->commands_t,
+                'description' => $lang->commands_d,
                 'optionscode' => 'onoff',
                 'value' => 1,
             ],
-            'commands_prefix' => [ // TODO przetłaczyć ustawienie prefix
-                'title' => $lang->bot_commands_prefix_title,
-                'description' => $lang->bot_commands_prefix_desc,
+            'commands_prefix' => [
+                'title' => $lang->commands_prefix_t,
+                'description' => $lang->commands_prefix_d,
                 'optionscode' => 'text',
                 'value' => '/',
             ],
@@ -254,15 +245,15 @@ function dvz_shoutbox_bot_reload_commands()
     $PL or require_once PLUGINLIBRARY;
 
     dvz_shoutbox_bot_create_instance();
-    $dataCommands = Command::i()->getCommands();
-    $dataJson = getCommandsDataJson();
+    $commandsDataCache = Command::i()->getCommands();
+    $commandsDataJson = getCommandsDataJson();
 
 
-    foreach ($dataJson as $key => $value) {
-        $commandsData[$value['tag']] = $dataJson[$key];
+    foreach ($commandsDataJson as $key => $value) {
+        $commandsData[$value['tag']] = $commandsDataJson[$key];
     }
 
-    $new = array_diff_key($commandsData, $dataCommands);
+    $new = array_diff_key($commandsData, $commandsDataCache);
     if (!empty($new)) {
 
         foreach ($new as $key => $value) {

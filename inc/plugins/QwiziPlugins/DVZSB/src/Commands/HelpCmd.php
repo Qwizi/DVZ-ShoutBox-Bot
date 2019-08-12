@@ -16,7 +16,7 @@ class HelpCmd extends AbstractCommandBase
         if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
             global $cache;
 
-            $this->lang->load('dvz_shoutbox_bot');
+            $this->lang->load('dvz_shoutbox_bot_help');
 
             Command::createInstance($cache, $this->db);
 
@@ -25,7 +25,7 @@ class HelpCmd extends AbstractCommandBase
             $commandsArray = Command::i()->getCommands();
 
             if (empty($commandsArray)) {
-                $this->setError($this->lang->bot_help_error);
+                $this->setError($this->error);
             }
 
             $pagination = new Pagination;
@@ -34,7 +34,7 @@ class HelpCmd extends AbstractCommandBase
             $paginationCommandsArray = $pagination->paginate($commandsArray, (int) $matches[2]);
 
             if (empty($paginationCommandsArray)) {
-                $this->setError($this->lang->bot_help_error);
+                $this->setError($this->lang->error);
             }
 
             if (!$this->getError()) {
