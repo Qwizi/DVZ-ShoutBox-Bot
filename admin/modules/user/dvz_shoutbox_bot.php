@@ -176,7 +176,7 @@ if (!$mybb->input['action']) {
 
             $form_container->output_cell($row['activated'] == 1 ? $lang->row_activated_y : $lang->row_activated_n, ['class' => 'align_center']);
 
-            $popup = new PopupMenu("command_{$row['cid']}", 'Opcje');
+            $popup = new PopupMenu("command_{$row['cid']}", $lang->row_options);
             $popup->add_item($lang->row_options_e, MODULE_LINK . "&amp;action=edit&amp;cid={$row['cid']}");
             $popup->add_item($lang->row_options_d, MODULE_LINK . "&amp;action=delete&amp;cid={$row['cid']}");
 
