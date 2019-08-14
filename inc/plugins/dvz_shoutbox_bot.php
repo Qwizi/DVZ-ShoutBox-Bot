@@ -41,7 +41,7 @@ function dvz_shoutbox_bot_info()
         'description' => 'Bot sending messages on chat if user will register or write new thread/post and respond to commands',
         'author' => 'Adrian \'Qwizi\' Ciołek',
         'authorsite' => 'https://github.com/Qwizi',
-        'version' => '1.5.0',
+        'version' => '1.5.1',
         'compatibility' => '18*',
         'codename' => '',
     ];
