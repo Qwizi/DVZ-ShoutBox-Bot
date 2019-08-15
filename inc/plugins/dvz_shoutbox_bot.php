@@ -43,7 +43,7 @@ function dvz_shoutbox_bot_info()
         'authorsite' => 'https://github.com/Qwizi',
         'version' => '1.5.1',
         'compatibility' => '18*',
-        'codename' => '',
+        'codename' => 'dvz_shoutbox_bot',
     ];
 }
 
