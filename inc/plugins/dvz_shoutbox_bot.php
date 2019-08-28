@@ -468,21 +468,13 @@ function getCommandsDataJson()
 
     $commandsData = json_decode(file_get_contents(DVZSB_PLUGIN_PATH.'/data/Commands.json'), true);
 
-    return $commandsData;
-
-    /* $dir = new DirectoryIterator(DVZSB_PLUGIN_PATH . '/data');
-
-    foreach ($dir as $file) {
-        if (!$file->isDot() && !$file->isDir() && pathinfo($file->getPathname(), PATHINFO_EXTENSION) === 'json') {
-            $fileArray = json_decode(file_get_contents($file->getPathname()), true);
-            foreach ($fileArray as $value => $key) {
-                $db->escape_string($value);
-            }
-            $commandsDataFromJson[] = $fileArray;
+    foreach ($commandsData as $key => $value) {
+        foreach ($value as $v) {
+            $db->escape_string($v);
         }
-    } 
-    return $commandsDataFromJson;
-    */
+    }
+
+    return $commandsData;
 }
 
 function dvz_shoutbox_bot_create_instance()
