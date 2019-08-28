@@ -54,7 +54,6 @@ class Command
     public function updateCache()
     {
 		$query = $this->db->simple_select($this->tableName);
-		$cmds = [];
 		while($c = $this->db->fetch_array($query))
 		{
 			$cmds[$c['tag']] = $c;

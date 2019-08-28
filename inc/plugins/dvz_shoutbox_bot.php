@@ -17,6 +17,8 @@ defined('QWIZI_PLUGINS_CORE_PATH') || define('QWIZI_PLUGINS_CORE_PATH', __DIR__ 
 
 define('DVZSB_PLUGIN_PATH', __DIR__ . '/QwiziPlugins/DVZSB');
 
+define('DEV', '1');
+
 require_once QWIZI_PLUGINS_CORE_PATH . '/src/ClassLoader.php';
 
 $classLoader = ClassLoader::getInstance();
@@ -25,6 +27,9 @@ $classLoader->registerNamespace(
     DVZSB_PLUGIN_PATH . '/src/'
 )->register();
 
+if (DEV == '1') {
+    $plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');
+}
 $plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
@@ -145,9 +150,13 @@ function dvz_shoutbox_bot_install()
   
     $commandsDataJson = getCommandsDataJson();
 
-    foreach ($commandsDataJson as $key => $value) {
+    /* foreach ($commandsDataJson as $key => $value) {
         $commandsData[$value['tag']] = $commandsDataJson[$key];
         $commandsDataDb[] = $commandsDataJson[$key];
+    } */
+
+    foreach ($commandsDataJson as $key => $value) {
+        $commandsDataDb[] = $value;
     }
 
     //! ADD COMMANDS
@@ -156,7 +165,7 @@ function dvz_shoutbox_bot_install()
     }
     //! UPDATE CACHE
     $cache->update('dvz_shoutbox_bot', [
-        'commands' => $commandsData,
+        'commands' => $commandsDataJson,
     ]);
 
     $new_task = [
@@ -243,16 +252,14 @@ function dvz_shoutbox_bot_reload_commands()
     $commandsDataCache = Command::i()->getCommands();
     $commandsDataJson = getCommandsDataJson();
 
+    debug($commandsDataCache);
+    debug($commandsDataJson);
 
-    foreach ($commandsDataJson as $key => $value) {
-        $commandsData[$value['tag']] = $commandsDataJson[$key];
-    }
-
-    $new = array_diff_key($commandsData, $commandsDataCache);
+    $new = array_diff_key($commandsDataJson, $commandsDataCache);
     if (!empty($new)) {
 
         foreach ($new as $key => $value) {
-            $commandsDataDb[] = $new[$key];
+            $commandsDataDb[] = $value;
         }
 
         if (count($commandsDataDb) >  0) {
@@ -260,8 +267,8 @@ function dvz_shoutbox_bot_reload_commands()
         } else {
             $db->insert_query("dvz_shoutbox_bot_commands", $commandsDataDb);
         }
-        Command::i()->updateCache();
     }
+    Command::i()->updateCache();
     admin_redirect("index.php?module=user-dvz-shoutbox-bot");
 }
 
@@ -432,11 +439,32 @@ function dvz_shoutbox_bot_shout(&$data)
         }
     }
 }
+if (DEV == '1') {
+    function dvz_shoutbox_bot_index()
+    {
+        dvz_shoutbox_bot_create_instance();
 
-function getCommandsDataJson()
+        $commandsDataIterator = getCommandsDataJsonIterator();
+        $commandsData = getCommandsDataJson();
+
+        foreach ($commandsData as $key => $value) {
+            $commandsDataDb[] = $value;
+        }
+
+        debug($commandsData);
+    }
+
+    function debug($value)
+    {
+        echo "<pre>";
+        print_r($value);
+        echo "</pre>";
+    }
+}
+
+function getCommandsDataJsonIterator()
 {
     global $db;
-
     $dir = new DirectoryIterator(DVZSB_PLUGIN_PATH . '/data');
 
     foreach ($dir as $file) {
@@ -447,8 +475,31 @@ function getCommandsDataJson()
             }
             $commandsDataFromJson[] = $fileArray;
         }
-    }
+    } 
     return $commandsDataFromJson;
+}
+
+function getCommandsDataJson()
+{
+    global $db;
+
+    $commandsData = json_decode(file_get_contents(DVZSB_PLUGIN_PATH.'/data/Commands.json'), true);
+
+    return $commandsData;
+
+    /* $dir = new DirectoryIterator(DVZSB_PLUGIN_PATH . '/data');
+
+    foreach ($dir as $file) {
+        if (!$file->isDot() && !$file->isDir() && pathinfo($file->getPathname(), PATHINFO_EXTENSION) === 'json') {
+            $fileArray = json_decode(file_get_contents($file->getPathname()), true);
+            foreach ($fileArray as $value => $key) {
+                $db->escape_string($value);
+            }
+            $commandsDataFromJson[] = $fileArray;
+        }
+    } 
+    return $commandsDataFromJson;
+    */
 }
 
 function dvz_shoutbox_bot_create_instance()
