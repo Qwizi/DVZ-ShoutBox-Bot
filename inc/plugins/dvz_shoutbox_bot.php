@@ -151,7 +151,7 @@ function dvz_shoutbox_bot_install()
     }
 
     //! ADD COMMANDS
-    if (!empty($commandsData)) {
+    if (!empty($commandsDataDb)) {
         $db->insert_query_multiple('dvz_shoutbox_bot_commands', $commandsDataDb);
     }
     //! UPDATE CACHE
