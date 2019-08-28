@@ -6,14 +6,11 @@ namespace Qwizi\DVZSB\Commands;
 
 class MyShoutsCmd extends AbstractCommandBase
 {
-    private $pattern = "/^({command})$/";
-
     public function doAction(array $data): void
     {
-        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) { 
-
+        if ($this->isMatched($data)) {
             $this->lang->load('dvz_shoutbox_bot_myshouts');
-            
+
             $user = get_user((int)$data['uid']);
 
             $our_shouts_query = $this->db->query("SELECT count(id) as id, uid FROM ".TABLE_PREFIX."dvz_shoutbox s WHERE s.uid='".$data['uid']."' AND s.text IS NOT NULL");
@@ -24,7 +21,6 @@ class MyShoutsCmd extends AbstractCommandBase
             $this->setMessage($this->lang->success_message);
 
             $this->send();
-
         }
     }
 }

@@ -1,7 +1,0 @@
-{
-  "tag": "prune",
-  "name": "Prune",
-  "command": "prune",
-  "description": "This command allows you to delete entries",
-  "activated": 1
-}

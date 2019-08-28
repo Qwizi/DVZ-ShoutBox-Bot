@@ -8,12 +8,9 @@ use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
 class BanListCmd extends AbstractCommandBase implements  ModRequiredInterface
 {
-    private $pattern = "/^({command})$/";
-
     public function doAction(array $data): void
     {
-        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
-
+        if ($this->isMatched($data)) {
             $this->lang->load('dvz_shoutbox_bot_banlist');
 
             $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);

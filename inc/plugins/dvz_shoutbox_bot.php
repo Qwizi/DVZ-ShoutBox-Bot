@@ -46,7 +46,7 @@ function dvz_shoutbox_bot_info()
         'description' => 'Bot sending messages on chat if user will register or write new thread/post and respond to commands',
         'author' => 'Adrian \'Qwizi\' Ciołek',
         'authorsite' => 'https://github.com/Qwizi',
-        'version' => '1.5.1',
+        'version' => '1.5.2',
         'compatibility' => '18*',
         'codename' => 'dvz_shoutbox_bot',
     ];
@@ -400,14 +400,11 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                         if (!class_exists($commandClassName)) {
                             throw new CommandNotFoundException('Class ' . $commandClassName . " not exists", 404);
                         }
+
                         $commandClass = new $commandClassName(Bot::i());
 
                         if ($commandClass instanceof AbstractCommandBase) {
                             if ($commandClass instanceof ModRequiredInterface && !Bot::i()->accessMod()) {
-                                continue;
-                            }
-
-                            if (!property_exists($commandClass, 'pattern')) {
                                 continue;
                             }
 
@@ -443,15 +440,6 @@ if (DEV == '1') {
     function dvz_shoutbox_bot_index()
     {
         dvz_shoutbox_bot_create_instance();
-
-        $commandsDataIterator = getCommandsDataJsonIterator();
-        $commandsData = getCommandsDataJson();
-
-        foreach ($commandsData as $key => $value) {
-            $commandsDataDb[] = $value;
-        }
-
-        debug($commandsData);
     }
 
     function debug($value)

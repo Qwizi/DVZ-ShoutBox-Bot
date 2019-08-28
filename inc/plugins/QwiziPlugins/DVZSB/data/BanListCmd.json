@@ -1,7 +1,0 @@
-{
-  "tag": "banList",
-  "name": "Ban List",
-  "command": "banlist",
-  "description": "This command currently shows who is banned",
-  "activated": 1
-}

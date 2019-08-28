@@ -1,7 +1,0 @@
-{
-  "tag": "myShouts",
-  "name": "MyShouts",
-  "command": "myshouts",
-  "description": "The command displays how many entries you have written on shoutbox",
-  "activated": 1
-}

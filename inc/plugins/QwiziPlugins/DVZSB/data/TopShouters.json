@@ -1,7 +1,0 @@
-{
-  "tag": "topShouters",
-  "name": "TopShouters",
-  "command": "top10",
-  "description": "Top 10",
-  "activated": 1
-}

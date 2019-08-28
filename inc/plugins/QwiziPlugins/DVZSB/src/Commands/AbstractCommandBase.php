@@ -14,7 +14,9 @@ abstract class AbstractCommandBase
     private $commandPrefix;
     private $error;
     private $message;
-    private $sendMessage;
+    private $sendMessage = true;
+    private $pattern;
+    private $args = [];
 
     protected $mybb;
     protected $db;
@@ -29,7 +31,7 @@ abstract class AbstractCommandBase
         $this->lang = $this->bot->getLang();
         $this->plugins = $this->bot->getPlugins();
         $this->commandPrefix = $this->bot->settings('commands_prefix');
-        $this->sendMessage = true;
+        $this->pattern = "/^({command}|{command}[\s]((.*)))$/";
     }
 
     public function getMessage()
@@ -57,6 +59,16 @@ abstract class AbstractCommandBase
         return $this->returned_value;
     }
 
+    public function getPattern()
+    {
+        return $this->pattern;
+    }
+
+    public function getArgs()
+    {
+        return $this->args;
+    }
+
     public function setMessage(string $message): void
     {
         $this->message = $message;
@@ -76,6 +88,16 @@ abstract class AbstractCommandBase
     {
         $this->returned_value = $value;
         return $this;
+    }
+
+    public function setPattern(string $value)
+    {
+        $this->pattern = $value;
+    }
+
+    public function setArgs(array $value)
+    {
+        $this->args = $value;
     }
 
     public function send()
@@ -101,10 +123,31 @@ abstract class AbstractCommandBase
         return "\\" . $this->getCommandPrefix() . preg_quote($command);
     }
 
-    public function createPattern(string $command, string $pattern): string
+    public function createPattern(string $command)
     {
         $command = $this->baseCommandPattern($command);
-        return str_replace('{command}', $command, $pattern);
+        $replaced_pattern = str_replace('{command}', $command, $this->getPattern());
+        $this->setPattern($replaced_pattern);
+    }
+
+    public function isMatched(array $data): bool
+    {
+        $this->createPattern($data['command']);
+
+        if (preg_match($this->pattern, $data['text'], $matches)) {
+            if (!empty($matches[2])) {
+                if (preg_match('/^\"(.*)\"$/', $matches[2], $m)) {
+                    $args[] = $m[1];
+                    $this->setArgs($args);
+                } else {
+                    $args = explode(" ", $matches[2]);
+                }
+                $this->setArgs($args);
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public function isValidUser($user)
@@ -118,6 +161,13 @@ abstract class AbstractCommandBase
     public function mentionUsername($username)
     {
         return "@\"" . $username . "\"";
+    }
+
+    public function cleanUsername($username)
+    {
+        $remove[] = "'";
+        $remove[] = '"';
+        return str_replace($remove, "", $username);
     }
 
     public function run_hook($name)

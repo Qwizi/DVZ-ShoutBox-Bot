@@ -54,26 +54,5 @@
     "command": "top10",
     "description": "Top 10",
     "activated": 1
-  },
-  "topShouters2": {
-    "tag": "topShouters2",
-    "name": "TopShouters2",
-    "command": "top10",
-    "description": "Top 10",
-    "activated": 1
-  },
-  "topShouters3": {
-    "tag": "topShouters3",
-    "name": "TopShouters3",
-    "command": "top10",
-    "description": "Top 10",
-    "activated": 1
-  },
-  "topShouters4": {
-    "tag": "topShouters4",
-    "name": "TopShouters4",
-    "command": "top10",
-    "description": "Top 10",
-    "activated": 1
   }
 }
