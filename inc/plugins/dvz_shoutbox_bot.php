@@ -150,11 +150,6 @@ function dvz_shoutbox_bot_install()
   
     $commandsDataJson = getCommandsDataJson();
 
-    /* foreach ($commandsDataJson as $key => $value) {
-        $commandsData[$value['tag']] = $commandsDataJson[$key];
-        $commandsDataDb[] = $commandsDataJson[$key];
-    } */
-
     foreach ($commandsDataJson as $key => $value) {
         $commandsDataDb[] = $value;
     }
