@@ -8,22 +8,19 @@ use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
 class BanCmd extends AbstractCommandBase implements ModRequiredInterface
 {
-
-    private $pattern = "/^({command}|{command}[\s](.*))$/";
-
     public function doAction(array $data): void
     {
-
-        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
+        if ($this->isMatched($data)) {
 
             $this->lang->load('dvz_shoutbox_bot_ban');
 
-            if (empty($matches[2])) {
+            if (empty($this->getArgs())) {
                 $this->lang->error_empty_argument = $this->lang->sprintf($this->lang->error_empty_argument, $this->getCommandPrefix() . $data['command']);
                 $this->setError($this->lang->error_empty_argument);
             } else {
                 $user = get_user((int) $data['uid']);
-                $target = get_user_by_username($matches[2], ['fields' => 'uid, username']);
+                $targetFromArg = $this->getArgs()[0];
+                $target = get_user_by_username($targetFromArg, ['fields' => 'uid, username']);
                 $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
 
                 if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
@@ -55,7 +52,6 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
                     rebuild_settings();
                 }
             }
-
             $this->send()->setReturnedValue([
                 'uid' => $user['uid'],
                 'tuid' => $target['uid'],

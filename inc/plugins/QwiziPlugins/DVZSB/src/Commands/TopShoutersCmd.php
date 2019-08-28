@@ -6,14 +6,10 @@ namespace Qwizi\DVZSB\Commands;
 
 class TopShoutersCmd extends AbstractCommandBase
 {
-    private $pattern = "/^({command})$/";
-
     public function doAction(array $data): void
     {
-        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
+        if ($this->isMatched($data)) {
             $this->lang->load('dvz_shoutbox_bot_topshouters');
-
-            $topTeenArray = [];
 
             $query = $this->db->query("
                 SELECT s.uid, u.username, u.usergroup, u.displaygroup, u.uid, u.avatar, count(*) as totalshouts 

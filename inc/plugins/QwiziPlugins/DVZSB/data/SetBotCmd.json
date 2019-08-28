@@ -1,7 +1,0 @@
-{
-  "tag": "setBot",
-  "name": "Set Bot",
-  "command": "setbot",
-  "description": "This command allows you to set up a bot account",
-  "activated": 1
-}

@@ -9,11 +9,9 @@ use Qwizi\DVZSB\Pagination;
 
 class HelpCmd extends AbstractCommandBase
 {
-    private $pattern = "/^({command}|{command}[\s]([0-9]+))$/";
-
     public function doAction(array $data): void
     {
-        if (preg_match($this->createPattern($data['command'], $this->pattern), $data['text'], $matches)) {
+        if ($this->isMatched($data)) {
             global $cache;
 
             $this->lang->load('dvz_shoutbox_bot_help');
@@ -21,7 +19,7 @@ class HelpCmd extends AbstractCommandBase
             Command::createInstance($cache, $this->db);
 
             $commandPrefix = $this->getCommandPrefix();
-            
+
             $commandsArray = Command::i()->getCommands();
 
             if (empty($commandsArray)) {
@@ -31,7 +29,7 @@ class HelpCmd extends AbstractCommandBase
             $pagination = new Pagination;
             $pagination->setPerPage(9);
 
-            $paginationCommandsArray = $pagination->paginate($commandsArray, (int) $matches[2]);
+            $paginationCommandsArray = $pagination->paginate($commandsArray, (int) $this->getArgs()[0]);
 
             if (empty($paginationCommandsArray)) {
                 $this->setError($this->lang->error);
