@@ -17,7 +17,7 @@ defined('QWIZI_PLUGINS_CORE_PATH') || define('QWIZI_PLUGINS_CORE_PATH', __DIR__ 
 
 define('DVZSB_PLUGIN_PATH', __DIR__ . '/QwiziPlugins/DVZSB');
 
-define('DEV', '1');
+define('DEV', '0');
 
 require_once QWIZI_PLUGINS_CORE_PATH . '/src/ClassLoader.php';
 
