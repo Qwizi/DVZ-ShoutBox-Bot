@@ -102,7 +102,7 @@ if ($mybb->input['action'] == 'edit') {
     $form_container->output_row($lang->row_name_t."<em>*</em>", $lang->row_name_d, $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
     $form_container->output_row($lang->row_description_t."<em>*</em>", $lang->row_description_d, $form->generate_text_area('description', $mybb->input['description'], ['id' => 'description'], 'description'));
     $form_container->output_row($lang->row_command_t."<em>*</em>", $lang->row_command_d, $form->generate_text_box('command', $mybb->input['command'], ['id' => 'command'], 'command'));
-    $form_container->output_row($lang->row_activated_t, $lang->row_activated_d, $form->generate_check_box("activated", 1, 'Aktywna', ["checked" => $mybb->input['activated']]));
+    $form_container->output_row($lang->row_activated_t, $lang->row_activated_d, $form->generate_check_box("activated", 1, $lang->row_activated_t, ["checked" => $mybb->input['activated']]));
 
     $form_container->construct_row();
 
