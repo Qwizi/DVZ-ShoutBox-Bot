@@ -38,6 +38,7 @@ $plugins->add_hook('dvz_shoutbox_shout', 'dvz_shoutbox_bot_shout');
 $plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
 $plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
 $plugins->add_hook('admin_dvz_shoutbox_bot_reload', 'dvz_shoutbox_bot_reload_commands');
+$plugins->add_hook('admin_user_permissions', 'dvz_shoutbox_bot_admin_user_permissions');
 
 function dvz_shoutbox_bot_info()
 {
@@ -46,7 +47,7 @@ function dvz_shoutbox_bot_info()
         'description' => 'Bot sending messages on chat if user will register or write new thread/post and respond to commands',
         'author' => 'Adrian \'Qwizi\' Ciołek',
         'authorsite' => 'https://github.com/Qwizi',
-        'version' => '1.5.2',
+        'version' => '1.5.3',
         'compatibility' => '18*',
         'codename' => 'dvz_shoutbox_bot',
     ];
@@ -238,6 +239,14 @@ function dvz_shoutbox_bot_user_action_handler(&$actions)
     $actions['dvz-shoutbox-bot'] = ['active' => 'dvz-shoutbox-bot', 'file' => 'dvz_shoutbox_bot.php'];
 }
 
+function dvz_shoutbox_bot_admin_user_permissions(&$admin_permissons)
+{
+    global $lang;
+    $lang->load('dvz_shoutbox_bot');
+
+    $admin_permissons['dvz_shoutbox_bot'] = $lang->can_manage_permission;
+}
+
 function dvz_shoutbox_bot_reload_commands()
 {
     global $db, $PL;
@@ -246,9 +255,6 @@ function dvz_shoutbox_bot_reload_commands()
     dvz_shoutbox_bot_create_instance();
     $commandsDataCache = Command::i()->getCommands();
     $commandsDataJson = getCommandsDataJson();
-
-    debug($commandsDataCache);
-    debug($commandsDataJson);
 
     $new = array_diff_key($commandsDataJson, $commandsDataCache);
     if (!empty($new)) {
