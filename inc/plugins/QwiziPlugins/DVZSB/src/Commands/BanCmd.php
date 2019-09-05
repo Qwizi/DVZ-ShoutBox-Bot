@@ -5,14 +5,16 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
+use Qwizi\DVZSB\Log;
 
 class BanCmd extends AbstractCommandBase implements ModRequiredInterface
 {
     public function doAction(array $data): void
     {
         if ($this->isMatched($data)) {
-
             $this->lang->load('dvz_shoutbox_bot_ban');
+            
+            $log = new Log($this->db, $data['tag']);
 
             if (empty($this->getArgs())) {
                 $this->lang->error_empty_argument = $this->lang->sprintf($this->lang->error_empty_argument, $this->getCommandPrefix() . $data['command']);
@@ -45,9 +47,11 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
                         $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
                     }
 
-                    $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, $this->mentionUsername($user['username']), "@\"{$target['username']}\"");
+                    $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, $this->mentionUsername($user['username']), $this->mentionUsername($target['username']));
 
                     $this->setMessage($this->lang->message_success);
+
+                    $log->add($this->getMessage());
 
                     rebuild_settings();
                 }

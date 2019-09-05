@@ -6,6 +6,7 @@ use Qwizi\Core\ClassLoader;
 use Qwizi\DVZSB\Bot;
 use Qwizi\DVZSB\Command;
 use Qwizi\DVZSB\Commands\AbstractCommandBase;
+
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 use Qwizi\DVZSB\Exceptions\CommandNotFoundException;
 
@@ -17,7 +18,7 @@ defined('QWIZI_PLUGINS_CORE_PATH') || define('QWIZI_PLUGINS_CORE_PATH', __DIR__ 
 
 define('DVZSB_PLUGIN_PATH', __DIR__ . '/QwiziPlugins/DVZSB');
 
-define('DEV', '0');
+define('DEV', '1');
 
 require_once QWIZI_PLUGINS_CORE_PATH . '/src/ClassLoader.php';
 
@@ -148,7 +149,17 @@ function dvz_shoutbox_bot_install()
             PRIMARY KEY (`cid`)
         ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
     ");
-  
+
+    $db->write_query("
+        CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "dvz_shoutbox_bot_commands_logs` (
+            `clid` int(11) not null auto_increment,
+            `ctag` varchar(24) not null,
+            `message` text not null,
+            `date` int(11) not null,
+            PRIMARY KEY (`clid`)
+        ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
+    ");
+
     $commandsDataJson = getCommandsDataJson();
 
     foreach ($commandsDataJson as $key => $value) {
@@ -214,6 +225,11 @@ function dvz_shoutbox_bot_uninstall()
     // Delete commands table
     if ($db->table_exists('dvz_shoutbox_bot_commands')) {
         $db->drop_table('dvz_shoutbox_bot_commands');
+    }
+
+    // Delete commands logs table
+    if ($db->table_exists('dvz_shoutbox_bot_commands_logs')) {
+        $db->drop_table('dvz_shoutbox_bot_commands_logs');
     }
 }
 
@@ -393,6 +409,7 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                 if ((bool) $command['activated']) {
 
                     $data['command'] = $command['command'];
+                    $data['tag'] = $command['tag'];
 
                     $nameSpace = 'Qwizi\\DVZSB\\Commands\\';
                     $commandClassName = $nameSpace . ucfirst($command['tag']) . 'Cmd';
@@ -441,6 +458,16 @@ if (DEV == '1') {
     function dvz_shoutbox_bot_index()
     {
         dvz_shoutbox_bot_create_instance();
+        global $db;
+
+        $data = [];
+
+        $query = $db->simple_select('dvz_shoutbox_bot_commands_logs', '*');
+
+        while ($row = $db->fetch_array($query)) {
+            $data[] = $row;
+        }
+        debug($data);
     }
 
     function debug($value)
@@ -451,28 +478,11 @@ if (DEV == '1') {
     }
 }
 
-function getCommandsDataJsonIterator()
-{
-    global $db;
-    $dir = new DirectoryIterator(DVZSB_PLUGIN_PATH . '/data');
-
-    foreach ($dir as $file) {
-        if (!$file->isDot() && !$file->isDir() && pathinfo($file->getPathname(), PATHINFO_EXTENSION) === 'json') {
-            $fileArray = json_decode(file_get_contents($file->getPathname()), true);
-            foreach ($fileArray as $value => $key) {
-                $db->escape_string($value);
-            }
-            $commandsDataFromJson[] = $fileArray;
-        }
-    } 
-    return $commandsDataFromJson;
-}
-
 function getCommandsDataJson()
 {
     global $db;
 
-    $commandsData = json_decode(file_get_contents(DVZSB_PLUGIN_PATH.'/data/Commands.json'), true);
+    $commandsData = json_decode(file_get_contents(DVZSB_PLUGIN_PATH . '/data/Commands.json'), true);
 
     foreach ($commandsData as $key => $value) {
         foreach ($value as $v) {
@@ -485,8 +495,8 @@ function getCommandsDataJson()
 
 function dvz_shoutbox_bot_create_instance()
 {
-    global $mybb, $db, $lang, $plugins, $cache, $bot;
+    global $mybb, $db, $lang, $plugins, $cache;
 
-    $bot = Bot::createInstance($mybb, $db, $lang, $plugins);
-    $command = Command::createInstance($cache, $db);
+    Bot::createInstance($mybb, $db, $lang, $plugins);
+    Command::createInstance($cache, $db);
 }

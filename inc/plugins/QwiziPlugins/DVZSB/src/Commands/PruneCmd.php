@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
+use Qwizi\DVZSB\Log;
 
 class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
 {
@@ -12,6 +13,8 @@ class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
     {
         if ($this->isMatched($data)) {
             $this->lang->load('dvz_shoutbox_bot_prune');
+
+            $log = new Log($this->db, $data['tag']);
 
             if (empty($this->getArgs())) {
                 $this->lang->error_empty_argument = $this->lang->sprintf($this->lang->error_empty_argument, $this->getCommandPrefix() . $data['command']);
@@ -38,6 +41,8 @@ class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
                         $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
     
                         $this->setMessage($this->lang->message_success);
+
+                        $log->add($this->getMessage());
                     }
                 }
             }

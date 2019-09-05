@@ -11,7 +11,7 @@
     "name": "UnBan",
     "command": "unban",
     "description": "This command allows you to remove user ban",
-    "activated": 1
+    "activated": 1        
   },
   "banList": {
     "tag": "banList",
