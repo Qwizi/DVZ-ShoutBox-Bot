@@ -4,6 +4,7 @@ declare (strict_types = 1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
+use Qwizi\DVZSB\Log;
 
 class SetBotCmd extends AbstractCommandBase implements ModRequiredInterface
 {
@@ -11,6 +12,8 @@ class SetBotCmd extends AbstractCommandBase implements ModRequiredInterface
     {
         if ($this->isMatched($data)) {
             $this->lang->load('dvz_shoutbox_bot_setbot');
+
+            $log = new Log($this->db, $data['tag']);
 
             if (empty($this->getArgs())) {
                 $this->lang->error_empty_argument = $this->lang->sprintf($this->lang->error_empty_argument, $this->getCommandPrefix() . $data['command']);
@@ -31,6 +34,8 @@ class SetBotCmd extends AbstractCommandBase implements ModRequiredInterface
                     $this->setMessage($this->lang->message_success);
 
                     rebuild_settings();
+
+                    $log->add($this->getMessage());
                 }
             }
             $this->send()->setReturnedValue([
