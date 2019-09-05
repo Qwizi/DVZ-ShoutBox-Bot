@@ -1,7 +1,7 @@
 # DVZ-ShoutBox-Bot
 DVZ ShoutBox Bot
 
-Version: 1.5.2
+Version: 1.5.3
 
 Author: Qwizi
 
