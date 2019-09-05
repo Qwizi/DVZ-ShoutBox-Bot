@@ -12,7 +12,7 @@ $lang->load('dvz_shoutbox_bot');
 
 $page->add_breadcrumb_item('DVZ ShoutBox Bot', MODULE_LINK);
 
-if ($mybb->input['action'] == 'add' || !$mybb->input['action']) {
+if ($mybb->input['action'] == 'add' || $mybb->input['action'] == 'logs' || !$mybb->input['action']) {
 
     $sub_tabs = [
         'manage_commands' => [
@@ -24,6 +24,11 @@ if ($mybb->input['action'] == 'add' || !$mybb->input['action']) {
             'title' => $lang->reload_commands_t,
             'link' => MODULE_LINK . '&amp;action=reload',
             'description' => $lang->reload_commands_d,
+        ],
+        'log_commands' => [
+            'title' => 'Logs',
+            'link' => MODULE_LINK. '&amp;action=logs',
+            'description' => 'Commands Logs'
         ]
     ];
 }
@@ -148,6 +153,48 @@ if ($mybb->input['action'] == 'delete') {
 
 if ($mybb->input['action'] == 'reload') {
     $plugins->run_hooks("admin_dvz_shoutbox_bot_reload");
+}
+
+if ($mybb->input['action'] == 'logs') {
+    $plugins->run_hooks("admin_dvz_shoutbox_bot_logs_start");
+
+    $page->output_header($lang->manage_commands_t);
+    $page->output_nav_tabs($sub_tabs, 'log_commands');
+
+    $form = new Form();
+
+    $form_container = new FormContainer('Logs');
+    $form_container->output_row_header('Command tag');
+    $form_container->output_row_header('Message');
+    $form_container->output_row_header('Date');
+
+    $query = $db->simple_select('dvz_shoutbox_bot_commands_logs', '*', '', ['order_by' => 'date DESC']);
+
+    if ((bool) $db->num_rows($query)) {
+        while ($row = $db->fetch_array($query)) {
+            $form_container->output_cell($row['ctag']);
+            $form_container->output_cell($row['message']);
+
+            $date = new DateTime();
+            $date->setTimestamp((int)$row['date']);
+            $formatedDate = $date->format($mybb->settings['dateformat'].' H:i');
+
+            $form_container->output_cell($formatedDate);
+
+            $form_container->construct_row();
+        }
+    }
+
+    if ($form_container->num_rows() == 0) {
+        $form_container->output_cell($lang->row_empty, array('colspan' => 5));
+        $form_container->construct_row();
+    }
+
+    $form_container->end();
+
+    $form->end();
+
+    $page->output_footer();
 }
 
 if (!$mybb->input['action']) {
