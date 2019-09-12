@@ -30,20 +30,24 @@ class BanListCmd extends AbstractCommandBase implements  ModRequiredInterface
                 }
 
                 foreach ($usernamesArray as $index) {
-                    $usernames[] = "@\"{$index['username']}\"";
+                    $usernames[] = $this->mentionUsername($index['username']);
                 }
                 $implode = implode(", ", $usernames);
 
-                $this->lang->list_banned = $this->lang->sprintf($this->lang->list_banned, $implode);
+                $message_succcess = $this->lang->sprintf($this->lang->list_banned, $implode);
 
-                $this->setMessage($this->lang->list_banned) ;
+                $this->setMessage($message_succcess);
+                $this->setReturnedValue([
+                    'banned' => $implode,
+                    'message' => $this->getMessage(),
+                ]);
+            } else {
+                $this->setReturnedValue([
+                    'error' => $this->getError()
+                ]);
             }
 
-            $this->send()->setReturnedValue([
-                'banned' => $implode,
-                'message' => $this->getMessage(),
-                'error' => $this->getError()
-            ])->run_hook('dvz_shoutbox_bot_commands_banlist_commit');
+            $this->send()->run_hook('dvz_shoutbox_bot_commands_banlist_commit');
         }
     }
 }

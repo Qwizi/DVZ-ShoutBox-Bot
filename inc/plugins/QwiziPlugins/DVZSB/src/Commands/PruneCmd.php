@@ -24,44 +24,58 @@ class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
             if (!empty($this->getArgs())) {
 
                 if ($this->getArgs()[0] == '--all') {
+                    $user = get_user((int) $data['uid']);
+
                     $this->setSendMessage(false);
                     $this->deleteShout();
+
+                    $message_log_prune_all = $this->lang->sprintf($this->lang->message_log_prune_all, $user['username']);
+
+                    $log->add($message_log_prune_all);
+
                     $this->run_hook('dvz_shoutbox_bot_commands_prune_all_commit');
                 } else {
                     $user = get_user((int) $data['uid']);
                     $target = get_user_by_username($this->getArgs()[0], ['fields' => 'uid, username']);
-    
+
                     if (!$this->isValidUser($user) || !$this->isValidUser($target)) {
                         $this->setError($this->lang->error_empty_user);
                     }
-    
+
+                    if (is_super_admin($target['uid']) && $user['uid'] != $target['uid']) {
+                        $this->setError($this->lang->error_super_admin);
+                    }
+
                     if (!$this->getError()) {
                         $this->deleteShout("uid={$target['uid']}");
                         $this->setSendMessage(true);
-                        $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
-    
-                        $this->setMessage($this->lang->message_success);
 
-                        $pm = [
-                            'subject' => 'Prune Shouts!',
-                            'message' => 'Your shouts on sb has been pruned',
-                            'touid' => $target['uid'],
-                            'receivepms' => true
-                        ];
+                        $message_success = $this->lang->sprintf(
+                            $this->lang->message_success,
+                            $this->mentionUsername($user['username']),
+                            $this->mentionUsername($target['username'])
+                        );
 
-                        send_pm($pm, $this->bot->getBotID(), true);
+                        $message_log = $this->lang->sprintf(
+                            $this->lang->message_success,
+                            $user['username'],
+                            $target['username']
+                        );
 
-                        $log->add($this->getMessage());
+                        $this->setMessage($message_success);
+                        $this->setReturnedValue([
+                            'uid' => $user['uid'],
+                            'tuid' => $target['uid'],
+                            'message' => $this->getMessage(),
+                        ]);
+                        $log->add($message_log);
                     }
                 }
+            } else {
+                $this->setReturnedValue(['error' => $this->getError()]);
             }
-            if ($this->getSendMessage() == true) {
-                $this->send()->setReturnedValue([
-                    'uid' => $user['uid'],
-                    'tuid' => $target['uid'],
-                    'message' => $this->getMessage(),
-                    'error' => $this->getError(),
-                ])->run_hook('dvz_shoutbox_bot_commands_prune_commit');
+            if ($this->getSendMessage()) {
+                $this->send()->run_hook('dvz_shoutbox_bot_commands_prune_commit');
             }
         }
     }

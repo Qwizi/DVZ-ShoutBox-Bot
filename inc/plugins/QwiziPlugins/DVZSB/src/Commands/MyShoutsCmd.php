@@ -16,9 +16,13 @@ class MyShoutsCmd extends AbstractCommandBase
             $our_shouts_query = $this->db->query("SELECT count(id) as id, uid FROM ".TABLE_PREFIX."dvz_shoutbox s WHERE s.uid='".$data['uid']."' AND s.text IS NOT NULL");
             $our_shouts = $this->db->fetch_field($our_shouts_query, "id");
 
-            $this->lang->success_message = $this->lang->sprintf($this->lang->success_message, $this->mentionUsername($user['username']), $our_shouts);
+            $message_success = $this->lang->sprintf(
+                $this->lang->success_message, 
+                $this->mentionUsername($user['username']), 
+                $our_shouts
+            );
 
-            $this->setMessage($this->lang->success_message);
+            $this->setMessage($message_success);
 
             $this->send();
         }

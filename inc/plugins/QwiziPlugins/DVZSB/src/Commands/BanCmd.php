@@ -13,7 +13,7 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
     {
         if ($this->isMatched($data)) {
             $this->lang->load('dvz_shoutbox_bot_ban');
-            
+
             $log = new Log($this->db, $data['tag']);
 
             if (empty($this->getArgs())) {
@@ -37,6 +37,10 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
                     $this->setError($this->lang->error_multiban_user);
                 }
 
+                if (is_super_admin($target['uid']) && $user['uid'] != $target['uid']) {
+                    $this->setError($this->lang->error_super_admin);
+                }
+
                 if (!$this->getError()) {
                     if (in_array('', $explodeBannedUsers)) {
                         $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_blocked_users'");
@@ -47,21 +51,35 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
                         $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
                     }
 
-                    $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, $this->mentionUsername($user['username']), $this->mentionUsername($target['username']));
+                    $message_success = $this->lang->sprintf(
+                        $this->lang->message_success,
+                        $this->mentionUsername($user['username']),
+                        $this->mentionUsername($target['username'])
+                    );
 
-                    $this->setMessage($this->lang->message_success);
+                    $message_log = $this->lang->sprintf(
+                        $this->lang->message_success,
+                        $user['username'],
+                        $target['username']
+                    );
 
-                    $log->add($this->getMessage());
+                    $this->setMessage($message_success);
+                    $this->setReturnedValue([
+                        'uid' => $user['uid'],
+                        'tuid' => $target['uid'],
+                        'message' => $this->getMessage(),
+                    ]);
+                    
+                    $log->add($message_log);
 
                     rebuild_settings();
+                } else {
+                    $this->setReturnedValue([
+                        'error' => $this->getError()
+                    ]);
                 }
             }
-            $this->send()->setReturnedValue([
-                'uid' => $user['uid'],
-                'tuid' => $target['uid'],
-                'message' => $this->getMessage(),
-                'error' => $this->getError()
-            ])->run_hook('dvz_shoutbox_bot_commands_ban_commit');
+            $this->send()->run_hook('dvz_shoutbox_bot_commands_ban_commit');
         }
     }
 }
