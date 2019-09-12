@@ -36,6 +36,10 @@ class UnBanCmd extends AbstractCommandBase implements ModRequiredInterface
                     $this->setError($this->lang->no_ban);
                 }
 
+                if (is_super_admin($target['uid']) && $user['uid'] != $target['uid']) {
+                    $this->setError($this->lang->error_super_admin);
+                }
+
                 if (!$this->getError()) {
                     if (($key = array_search($target['uid'], $explodeBannedUsers)) !== false) {
                         unset($explodeBannedUsers[$key]);
@@ -44,13 +48,23 @@ class UnBanCmd extends AbstractCommandBase implements ModRequiredInterface
                     $implodeBannedUsers = implode(",", $explodeBannedUsers);
                     $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
 
-                    $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
+                    $message_success = $this->lang->sprintf(
+                        $this->lang->message_success, 
+                        $this->mentionUsername($user['username']), 
+                        $this->mentionUsername($target['username'])
+                    );
 
-                    $this->setMessage($this->lang->message_success);
+                    $message_log = $this->lang->sprintf(
+                        $this->lang->message_success, 
+                        $user['username'], 
+                        $target['username']
+                    );
+
+                    $this->setMessage($message_success);
 
                     rebuild_settings();
 
-                    $log->add($this->getMessage());
+                    $log->add($message_log);
                 }
             }
             $this->send()->setReturnedValue([

@@ -27,7 +27,7 @@ if ($mybb->input['action'] == 'add' || $mybb->input['action'] == 'logs' || !$myb
         ],
         'log_commands' => [
             'title' => $lang->log_commands_t, // Logs
-            'link' => MODULE_LINK. '&amp;action=logs',
+            'link' => MODULE_LINK . '&amp;action=logs',
             'description' => $lang->log_commands_d // Commands Logs
         ]
     ];
@@ -104,9 +104,9 @@ if ($mybb->input['action'] == 'edit') {
     $form = new Form(MODULE_LINK . "&amp;action=edit&amp;cid={$commandQ['cid']}", 'post');
 
     $form_container = new FormContainer($lang->edit_command_t);
-    $form_container->output_row($lang->row_name_t."<em>*</em>", $lang->row_name_d, $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
-    $form_container->output_row($lang->row_description_t."<em>*</em>", $lang->row_description_d, $form->generate_text_area('description', $mybb->input['description'], ['id' => 'description'], 'description'));
-    $form_container->output_row($lang->row_command_t."<em>*</em>", $lang->row_command_d, $form->generate_text_box('command', $mybb->input['command'], ['id' => 'command'], 'command'));
+    $form_container->output_row($lang->row_name_t . "<em>*</em>", $lang->row_name_d, $form->generate_text_box('name', $mybb->input['name'], ['id' => 'name'], 'name'));
+    $form_container->output_row($lang->row_description_t . "<em>*</em>", $lang->row_description_d, $form->generate_text_area('description', $mybb->input['description'], ['id' => 'description'], 'description'));
+    $form_container->output_row($lang->row_command_t . "<em>*</em>", $lang->row_command_d, $form->generate_text_box('command', $mybb->input['command'], ['id' => 'command'], 'command'));
     $form_container->output_row($lang->row_activated_t, $lang->row_activated_d, $form->generate_check_box("activated", 1, $lang->row_activated_t, ["checked" => $mybb->input['activated']]));
 
     $form_container->construct_row();
@@ -168,7 +168,33 @@ if ($mybb->input['action'] == 'logs') {
     $form_container->output_row_header($lang->row_message);
     $form_container->output_row_header($lang->row_date);
 
-    $query = $db->simple_select('dvz_shoutbox_bot_commands_logs', '*', '', ['order_by' => 'date DESC']);
+    $queryCountLogs = $db->simple_select('dvz_shoutbox_bot_commands_logs', 'COUNT(*) as command_log');
+    $logsCount = $db->fetch_field($queryCountLogs, 'command_log');
+
+    $perPage = 20;
+
+    if ($mybb->input['page'] > 0) {
+        $current_page = $mybb->get_input('page', MyBB::INPUT_INT);
+        $start = ($current_page - 1) * $perPage;
+        $pages = $logsCount / $perPage;
+        $pages = ceil($pages);
+        if ($current_page > $pages) {
+            $start = 0;
+            $current_page = 1;
+        }
+    } else {
+        $start = 0;
+        $current_page = 1;
+    }
+    
+    $pagination = draw_admin_pagination($current_page, $perPage, $logsCount, MODULE_LINK.'&amp;action=logs&amp;page={page}');
+
+    $query = $db->query("
+        SELECT cl.* 
+        FROM ".TABLE_PREFIX."dvz_shoutbox_bot_commands_logs cl
+        ORDER BY date DESC
+        LIMIT {$start}, {$perPage}
+    ");
 
     if ((bool) $db->num_rows($query)) {
         while ($row = $db->fetch_array($query)) {
@@ -176,8 +202,8 @@ if ($mybb->input['action'] == 'logs') {
             $form_container->output_cell($row['message']);
 
             $date = new DateTime();
-            $date->setTimestamp((int)$row['date']);
-            $formatedDate = $date->format($mybb->settings['dateformat'].' H:i');
+            $date->setTimestamp((int) $row['date']);
+            $formatedDate = $date->format($mybb->settings['dateformat'] . ' H:i');
 
             $form_container->output_cell($formatedDate);
 
@@ -186,7 +212,7 @@ if ($mybb->input['action'] == 'logs') {
     }
 
     if ($form_container->num_rows() == 0) {
-        $form_container->output_cell($lang->row_empty, array('colspan' => 5));
+        $form_container->output_cell($lang->row_empty_logs, array('colspan' => 5));
         $form_container->construct_row();
     }
 
@@ -194,19 +220,18 @@ if ($mybb->input['action'] == 'logs') {
 
     $form->end();
 
+    echo $pagination;
+
     $page->output_footer();
 }
 
 if (!$mybb->input['action']) {
     $plugins->run_hooks("admin_dvz_shoutbox_bot_start");
 
-    // TODO Dodać metode post
-
     $page->output_header($lang->manage_commands_t);
     $page->output_nav_tabs($sub_tabs, 'manage_commands');
 
-    //TODO ZAPYTANIA i FORMULARZ
-    $form = new Form(MODULE_LINK, 'post', 'dvz-shoutbox-bot');
+    $form = new Form();
 
     $form_container = new FormContainer($lang->manage_commands_t);
     $form_container->output_row_header($lang->row_name_t);
@@ -214,7 +239,33 @@ if (!$mybb->input['action']) {
     $form_container->output_row_header($lang->row_activated_t, ['class' => 'align_center']);
     $form_container->output_row_header($lang->row_options, ['class' => 'align_center']);
 
-    $query = $db->simple_select('dvz_shoutbox_bot_commands', 'cid, name, description, activated');
+    $queryCount = $db->simple_select('dvz_shoutbox_bot_commands', 'COUNT(*) as command_count');
+    $commandCount = $db->fetch_field($queryCount, 'command_count');
+
+    $perPage = 20;
+
+    if ($mybb->input['page'] > 0) {
+        $current_page = $mybb->get_input('page', MyBB::INPUT_INT);
+        $start = ($current_page - 1) * $perPage;
+        $pages = $commandCount / $perPage;
+        $pages = ceil($pages);
+        if ($current_page > $pages) {
+            $start = 0;
+            $current_page = 1;
+        }
+    } else {
+        $start = 0;
+        $current_page = 1;
+    }
+
+    $pagination = draw_admin_pagination($current_page, $perPage, $commandCount, MODULE_LINK.'&amp;page={page}');
+
+    $query = $db->query("
+        SELECT c.cid, c.name, c.description, c.activated
+        FROM ".TABLE_PREFIX."dvz_shoutbox_bot_commands c
+        ORDER BY c.cid ASC
+        LIMIT {$start}, {$perPage}
+    ");
 
     if ((bool) $db->num_rows($query)) {
         while ($row = $db->fetch_array($query)) {
@@ -241,6 +292,8 @@ if (!$mybb->input['action']) {
     $form_container->end();
 
     $form->end();
+
+    echo $pagination;
 
     $page->output_footer();
 }

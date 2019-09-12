@@ -43,12 +43,12 @@ class HelpCmd extends AbstractCommandBase
                 }
 
                 $this->setMessage($command);
+                $this->setReturnedValue(['message' => $this->getMessage()]);
+            } else {
+                $this->setReturnedValue(['error' => $this->getError()]);
             }
 
-            $this->send()->setReturnedValue([
-                'message' => $this->getMessage(),
-                'error' => $this->getError(),
-            ])->run_hook('dvz_shoutbox_bot_commands_help_commit');
+            $this->send()->run_hook('dvz_shoutbox_bot_commands_help_commit');
         }
     }
 }

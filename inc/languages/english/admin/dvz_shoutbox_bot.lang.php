@@ -57,6 +57,7 @@ $l['row_options'] = "Options";
 $l['row_options_e'] = "Edit";
 $l['row_options_d'] = "Delete";
 $l['row_empty'] = "No commands";
+$l['row_empty_logs'] = "No logs";
 $l['row_ctag'] = "Command tag";
 $l['row_message'] = "Message";
 $l['row_date'] = 'Date';
