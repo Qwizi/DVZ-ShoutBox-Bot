@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
-use Qwizi\DVZSB\Log;
+use Qwizi\DVZSB\Actions\Log;
 
 class UnBanCmd extends AbstractCommandBase implements ModRequiredInterface
 {

@@ -1,5 +1,6 @@
 <?php
-declare (strict_types = 1);
+
+declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
@@ -30,7 +31,7 @@ class SetBotCmd extends AbstractCommandBase implements ModRequiredInterface
                     $this->db->update_query('settings', ['value' => $this->db->escape_string((int) $target['uid'])], "name='dvz_sb_bot_id'");
 
                     $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
-        
+
                     $this->setMessage($this->lang->message_success);
 
                     rebuild_settings();

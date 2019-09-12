@@ -40,6 +40,8 @@ $l['reload_commands_t'] = "Reload commands";
 $l['reload_commands_d'] = "Reload commands";
 $l['edit_command_t'] = "Edit command";
 $l['edit_command_d'] = "Edit command";
+$l['log_commands_t'] = "Logs";
+$l['log_commands_d'] = "Commands logs";
 
 $l['row_name_t'] = "Name";
 $l['row_name_d'] = "Name of the command";
@@ -55,6 +57,9 @@ $l['row_options'] = "Options";
 $l['row_options_e'] = "Edit";
 $l['row_options_d'] = "Delete";
 $l['row_empty'] = "No commands";
+$l['row_ctag'] = "Command tag";
+$l['row_message'] = "Message";
+$l['row_date'] = 'Date';
 
 $l['row_m_name'] = 'Missing name';
 $l['row_m_description'] = "Missing description";

@@ -96,24 +96,6 @@ class Bot
         return $this->mybb->settings[$this->getSettingsGroupName() . '_' . $setting];
     }
 
-    public function get(bool $many = false, string $fields, string $where, array $optionsArray): array
-    {
-        $data = [];
-        if ($many == false) {
-            $data = $this->db->fetch_array($this->db->simple_select($this->getTableName(), $fields, $where, $optionsArray));
-        } else {
-            $query = $this->db->simple_select($this->getTableName(), $fields, $where, $optionsArray);
-
-            if ($this->db->num_rows($query)) {
-                while ($row = $this->db->fetch_array($query)) {
-                    $data[] = $row;
-                }
-            }
-        }
-
-        return $data;
-    }
-
     public function create($data)
     {
         return $this->db->insert_query($this->getTableName(), $data);
@@ -183,10 +165,11 @@ class Bot
             ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod']));
     }
 
+
     public function user_last_shout_time($uid, $matches)
     {
         return $this->db->fetch_field(
-            $this->db->simple_select('dvz_shoutbox s', 'date', 'uid=' . (int) $uid . ' AND s.text="' . $matches . '"', [
+            $this->db->simple_select('dvz_shoutbox s', 'date', 'uid=' . (int) $uid . ' AND s.text REGEXP "' . $matches . '"', [
                 'order_by'  => 'date',
                 'order_dir' => 'desc',
                 'limit'     => 1,
