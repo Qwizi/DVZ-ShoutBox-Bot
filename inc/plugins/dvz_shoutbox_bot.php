@@ -35,7 +35,7 @@ $plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
 $plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit');
-$plugins->add_hook('dvz_shoutbox_shout', 'dvz_shoutbox_bot_shout');
+$plugins->add_hook('dvz_shoutbox_bot_shout', 'dvz_shoutbox_bot_shout_commit');
 $plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
 $plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
 $plugins->add_hook('admin_dvz_shoutbox_bot_reload', 'dvz_shoutbox_bot_reload_commands');
@@ -446,28 +446,43 @@ function dvz_shoutbox_bot_shout(&$data)
         if (!empty($commandsArray)) {
             foreach ($commandsArray as &$command) {
                 if ((bool) $command['activated']) {
-                    if (!Bot::i()->antiflood_pass('/' . $command['command'])) {
+
+                    $pattern = "/^({command}|{command}[\s]((.*)))$/";
+                    $baseCommandPrefix = "\\" . Bot::i()->settings('commands_prefix') . preg_quote($command['command']);
+                    $replaced_pattern = str_replace('{command}', $baseCommandPrefix, $pattern);
+
+                    if (!Bot::i()->antiflood_pass('/help')) {
                         die('A');
                     }
+
+                    /* if (preg_match($replaced_pattern, $data['text'], $matches)) {
+                        if (!Bot::i()->antiflood_pass($replaced_pattern)) {
+                            die('A');
+                        }
+                    } */
+
+                    /* if (!Bot::i()->antiflood_pass() {
+                        die('A');
+                    } */
                 }
             }
         }
     }
 }
+
 if (DEV == '1') {
     function dvz_shoutbox_bot_index()
     {
         dvz_shoutbox_bot_create_instance();
-        global $db;
 
-        $data = [];
+        $command['command'] = 'help';
+        $data['text'] = '/help';
 
-        $query = $db->simple_select('dvz_shoutbox_bot_commands_logs', '*');
+        $pattern = "/^({command}|{command}[\s]((.*)))$/";
+        $baseCommandPrefix = "\\" . Bot::i()->settings('commands_prefix') . preg_quote($command['command']);
+        $replaced_pattern = str_replace('{command}', $baseCommandPrefix, $pattern);
 
-        while ($row = $db->fetch_array($query)) {
-            $data[] = $row;
-        }
-        debug($data);
+        var_dump(Bot::i()->user_last_shout_time(1, '/help'));
     }
 
     function debug($value)

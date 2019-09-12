@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Qwizi\DVZSB;
+namespace Qwizi\DVZSB\Actions;
 
 use DB_Base;
 
@@ -25,7 +25,7 @@ class Log
 
     public function add(string $message)
     {
-        $this->db->insert_query($this->tableName, [
+        return $this->db->insert_query($this->tableName, [
             'ctag' => $this->db->escape_string($this->commandTag),
             'message' => $this->db->escape_string($message),
             'date' => time()

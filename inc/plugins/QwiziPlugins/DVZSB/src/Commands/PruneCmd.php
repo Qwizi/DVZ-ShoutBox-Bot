@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
-use Qwizi\DVZSB\Log;
+use Qwizi\DVZSB\Actions\Log;
 
 class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
 {
@@ -41,6 +41,15 @@ class PruneCmd extends AbstractCommandBase implements ModRequiredInterface
                         $this->lang->message_success = $this->lang->sprintf($this->lang->message_success, "@\"{$user['username']}\"", "@\"{$target['username']}\"");
     
                         $this->setMessage($this->lang->message_success);
+
+                        $pm = [
+                            'subject' => 'Prune Shouts!',
+                            'message' => 'Your shouts on sb has been pruned',
+                            'touid' => $target['uid'],
+                            'receivepms' => true
+                        ];
+
+                        send_pm($pm, $this->bot->getBotID(), true);
 
                         $log->add($this->getMessage());
                     }

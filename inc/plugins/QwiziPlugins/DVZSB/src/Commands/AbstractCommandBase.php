@@ -10,7 +10,6 @@ abstract class AbstractCommandBase
 {
     public $returned_value = [];
 
-    private $bot;
     private $commandPrefix;
     private $error;
     private $message;
@@ -18,6 +17,7 @@ abstract class AbstractCommandBase
     private $pattern;
     private $args = [];
 
+    protected $bot;
     protected $mybb;
     protected $db;
     protected $lang;
@@ -67,6 +67,11 @@ abstract class AbstractCommandBase
     public function getArgs()
     {
         return $this->args;
+    }
+
+    public function getBotID()
+    {
+        return $this->bot->getBotID();
     }
 
     public function setMessage(string $message): void
@@ -187,12 +192,5 @@ abstract class AbstractCommandBase
             'date'
         );
     }
-
-    public function antiflood_pass($matches)
-    {
-        return (( TIME_NOW - $this->user_last_shout_time($this->mybb->user['uid'], $matches) ) > $this->settings['dvz_sb_antiflood']
-        );
-    }
-
     abstract protected function doAction(array $data): void;
 }

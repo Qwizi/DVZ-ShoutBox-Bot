@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\Command;
-use Qwizi\DVZSB\Pagination;
+use Qwizi\DVZSB\Actions\Pagination;
 
 class HelpCmd extends AbstractCommandBase
 {

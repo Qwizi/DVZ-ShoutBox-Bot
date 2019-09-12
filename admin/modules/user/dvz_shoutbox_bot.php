@@ -26,9 +26,9 @@ if ($mybb->input['action'] == 'add' || $mybb->input['action'] == 'logs' || !$myb
             'description' => $lang->reload_commands_d,
         ],
         'log_commands' => [
-            'title' => 'Logs',
+            'title' => $lang->log_commands_t, // Logs
             'link' => MODULE_LINK. '&amp;action=logs',
-            'description' => 'Commands Logs'
+            'description' => $lang->log_commands_d // Commands Logs
         ]
     ];
 }
@@ -163,10 +163,10 @@ if ($mybb->input['action'] == 'logs') {
 
     $form = new Form();
 
-    $form_container = new FormContainer('Logs');
-    $form_container->output_row_header('Command tag');
-    $form_container->output_row_header('Message');
-    $form_container->output_row_header('Date');
+    $form_container = new FormContainer($lang->log_commands_t);
+    $form_container->output_row_header($lang->row_ctag);
+    $form_container->output_row_header($lang->row_message);
+    $form_container->output_row_header($lang->row_date);
 
     $query = $db->simple_select('dvz_shoutbox_bot_commands_logs', '*', '', ['order_by' => 'date DESC']);
 
