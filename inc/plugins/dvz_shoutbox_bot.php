@@ -18,8 +18,6 @@ defined('QWIZI_PLUGINS_CORE_PATH') || define('QWIZI_PLUGINS_CORE_PATH', __DIR__ 
 
 define('DVZSB_PLUGIN_PATH', __DIR__ . '/QwiziPlugins/DVZSB');
 
-define('DEV', '1');
-
 require_once QWIZI_PLUGINS_CORE_PATH . '/src/ClassLoader.php';
 
 $classLoader = ClassLoader::getInstance();
@@ -28,9 +26,6 @@ $classLoader->registerNamespace(
     DVZSB_PLUGIN_PATH . '/src/'
 )->register();
 
-if (DEV == '1') {
-    $plugins->add_hook('index_end', 'dvz_shoutbox_bot_index');
-}
 $plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
@@ -434,62 +429,6 @@ function dvz_shoutbox_bot_shout_commit(&$data)
                 }
             }
         }
-    }
-}
-
-function dvz_shoutbox_bot_shout(&$data)
-{
-    dvz_shoutbox_bot_create_instance();
-
-    if (Bot::i()->settings('commands_onoff')) {
-        $commandsArray = Command::i()->getCommands();
-        if (!empty($commandsArray)) {
-            foreach ($commandsArray as &$command) {
-                if ((bool) $command['activated']) {
-
-                    $pattern = "/^({command}|{command}[\s]((.*)))$/";
-                    $baseCommandPrefix = "\\" . Bot::i()->settings('commands_prefix') . preg_quote($command['command']);
-                    $replaced_pattern = str_replace('{command}', $baseCommandPrefix, $pattern);
-
-                    if (!Bot::i()->antiflood_pass('/help')) {
-                        die('A');
-                    }
-
-                    /* if (preg_match($replaced_pattern, $data['text'], $matches)) {
-                        if (!Bot::i()->antiflood_pass($replaced_pattern)) {
-                            die('A');
-                        }
-                    } */
-
-                    /* if (!Bot::i()->antiflood_pass() {
-                        die('A');
-                    } */
-                }
-            }
-        }
-    }
-}
-
-if (DEV == '1') {
-    function dvz_shoutbox_bot_index()
-    {
-        dvz_shoutbox_bot_create_instance();
-
-        $command['command'] = 'help';
-        $data['text'] = '/help';
-
-        $pattern = "/^({command}|{command}[\s]((.*)))$/";
-        $baseCommandPrefix = "\\" . Bot::i()->settings('commands_prefix') . preg_quote($command['command']);
-        $replaced_pattern = str_replace('{command}', $baseCommandPrefix, $pattern);
-
-        var_dump(Bot::i()->user_last_shout_time(1, '/help'));
-    }
-
-    function debug($value)
-    {
-        echo "<pre>";
-        print_r($value);
-        echo "</pre>";
     }
 }
 
