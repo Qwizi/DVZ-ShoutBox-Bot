@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Actions;
 
 use DB_Base;
+use Qwizi\DVZSB\Interfaces\ActionInterface;
 
-class Log
+class LogAction implements ActionInterface
 {
-    private $tableName = "dvz_shoutbox_bot_commands_logs";
+    const TABLE_NAME = 'dvz_shoutbox_bot_commands_logs';
+
     private $db;
+
     private $commandTag;
 
     public function __construct(DB_Base $db, string $commandTag)
@@ -18,16 +21,11 @@ class Log
         $this->commandTag = $commandTag;
     }
 
-    public function getCommandTag()
+    public function execute($target, array $additional)
     {
-        return $this->commandTag;
-    }
-
-    public function add(string $message)
-    {
-        return $this->db->insert_query($this->tableName, [
+        $this->db->insert_query(self::TABLE_NAME, [
             'ctag' => $this->db->escape_string($this->commandTag),
-            'message' => $this->db->escape_string($message),
+            'message' => $this->db->escape_string($target),
             'date' => time()
         ]);
     }

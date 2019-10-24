@@ -4,21 +4,31 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB;
 
+use Mybb;
 use DB_Base;
-use MyBB;
 use MyLanguage;
-use pluginSystem;
-
+use PluginSystem;
 class Bot
 {
+    const TABLE_NAME = 'dvz_shoutbox';
+    const SETTINGS_NAME = 'dvz_sb_bot';
+
+    /** @var Bot */
     private static $instance = null;
+
+    /** @var MyBB */
     private $mybb;
+
+    /** @var DB_Base */
     private $db;
+
+    /** @var MyLanguage */
     private $lang;
+
+    /** @var PluginSystem */
     private $plugins;
-    private $tableName = 'dvz_shoutbox';
-    private $settingsGroupName = 'dvz_sb_bot';
-    private $botID;
+
+    /** @var string */
     private $message;
 
     public function __construct(Mybb $mybb, DB_Base $db, MyLanguage $lang, PluginSystem $plugins)
@@ -27,9 +37,18 @@ class Bot
         $this->db = $db;
         $this->lang = $lang;
         $this->plugins = $plugins;
-        $this->botID = (int) $this->mybb->settings['dvz_sb_bot_id'];
     }
-
+    
+    /**
+     * Create instance of the bot manager
+     *
+     * @param Mybb $mybb MyBB base object
+     * @param DB_Base $db MyBB database object
+     * @param MyLanguage $lang Mybb language object
+     * @param PluginSystem $plugins Mybb pluginsystem object
+     *
+     * @return BotManager The created instance
+     */
     public static function createInstance(Mybb $mybb, DB_BASE $db, MyLanguage $lang, PluginSystem $plugins)
     {
         if (static::$instance === null) {
@@ -38,7 +57,14 @@ class Bot
         return static::$instance;
     }
 
-    public static function i()
+    /**
+     * Get a prior created bot manager instance
+     *
+     * @return bool|BotManager The prior created
+     *                              instance, or false if
+     *                              not created
+     */
+    public static function getInstance()
     {
         if (static::$instance === null) {
             return false;
@@ -46,39 +72,26 @@ class Bot
         return static::$instance;
     }
 
-    public function getDB()
+    /**
+     * Short method getInstance
+     *
+     * @return bool|CommandManager The prior created
+     *                              instance, or false if
+     *                              not created
+     */
+    public static function i()
     {
-        return $this->db;
+        return static::getInstance();
     }
 
-    public function getMybb()
+    /**
+     * Set the current bot message
+     *
+     * @param string $message
+     */
+    public function setMessage(string $message)
     {
-        return $this->mybb;
-    }
-
-    public function getLang()
-    {
-        return $this->lang;
-    }
-
-    public function getTableName(): string
-    {
-        return $this->tableName;
-    }
-
-    public function getBotID(): int
-    {
-        return $this->botID;
-    }
-
-    public function getPlugins()
-    {
-        return $this->plugins;
-    }
-
-    public function getSettingsGroupName(): string
-    {
-        return $this->settingsGroupName;
+        $this->message = $message;
     }
 
     public function getMessage()
@@ -86,27 +99,12 @@ class Bot
         return $this->message;
     }
 
-    public function setMessage(string $message)
-    {
-        $this->message = $message;
-    }
-
     public function settings(string $setting): string
     {
-        return $this->mybb->settings[$this->getSettingsGroupName() . '_' . $setting];
+        return $this->mybb->settings[self::SETTINGS_NAME . '_' . $setting];
     }
 
-    public function create($data)
-    {
-        return $this->db->insert_query($this->getTableName(), $data);
-    }
-
-    public function update($updateArray, $where, $limit, $cos)
-    {
-        return $this->db->update_query($this->getTableName(), $updateArray, $where, $limit, $cos);
-    }
-
-    public function delete($where = "")
+    /* public function delete($where = "")
     {
         if ($this->mybb->settings['dvz_sb_sync']) {
             $this->update([
@@ -116,33 +114,47 @@ class Bot
         } else {
             return $this->db->delete_query($this->getTableName(), $where);
         }
-    }
+    } */
 
-    public function shout(string $message)
+    /**
+     * Insert shout via bot
+     * 
+     * @param string $message Message
+     * 
+     * @return int
+     */
+    public function shout(string $message): int
     {
         $data = [
-            'uid' => $this->getBotID(),
-            'text' => $message,
-            'ipaddress' => $this->db->escape_binary(my_inet_pton(get_ip())),
-            'date' => TIME_NOW,
-        ];
+                'uid' => $this->settings('id'),
+                'text' => $message,
+                'ipaddress' => $this->db->escape_binary(my_inet_pton(get_ip())),
+                'date' => TIME_NOW,
+            ];
         foreach ($data as $key => &$value) {
             if (!in_array($key, array_keys($this->mybb->binary_fields['dvz_shoutbox']))) {
                 $value = $this->db->escape_string($value);
             }
         }
-        return $this->create($data);
+            
+        return $this->db->insert_query(self::TABLE_NAME, $data);
     }
 
+    /**
+     * Convert link
+     * 
+     * @param string $url
+     * @param string $title
+     * 
+     * @return string
+     */
     public function createLink(string $url, string $title): string
     {
         $title = htmlspecialchars_uni($title);
-        $link = "[url=" . $this->mybb->settings['bburl'] . "/" . $url . "]" . $title . "[/url]";
-        return $link;
+        return "[url=" . $this->mybb->settings['bburl'] . "/" . $url . "]" . $title . "[/url]";
     }
 
     public function convert(string $action, array $dataArray)
-
     {
         $message = $this->settings($action . '_message');
 
@@ -163,23 +175,5 @@ class Bot
 
         return (
             ($array[0] == -1 || is_member($array)) || ($this->mybb->settings['dvz_sb_supermods'] && $this->mybb->usergroup['issupermod']));
-    }
-
-
-    public function user_last_shout_time($uid, $matches)
-    {
-        return $this->db->fetch_field(
-            $this->db->simple_select('dvz_shoutbox s', 'date', 'uid=' . (int) $uid . ' AND s.text REGEXP "' . $matches . '"', [
-                'order_by'  => 'date',
-                'order_dir' => 'desc',
-                'limit'     => 1,
-            ]),
-            'date'
-        );
-    }
-
-    public function antiflood_pass($matches)
-    {
-        return ((TIME_NOW - $this->user_last_shout_time($this->mybb->user['uid'], $matches)) > $this->settings['dvz_sb_antiflood']);
     }
 }

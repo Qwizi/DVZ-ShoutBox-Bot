@@ -4,12 +4,39 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
+use Qwizi\DVZSB\AbstractCommand;
+use Qwizi\DVZSB\Exceptions\ApplicationException;
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
-use Qwizi\DVZSB\Actions\Log;
 
-class BanCmd extends AbstractCommandBase implements ModRequiredInterface
+class BanCmd extends AbstractCommand implements ModRequiredInterface
 {
-    public function doAction(array $data): void
+    public function handle()
+    {
+        throw new ApplicationException('blad');
+        if ($this->isMatched()) {
+            $args = $this->getArgs();
+            $argumentValidation = $this->validator->getValidation('not_empty_argument');
+            if ($argumentValidation->validate($args)) {
+                $user = get_user($this->shoutData['uid']);
+                $target = get_user_by_username(trim($args[0]), ['fields' => 'uid, username']);
+
+                $this->validator->getValidation('user')->validate($user);
+                $this->validator->getValidation('user')->validate($target);
+                $this->validator->getValidation('super_admin')->validate($target);
+            }
+
+            if ($this->validator->isValidated()) {
+                $this->action->getAction('ban')->execute($target);
+                $this->action->getAction('log')->execute('log message');
+                $message = 'success';
+            } else {
+                $message = $this->validator->getErrors();
+            }
+
+            $this->bot->shout($message);
+        }
+    }
+    /* public function doAction(array $data): void
     {
         if ($this->isMatched($data)) {
             $this->lang->load('dvz_shoutbox_bot_ban');
@@ -69,7 +96,7 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
                         'tuid' => $target['uid'],
                         'message' => $this->getMessage(),
                     ]);
-                    
+
                     $log->add($message_log);
 
                     rebuild_settings();
@@ -81,5 +108,5 @@ class BanCmd extends AbstractCommandBase implements ModRequiredInterface
             }
             $this->send()->run_hook('dvz_shoutbox_bot_commands_ban_commit');
         }
-    }
+    } */
 }
