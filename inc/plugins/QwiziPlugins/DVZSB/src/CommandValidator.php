@@ -4,18 +4,37 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB;
 
-use Qwizi\DVZSB\Interfaces\ValidationInterface;
+use Qwizi\DVZSB\Validators\ValidatorInterface;
+use MyLanguage;
 
 class CommandValidator
 {
+    private $errors = [];
+
     private $validations = [];
     
-    public function getValidation($validationName)
+    private $lang;
+
+    public function __construct(MyLanguage $lang)
+    {
+        $this->lang = $lang;
+        $this->lang->load('dvz_shoutbox_bot_errors');
+    }
+
+    /**
+     * Get the value of lang
+     */ 
+    public function getLang()
+    {
+        return $this->lang;
+    }
+    
+    public function get($validationName)
     {
         return $this->validations[$validationName];
     }
 
-    public function addValidation($validationName, ValidationInterface $validationInstance)
+    public function add($validationName, ValidatorInterface $validationInstance)
     {
         if (!get_class($validationInstance)) {
             throw('Class '. $validationInstance. ' not exits');
@@ -27,16 +46,19 @@ class CommandValidator
 
     public function getErrors()
     {
-        $errors = [];
-        foreach ($this->validations as $validation) {
+        unset($this->errors);
+
+        foreach ($this->validations as $key => $validation) {
             if (!empty($validation->getError())) {
-                $errors[$validation] = $validation->getError();
+                $this->errors[$key] = $validation->getError();
             }
         }
-        return $errors;
+
+        return $this->errors;
     }
 
-    public function isValidated() {
+    public function isValidated()
+    {
         return empty($this->getErrors()) ? true : false;
     }
 }

@@ -4,20 +4,25 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB;
 
-use Qwizi\DVZSB\Interfaces\ActionInterface;
+use Qwizi\DVZSB\Actions\ActionInterface;
 
 class CommandAction
 {
     private $actions;
 
-    public function getAction($actionName)
+    public function getActions()
+    {
+        return $this->actions;
+    }
+
+    public function get($actionName)
     {
         return $this->actions[$actionName];
     }
 
-    public function addAction($actionName, ActionInterface $actionInstance)
+    public function add($actionName, ActionInterface $actionInstance)
     {
-        $this->$actions[$actionName] = $actionInstance;
+        $this->actions[$actionName] = $actionInstance;
 
         return $this;
     }

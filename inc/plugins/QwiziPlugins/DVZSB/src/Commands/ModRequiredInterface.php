@@ -1,5 +1,5 @@
 <?php
 
-namespace Qwizi\DVZSB\Interfaces;
+namespace Qwizi\DVZSB\Commands;
 
 interface ModRequiredInterface {}

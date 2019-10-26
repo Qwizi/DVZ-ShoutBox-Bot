@@ -6,8 +6,8 @@ namespace Qwizi\DVZSB\Actions;
 
 use MyBB;
 use DB_Base;
+use Qwizi\DVZSB\Actions\ActionInterface;
 
-use Qwizi\DVZSB\Interfaces\ActionInterface;
 class BanAction implements ActionInterface
 {
     private $mybb;
@@ -20,7 +20,7 @@ class BanAction implements ActionInterface
         $this->db = $db;
     }
 
-    public function execute($target, array $additional)
+    public function execute($target, $additonal = null)
     {
         $explodeBannedUsers = explode(",", $this->mybb->settings['dvz_sb_blocked_users']);
 
@@ -32,5 +32,7 @@ class BanAction implements ActionInterface
 
             $this->db->update_query('settings', ['value' => $this->db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
         }
+
+        rebuild_settings();
     }
 }

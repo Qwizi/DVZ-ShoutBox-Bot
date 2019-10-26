@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Validators;
 
 use MyLanguage;
-use Qwizi\DVZSB\Interfaces\ValidationInterface;
+use Qwizi\DVZSB\Validators\ValidatorInterface;
 
-
-class IsSuperAdmin implements ValidationInterface
+class IsFloatValidator implements ValidatorInterface
 {
     private $error;
 
@@ -21,7 +20,7 @@ class IsSuperAdmin implements ValidationInterface
 
     /**
      * Get the value of error
-     */ 
+     */
     public function getError()
     {
         return $this->error;
@@ -31,7 +30,7 @@ class IsSuperAdmin implements ValidationInterface
      * Set the value of error
      *
      * @return  self
-     */ 
+     */
     public function setError($error)
     {
         $this->error = $error;
@@ -39,13 +38,13 @@ class IsSuperAdmin implements ValidationInterface
         return $this;
     }
 
-    public function validate($target, array $additional)
+    public function validate($target, $additional)
     {
-        if (is_super_admin($target['uid'])) {
+        if (is_float($target)) {
             return true;
         }
-        
-        $this->setError($this->lang->error_super_admin);
+
+        $this->setError($this->lang->integer);
 
         return false;
     }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Actions;
 
 use DB_Base;
-use Qwizi\DVZSB\Interfaces\ActionInterface;
+use Qwizi\DVZSB\Actions\ActionInterface;
 
 class LogAction implements ActionInterface
 {
@@ -21,7 +21,7 @@ class LogAction implements ActionInterface
         $this->commandTag = $commandTag;
     }
 
-    public function execute($target, array $additional)
+    public function execute($target, $additional = null)
     {
         $this->db->insert_query(self::TABLE_NAME, [
             'ctag' => $this->db->escape_string($this->commandTag),

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Validators;
 
 use MyLanguage;
-use Qwizi\DVZSB\Interfaces\ValidationInterface;
+use Qwizi\DVZSB\Validators\ValidatorInterface;
 
-class IsInteger implements ValidationInterface
+class IsUserValidator implements ValidatorInterface
 {
     private $error;
 
@@ -38,13 +38,15 @@ class IsInteger implements ValidationInterface
         return $this;
     }
 
-    public function validate($target, array $additional)
+    public function validate($target, $additional)
     {
-        if (is_int($target)) {
+        $validatedUser = get_user($target['uid']);
+
+        if (!empty($validatedUser)) {
             return true;
         }
 
-        $this->setError($target. ' musi być liczbą całkowitą');
+        $this->setError($this->lang->user_not_found);
 
         return false;
     }

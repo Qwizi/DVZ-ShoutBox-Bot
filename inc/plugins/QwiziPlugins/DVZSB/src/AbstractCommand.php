@@ -4,27 +4,12 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB;
 
-use Mybb;
-use DB_Base;
-use Mylanguage;
-use PluginSystem;
-use Exception;
 use Qwizi\DVZSB\Bot;
+use Qwizi\DVZSB\CommandAction;
+use Qwizi\DVZSB\CommandValidator;
 
-class AbstractCommand extends Exception
+class AbstractCommand
 {
-    /** @var MyBB */
-    protected $mybb;
-
-    /** @var DB_Base */
-    protected $db;
-
-    /** @var Mylanguage */
-    protected $lang;
-
-    /** @var PluginSystem */
-    protected $plugins;
-
     /** @var Bot */
     protected $bot;
 
@@ -54,54 +39,7 @@ class AbstractCommand extends Exception
         $this->shoutData = $shoutData;
         $this->commandData = $commandData;
         $this->pattern = $this->createPattern("/^({command}|{command}[\s]((.*)))$/");
-    }
-
-    /**
-     * Set Mybb instance
-     *
-     * @return void
-     */
-    public function setMybb(MyBB $mybb): self
-    {
-        $this->mybb = $mybb;
-
-        return $this;
-    }
-
-    /**
-     * Set MyBB database instance
-     *
-     * @return void
-     */
-    public function setDb(DB_Base $db): self
-    {
-        $this->db = $db;
-
-        return $this;
-    }
-
-    /**
-     * Set MyBB language instance
-     *
-     * @return void
-     */
-    public function setLang(Mylanguage $lang): self
-    {
-        $this->lang = $lang;
-
-        return $this;
-    }
-
-    /**
-     * Set Mybb plugins system instance
-     *
-     * @return void
-     */
-    public function setPlugins(PluginSystem $plugins): self
-    {
-        $this->plugins = $plugins;
-
-        return $this;
+        $this->args = $this->createArgs();
     }
 
     /**
@@ -180,18 +118,6 @@ class AbstractCommand extends Exception
     }
 
     /**
-     * Load lang
-     *
-     * @return void
-     */
-    public function loadLang(): self
-    {
-        $this->lang->load("dvz_shoutbox_bot_{$this->commandData['tag']}");
-
-        return $this;
-    }
-
-    /**
      * Create command pattern
      *
      * @param string $pattern Pattern
@@ -200,9 +126,10 @@ class AbstractCommand extends Exception
      */
     private function createPattern(string $pattern): string
     {
-        $prefix = $this->mybb->settings['dvz_sb_bot_command_prefix'];
+        $prefix = $this->commandData['prefix'];
         $command = "\\".$prefix. preg_quote($this->commandData['command']);
-        return str_replace('{command}', $command, $pattern);
+        $replacedPattern = str_replace('{command}', $command, $pattern);
+        return $replacedPattern;
     }
 
     /**
@@ -233,18 +160,27 @@ class AbstractCommand extends Exception
      */
     public function isMatched(): bool
     {
-        return $this->matchCommand();
+        if (preg_match($this->pattern, $this->shoutData['text'], $matches)) {
+            if (!empty($matches[2])) {
+                if (preg_match('/^\"(.*)\"$/', $matches[2], $m)) {
+                    $args[] = $m[1];
+                } else {
+                    $args = explode(" ", $matches[2]);
+                }
+                $this->setArgs($args);
+            }
+            return true;
+        }
+        return false;
     }
 
-    /**
-     * Send message
-     *
-     * @return void
-     */
-    public function send()
+    public function createArgs()
     {
-        $messageType = $this->validator::isValidated() ? $this->validator::getSuccessMessage() : $this->validator::getSuccessMessage();
-
-        $this->bot->shout($messageType);
+        if (preg_match('/^\"(.*)\"$/', $this->shoutData['text'], $m)) {
+            $args[] = $m[1];
+        } else {
+            $args = explode(" ", $this->shoutData['text']);
+        }
+        return $args;
     }
 }

@@ -35,7 +35,7 @@ function dvz_shoutbox_bot_info()
         'description' => 'Bot sending messages on chat if user will register or write new thread/post and respond to commands',
         'author' => 'Adrian \'Qwizi\' Ciołek',
         'authorsite' => 'https://github.com/Qwizi',
-        'version' => '1.5.5',
+        'version' => '2.0.0',
         'compatibility' => '18*',
         'codename' => 'dvz_shoutbox_bot',
     ];
@@ -44,8 +44,6 @@ function dvz_shoutbox_bot_info()
 function dvz_shoutbox_bot_install()
 {
     global $db, $PL, $lang, $cache;
-
-    dvz_shoutbox_bot_create_instance();
 
     if (!file_exists(PLUGINLIBRARY)) {
         flash_message("PluginLibrary is missing.", "error");
@@ -149,22 +147,66 @@ function dvz_shoutbox_bot_install()
         ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
     ");
 
-    $commandsDataJson = getCommandsDataJson();
+    dvz_shoutbox_bot_create_command_manager_instance();
 
-    foreach ($commandsDataJson as $key => $value) {
-        $commandsDataDb[] = $value;
-    }
-
-    \Qwizi\DVZSB\CommandManager::i()->createCommand($commandsDataDb);
-
-    /* //! ADD COMMANDS
-    if (!empty($commandsDataDb)) {
-        $db->insert_query_multiple('dvz_shoutbox_bot_commands', $commandsDataDb);
-    }
-    //! UPDATE CACHE
-    $cache->update('dvz_shoutbox_bot', [
-        'commands' => $commandsDataJson,
-    ]); */
+    \Qwizi\DVZSB\CommandManager::i()->createCommand([
+        [
+            'tag' => 'ban',
+            'name' => 'Ban',
+            'command' => 'ban',
+            'description' => 'This command allows you to ban users',
+            'activated' => 1
+        ],
+        [
+            'tag' => 'unBan',
+            'name' => 'UnBan',
+            'command' => 'unban',
+            'description' => 'This command allows you to remove user ban',
+            'activated' => 1
+        ],
+        [
+            'tag' => 'banList',
+            'name' => 'Ban List',
+            'command' => 'banlist',
+            'description' => 'This command currently shows who is banned',
+            'activated' => 1
+        ],
+        [
+            'tag' => 'prune',
+            'name' => 'Prune',
+            'command' => 'prune',
+            'description' => 'This command allows you to delete entries',
+            'activated' => 1
+        ],
+        [
+            'tag' => 'help',
+            'name' => 'Help',
+            'command' => 'help',
+            'description' => 'Commands List',
+            'activated' => 1
+        ],
+        [
+            'tag' => 'setBot',
+            'name' => 'Set Bot',
+            'command' => 'setbot',
+            'description' => 'This command allows you to set up a bot account',
+            'activated' => 1
+        ],
+        [
+            'tag' => 'myShouts',
+            'name' => 'MyShouts',
+            'command' => 'myshouts',
+            'description' => 'The command displays how many entries you have written on shoutbox',
+            'activated' => 1
+        ],
+        [
+            'tag' => 'topShouters',
+            'name' => 'TopShouters',
+            'command' => 'top10',
+            'description' => 'Top 10',
+            'activated' => 1
+        ]
+    ]);
 
     $new_task = [
         'title'            => 'DVZ ShoutBox Bot',
@@ -259,7 +301,7 @@ function dvz_shoutbox_bot_reload_commands()
     global $db, $PL;
     $PL or require_once PLUGINLIBRARY;
 
-    dvz_shoutbox_bot_create_instance();
+    dvz_shoutbox_bot_create_instances();
     $commandsDataCache = Command::i()->getCommands();
     $commandsDataJson = getCommandsDataJson();
 
@@ -282,36 +324,49 @@ function dvz_shoutbox_bot_reload_commands()
 
 function dvz_shoutbox_bot_register()
 {
-    dvz_shoutbox_bot_create_instance();
+    global $mybb, $user;
 
-    if (\Qwizi\DVZSB\Bot::i()->settings('register_onoff')) {
-        global $user;
-        \Qwizi\DVZSB\Bot::i()->convert('register', [
-            'username' => $user['username']
-        ])->shout(\Qwizi\DVZSB\Bot::i()->getMessage());
+    dvz_shoutbox_bot_create_bot_instance();
+
+    if ($mybb->settings['dvz_sb_bot_register_onoff']) {
+        $registerMessage = new \Qwizi\DVZSB\Messages\RegisterMessage($mybb->settings['dvz_sb_bot_register_message']);
+        $message = $registerMessage->convert(['username' => $user['username']]);
+        \Qwizi\DVZSB\Bot::i()->shout($message);
     }
 }
 
 function dvz_shoutbox_bot_thread(&$data)
 {
-    dvz_shoutbox_bot_create_instance();
+    global $mybb;
 
-    if (\Qwizi\DVZSB\Qwizi\DVZSB\Bot::i()->settings('thread_onoff')) {
+    dvz_shoutbox_bot_create_bot_instance();
+
+    if ($mybb->settings['dvz_sb_bot_thread_onoff']) {
         $data = (array) $data;
 
         if ($data['return_values']['visible'] != -2) {
             $thread = get_thread($data['return_values']['tid']);
             $forum = get_forum($thread['fid']);
-            $forumIgnore = explode(",", \Qwizi\DVZSB\Bot::i()->settings('forum_ignore'));
+            $forumIgnore = explode(",", $mybb->settings['dvz_sb_bot_forum_ignore']);
 
             if (!in_array($forum['fid'], $forumIgnore) && !in_array("-1", $forumIgnore)) {
+                $threadMessage = new \Qwizi\DVZSB\Messages\ThreadMessage($mybb->settings['dvz_sb_bot_thread_message']);
+
                 $threadLink = get_thread_link($thread['tid']);
                 $threadTitle = htmlspecialchars_uni($thread['subject']);
-                $threadFullLink = \Qwizi\DVZSB\Bot::i()->createLink($threadLink, $threadTitle);
+                $threadFullLink = $threadMessage->createLink(
+                    $mybb->settings['bburl'],
+                    $threadLink,
+                    $threadTitle
+                );
 
                 $forumLink = get_forum_link($forum['fid']);
                 $forumTitle = htmlspecialchars_uni($forum['name']);
-                $forumFullLink = \Qwizi\DVZSB\Bot::i()->createLink($forumLink, $forumTitle);
+                $forumFullLink = $threadMessage->createLink(
+                    $mybb->settings['bburl'],
+                    $forumLink,
+                    $forumTitle
+                );
 
                 $post = get_post($data['return_values']['pid']);
 
@@ -329,14 +384,25 @@ function dvz_shoutbox_bot_thread(&$data)
                     $post['message'] = my_substr($post['message'], 0, 800) . '...';
                 }
 
-                \Qwizi\DVZSB\Bot::i()->convert('thread', [
+                $message = $threadMessage->convert([
                     'username' => $thread['username'],
                     'subject' => $threadFullLink,
                     'forum' => $forumFullLink,
                     'message' => $post['message'],
                     'pid' => $post['pid'],
                     'dateline' => $thread['dateline'],
-                ])->shout(\Qwizi\DVZSB\Bot::i()->getMessage());
+                ]);
+
+                \Qwizi\DVZSB\Bot::i()->shout($message);
+
+                /* \Qwizi\DVZSB\Bot::i()->convert('thread', [
+                    'username' => $thread['username'],
+                    'subject' => $threadFullLink,
+                    'forum' => $forumFullLink,
+                    'message' => $post['message'],
+                    'pid' => $post['pid'],
+                    'dateline' => $thread['dateline'],
+                ])->shout(\Qwizi\DVZSB\Bot::i()->getMessage()); */
             }
         }
     }
@@ -344,20 +410,27 @@ function dvz_shoutbox_bot_thread(&$data)
 
 function dvz_shoutbox_bot_post(&$data)
 {
-    dvz_shoutbox_bot_create_instance();
+    global $mybb;
 
-    if (\Qwizi\DVZSB\Bot::i()->settings('post_onoff')) {
+    dvz_shoutbox_bot_create_bot_instance();
+
+    if ($mybb->settings['dvz_sb_bot_post_onoff']) {
         $data = (array) $data;
 
         $post = get_post($data['return_values']['pid']);
 
-        $forumIgnore = explode(",", \Qwizi\DVZSB\Bot::i()->settings('forum_ignore'));
+        $forumIgnore = explode(",", $mybb->settings['dvz_sb_bot_forum_ignore']);
 
         if (!in_array($post['fid'], $forumIgnore) && !in_array("-1", $forumIgnore)) {
+            $postMessage = new \Qwizi\DVZSB\Messages\PostMessage($mybb->settings['dvz_sb_bot_post_message']);
             $postLink = get_post_link($post['pid'], $post['tid']);
             $postLinkPid = $postLink . '#pid' . $post['pid'];
             $postTitle = htmlspecialchars_uni($post['subject']);
-            $postFullLink = \Qwizi\DVZSB\Bot::i()->createLink($postLinkPid, $postTitle);
+            $postFullLink = $postMessage->createLink(
+                $mybb->settings['bburl'],
+                $postLinkPid,
+                $postTitle
+            );
 
             require_once MYBB_ROOT . "inc/class_parser.php";
             $parser = new postParser;
@@ -373,13 +446,14 @@ function dvz_shoutbox_bot_post(&$data)
                 $post['message'] = my_substr($post['message'], 0, 800) . '...';
             }
 
-            \Qwizi\DVZSB\Bot::i()->convert('post', [
+            $message = $postMessage->convert([
                 'username' => $post['username'],
                 'subject' => $postFullLink,
                 'message' => $post['message'],
                 'pid' => $post['pid'],
                 'dateline' => $post['dateline'],
-            ])->shout(\Qwizi\DVZSB\Bot::i()->getMessage());
+            ]);
+            \Qwizi\DVZSB\Bot::i()->shout($message);
         }
     }
 }
@@ -388,119 +462,143 @@ function dvz_shoutbox_bot_shout_commit(&$data)
 {
     global $db, $mybb, $lang, $plugins;
 
-    dvz_shoutbox_bot_create_instance();
+    dvz_shoutbox_bot_create_instances();
 
-    if (\Qwizi\DVZSB\Bot::i()->settings('commands_onoff')) {
-        $commandsArray = \Qwizi\DVZSB\CommandManager::i()->getCommands();
+    if ($mybb->settings['dvz_sb_bot_commands_onoff'] && dvz_shoutbox_bot_shout_startsWith($data['text'], $mybb->settings['dvz_sb_bot_commands_prefix'])) {
+        $explodeData = explode(" ", $data['text']);
+        $subData = substr($explodeData[0], 1);
+        $command = \Qwizi\DVZSB\CommandManager::i()->getCommandByCommand($subData);
+        if (!empty($command)) {
+            $lang->load("dvz_shoutbox_bot_{$command['tag']}");
 
-        if (!empty($commandsArray)) {
-            foreach ($commandsArray as &$command) {
-                if ((bool) $command['activated']) {
-                    $nameSpace = 'Qwizi\\DVZSB\\Commands\\';
-                    $commandClassName = $nameSpace . ucfirst($command['tag']) . 'Cmd';
+            $nameSpace = 'Qwizi\\DVZSB\\Commands\\';
+            $commandClassName = $nameSpace . ucfirst($command['tag']) . 'Cmd';
 
-                    try {
-                        if (!class_exists($commandClassName)) {
-                            throw new Exception('Class ' . $commandClassName . " not exists", 404);
-                        }
-
-                        $commandClass = new $commandClassName($data, $command);
-
-                        if ($commandClass instanceof \Qwizi\DVZSB\AbstractCommand) {
-                            if ($commandClass instanceof ModRequiredInterface && !\Qwizi\DVZSB\Bot::i()->accessMod()) {
-                                continue;
-                            }
-
-                            $action = new \Qwizi\DVZSB\CommandAction();
-
-                            $action
-                                ->addAction(
-                                    'ban',
-                                    new \Qwizi\DVZSB\Actions\BanAction($mybb, $db)
-                                )
-                                ->addAction(
-                                    'log',
-                                    new \Qwizi\DVZSB\Actions\LogAction($db, $command['tag'])
-                                );
-
-                            $validator = new \Qwizi\DVZSB\CommandValidator();
-
-                            $validator
-                                ->addValidation(
-                                    'user',
-                                    new \Qwizi\DVZSB\Validators\IsUser($lang)
-                                )
-                                /* ->addValidation(
-                                    'target',
-                                    new \Qwizi\DVZSB\Validators\IsTarget($lang)
-                                ) */
-                                ->addValidation(
-                                    'super_admin',
-                                    new \Qwizi\DVZSB\Validators\IsSuperAdmin($lang)
-                                )
-                                ->addValidation(
-                                    'interger',
-                                    new \Qwizi\DVZSB\Validators\IsInteger($lang)
-                                )
-                                ->addValidation(
-                                    'float',
-                                    new \Qwizi\DVZSB\Validators\IsFloat($lang)
-                                )
-                                ->addValidation(
-                                    'not_empty_argument',
-                                    new \Qwizi\DVZSB\Validators\NotEmptyArgument($lang)
-                                );
-                            
-                            $plugins->run_hooks('dvz_shoutbox_bot_validator_end', $validator);
-
-                            $commandClass->setDb($db)
-                                        ->setMybb($mybb)
-                                        ->setLang($lang)
-                                        ->setPlugins($plugins)
-                                        ->setBot(\Qwizi\DVZSB\Bot::i())
-                                        ->setValidator($validator)
-                                        ->setAction($action)
-                                        ->loadLang()
-                                        ->handle();
-                        }
-                    } catch (Exception $e) {
-                        echo 'Error message: ' . $e->getMessage();
-                    }
+            try {
+                if (!class_exists($commandClassName)) {
+                    throw new Exception('Class ' . $commandClassName . " not exists", 404);
                 }
+
+                $command['prefix'] = $mybb->settings['dvz_sb_bot_commands_prefix'];
+                $commandClass = new $commandClassName($data, $command);
+
+                if ($commandClass instanceof \Qwizi\DVZSB\AbstractCommand) {
+                    if ($commandClass instanceof \Qwizi\DVZSB\Commands\ModRequiredInterface && !\Qwizi\DVZSB\Bot::i()->accessMod()) {
+                        return;
+                    }
+
+                    $action = new \Qwizi\DVZSB\CommandAction();
+
+                    $action->add(
+                        'ban',
+                        new \Qwizi\DVZSB\Actions\BanAction($mybb, $db)
+                    )
+                    ->add(
+                        'log',
+                        new \Qwizi\DVZSB\Actions\LogAction($db, $command['tag'])
+                    )
+                    ->add(
+                        'mention',
+                        new \Qwizi\DVZSB\Actions\MentionUserAction()
+                    )
+                    ->add(
+                        'paginate',
+                        new \Qwizi\DVZSB\Actions\PaginateAction()
+                    );
+
+                    $plugins->run_hooks('dvz_shoutbox_bot_action_end', $action);
+
+                    $validator = new \Qwizi\DVZSB\CommandValidator($lang);
+
+                    $validator->add(
+                        'user',
+                        new \Qwizi\DVZSB\Validators\IsUserValidator($validator->getLang())
+                    )
+                    ->add(
+                        'super_admin',
+                        new \Qwizi\DVZSB\Validators\IsSuperAdminValidator($validator->getLang())
+                    )
+                    ->add(
+                        'interger',
+                        new \Qwizi\DVZSB\Validators\IsIntegerValidator($validator->getLang())
+                    )
+                    ->add(
+                        'float',
+                        new \Qwizi\DVZSB\Validators\IsFloatValidator($validator->getLang())
+                    )
+                    ->add(
+                        'not_empty_argument',
+                        new \Qwizi\DVZSB\Validators\IsNotEmptyArgumentValidator($validator->getLang())
+                    );
+                    
+                    $plugins->run_hooks('dvz_shoutbox_bot_validator_end', $validator);
+
+                    $commandClass->setBot(\Qwizi\DVZSB\Bot::i())
+                                ->setValidator($validator)
+                                ->setAction($action)
+                                ->handle();
+                }
+            } catch (Exception $e) {
+                echo 'Error message: ' . $e->getMessage();
             }
         }
     }
 }
 
-function getCommandsDataJson()
+
+function dvz_shoutbox_bot_create_bot_instance()
 {
-    global $db;
-
-    $commandsData = json_decode(file_get_contents(DVZSB_PLUGIN_PATH . '/data/Commands.json'), true);
-
-    foreach ($commandsData as $key => $value) {
-        foreach ($value as $v) {
-            $db->escape_string($v);
-        }
-    }
-
-    return $commandsData;
+    global $mybb, $db;
+    \Qwizi\DVZSB\Bot::createInstance($mybb, $db);
 }
 
-function dvz_shoutbox_bot_create_instance()
+function dvz_shoutbox_bot_create_command_manager_instance()
 {
-    global $mybb, $db, $lang, $plugins, $cache;
-
-    \Qwizi\DVZSB\Bot::createInstance($mybb, $db, $lang, $plugins);
+    global $db, $cache;
     \Qwizi\DVZSB\CommandManager::createInstance($db, $cache);
+}
+
+function dvz_shoutbox_bot_create_instances()
+{
+    dvz_shoutbox_bot_create_bot_instance();
+    dvz_shoutbox_bot_create_command_manager_instance();
 }
 
 $plugins->add_hook('index_end', 'dvz_sb_index');
 
 function dvz_sb_index()
 {
-    dvz_shoutbox_bot_create_instance();
-    echo "<pre>";
-    var_dump(\Qwizi\DVZSB\CommandManager::i()->getCommands());
-    echo "</pre>";
+    dvz_shoutbox_bot_create_instances();
+    $test = 'test';
+    $test2 = '/test';
+
+    $nameSpace = ['core', '\\Qwizi\\DVZSB\\Commands\\'];
+
+    $commandData = [
+        [
+            'tag' => 'ban',
+            'name' => 'Ban',
+            'command' => 'ban',
+            'description' => 'This command allows you to ban users',
+            'activated' => 1
+        ]
+    ];
+
+    $commandDataForCache = [];
+    
+    $commandDataForCache2 = [];
+    foreach($commandData as $command) {
+        if (!key_exists('file', $command)) {
+            $command['file'] = $nameSpace[1].ucfirst($command['tag']). 'Cmd';
+        }
+        $commandDataForCache2[$nameSpace[0]] = $command;
+    }
+
+    var_dump($commandDataForCache2);
+}
+
+function dvz_shoutbox_bot_shout_startsWith($haystack, $needle)
+{
+    $length = strlen($needle);
+    return (substr($haystack, 0, $length) === $needle);
 }

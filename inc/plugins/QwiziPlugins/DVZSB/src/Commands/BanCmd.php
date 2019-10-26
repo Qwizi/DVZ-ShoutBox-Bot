@@ -5,15 +5,39 @@ declare(strict_types=1);
 namespace Qwizi\DVZSB\Commands;
 
 use Qwizi\DVZSB\AbstractCommand;
-use Qwizi\DVZSB\Exceptions\ApplicationException;
+use Qwizi\DVZSB\Interfaces\CommandInterface;
 use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
 
-class BanCmd extends AbstractCommand implements ModRequiredInterface
+class BanCmd extends AbstractCommand implements CommandInterface, ModRequiredInterface
 {
     public function handle()
     {
-        throw new ApplicationException('blad');
-        if ($this->isMatched()) {
+        $argumentValidation = $this->validator->get('not_empty_argument');
+
+        $additional = [
+            'prefix' => $this->commandData['prefix'],
+            'command' => $this->commandData['command'],
+            'arguments' => "<username>"
+        ];
+
+        if ($argumentValidation->validate($args[1], $additional)) {
+            $userValidation = $this->validator->get('user');
+
+            $user = get_user($this->shoutData['uid']);
+            $target = get_user_by_username(trim($args[1]));
+
+            $userValidation->validate($user['uid']);
+            $userValidation->validate($target['uid']);
+        }
+
+        var_dump($this->validator->getErrors());
+
+        if ($this->validator->isValidated()) {
+            $this->action->get('ban')->execute($target);
+        }
+
+        /* if ($this->isMatched()) {
+            $this->bot->shout('yes');
             $args = $this->getArgs();
             $argumentValidation = $this->validator->getValidation('not_empty_argument');
             if ($argumentValidation->validate($args)) {
@@ -36,7 +60,7 @@ class BanCmd extends AbstractCommand implements ModRequiredInterface
             $this->bot->shout($message);
         }
     }
-    /* public function doAction(array $data): void
+    public function doAction(array $data): void
     {
         if ($this->isMatched($data)) {
             $this->lang->load('dvz_shoutbox_bot_ban');
@@ -107,6 +131,6 @@ class BanCmd extends AbstractCommand implements ModRequiredInterface
                 }
             }
             $this->send()->run_hook('dvz_shoutbox_bot_commands_ban_commit');
-        }
-    } */
+        } */
+    }
 }

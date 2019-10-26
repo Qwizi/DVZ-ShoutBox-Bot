@@ -6,6 +6,7 @@ namespace Qwizi\DVZSB;
 
 use DB_Base;
 use datacache;
+use Qwizi\DVZSB\Exceptions\CommandNotFoundException;
 
 class CommandManager
 {
@@ -32,11 +33,14 @@ class CommandManager
      */
     private $commands = [];
 
-    public function __construct(DB_Base $db, datacache $cache)
+    private $nameSpaces = [];
+
+    private function __construct(DB_Base $db, datacache $cache)
     {
         $this->db = $db;
         $this->cache = $cache;
         $this->commands = $this->getCommandsFromCache();
+        $this->namespaces = $namespaces;
     }
 
     /**
@@ -133,13 +137,36 @@ class CommandManager
      *
      * @param array $commandData
      */
-    public function createCommand(array $commandData): void
+    // CommandManager::i()->createCommand(['qwizi', 'Qwizi\\DVZSB\\Commands'])
+    public function createCommand(array $nameSpace, array $commandData): void
     {
         if (empty($commandData)) {
             return;
         }
 
-        if (count($commandData) > 1) {
+        $commandDataForDataBase = $commandData;
+
+        foreach($commandDataForDataBase as $commandKey => $commandValue) {
+            $this->db->escape_string($commandValue);
+        }
+
+        $cid = $this->db->insert_query(self::TABLE_NAME, $commandDataForDataBase);
+
+        $commandDataForCache = [];
+
+        foreach ($commandData as $command) {
+            if (!key_exists('file', $command)) {
+                $command['file'] = $nameSpace[1].ucfirst($command['tag']). 'Cmd';
+            }
+            $commandDataForCache[$nameSpace[0]] = $command;
+        }
+
+        $query = $this->db->simple_select(self::TABLE_NAME);
+        while ($row = $this->db->fetch_array($query)) {
+            $cmds[$row['tag']] = $row;
+        }
+
+        /* if (count($commandData) > 1) {
             foreach ($commandData as $key => $value) {
                 foreach ($value as $v) {
                     $this->db->escape_string($v);
@@ -152,7 +179,7 @@ class CommandManager
             }
 
             $this->db->insert_query(self::TABLE_NAME, $commandData);
-        }
+        } */
         
         $commands = $this->updateCache();
         $this->setCommands($commands);
@@ -161,7 +188,7 @@ class CommandManager
     public function getCommandByTag(string $tag): array
     {
         try {
-            $query = $this->db->simple_select(self::TABLE_NAME, '*', "tag={$tag}");
+            $query = $this->db->simple_select(self::TABLE_NAME, '*', "tag='".$tag."'");
 
             if ($this->db->num_rows($query) <= 0) {
                 throw new CommandNotFoundException('Command with tag {$tag} not found');
@@ -171,6 +198,19 @@ class CommandManager
         } catch (CommandNotFoundException $e) {
             echo 'Error message: ' . $e->getMessage();
         }
+        return $command;
+    }
+
+    public function getCommandByCommand(string $commandName): array
+    {
+
+        $query = $this->db->simple_select(self::TABLE_NAME, '*', "command='".$commandName."'");
+
+        if ($this->db->num_rows($query) <= 0) {
+            return [];
+        } 
+        $command = $this->db->fetch_array($query);
+        
         return $command;
     }
 }

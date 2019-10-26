@@ -6,8 +6,7 @@ namespace Qwizi\DVZSB;
 
 use Mybb;
 use DB_Base;
-use MyLanguage;
-use PluginSystem;
+
 class Bot
 {
     const TABLE_NAME = 'dvz_shoutbox';
@@ -22,21 +21,10 @@ class Bot
     /** @var DB_Base */
     private $db;
 
-    /** @var MyLanguage */
-    private $lang;
-
-    /** @var PluginSystem */
-    private $plugins;
-
-    /** @var string */
-    private $message;
-
-    public function __construct(Mybb $mybb, DB_Base $db, MyLanguage $lang, PluginSystem $plugins)
+    private function __construct(Mybb $mybb, DB_Base $db)
     {
         $this->mybb = $mybb;
         $this->db = $db;
-        $this->lang = $lang;
-        $this->plugins = $plugins;
     }
     
     /**
@@ -44,15 +32,13 @@ class Bot
      *
      * @param Mybb $mybb MyBB base object
      * @param DB_Base $db MyBB database object
-     * @param MyLanguage $lang Mybb language object
-     * @param PluginSystem $plugins Mybb pluginsystem object
      *
      * @return BotManager The created instance
      */
-    public static function createInstance(Mybb $mybb, DB_BASE $db, MyLanguage $lang, PluginSystem $plugins)
+    public static function createInstance(Mybb $mybb, DB_BASE $db)
     {
         if (static::$instance === null) {
-            static::$instance = new self($mybb, $db, $lang, $plugins);
+            static::$instance = new self($mybb, $db);
         }
         return static::$instance;
     }
@@ -60,7 +46,7 @@ class Bot
     /**
      * Get a prior created bot manager instance
      *
-     * @return bool|BotManager The prior created
+     * @return bool|Bot The prior created
      *                              instance, or false if
      *                              not created
      */
@@ -75,7 +61,7 @@ class Bot
     /**
      * Short method getInstance
      *
-     * @return bool|CommandManager The prior created
+     * @return bool|Bot The prior created
      *                              instance, or false if
      *                              not created
      */
@@ -84,43 +70,16 @@ class Bot
         return static::getInstance();
     }
 
-    /**
-     * Set the current bot message
-     *
-     * @param string $message
-     */
-    public function setMessage(string $message)
-    {
-        $this->message = $message;
-    }
-
-    public function getMessage()
-    {
-        return $this->message;
-    }
-
     public function settings(string $setting): string
     {
         return $this->mybb->settings[self::SETTINGS_NAME . '_' . $setting];
     }
 
-    /* public function delete($where = "")
-    {
-        if ($this->mybb->settings['dvz_sb_sync']) {
-            $this->update([
-                'text' => 'NULL',
-                'modified' => time(),
-            ], $where, false, true);
-        } else {
-            return $this->db->delete_query($this->getTableName(), $where);
-        }
-    } */
-
     /**
      * Insert shout via bot
-     * 
+     *
      * @param string $message Message
-     * 
+     *
      * @return int
      */
     public function shout(string $message): int
@@ -138,35 +97,6 @@ class Bot
         }
             
         return $this->db->insert_query(self::TABLE_NAME, $data);
-    }
-
-    /**
-     * Convert link
-     * 
-     * @param string $url
-     * @param string $title
-     * 
-     * @return string
-     */
-    public function createLink(string $url, string $title): string
-    {
-        $title = htmlspecialchars_uni($title);
-        return "[url=" . $this->mybb->settings['bburl'] . "/" . $url . "]" . $title . "[/url]";
-    }
-
-    public function convert(string $action, array $dataArray)
-    {
-        $message = $this->settings($action . '_message');
-
-        if (is_array($dataArray) && !empty($dataArray)) {
-            foreach ($dataArray as $key => $value) {
-                $message = str_replace('{' . $key . '}', $value, $message);
-            }
-        }
-
-        $this->setMessage($message);
-
-        return $this;
     }
 
     public function accessMod()
