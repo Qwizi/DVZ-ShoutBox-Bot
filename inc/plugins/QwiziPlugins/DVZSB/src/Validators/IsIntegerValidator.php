@@ -4,48 +4,20 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Validators;
 
-use MyLanguage;
-use Qwizi\DVZSB\Validators\ValidatorInterface;
+use Qwizi\DVZSB\Validators\AbstractValidator;
 
-class IsIntegerValidator implements ValidatorInterface
+class IsIntegerValidator extends AbstractValidator
 {
-    private $error;
-
-    private $lang;
-
-    public function __construct(MyLanguage $lang)
+    public function validate($target, $additional = null): bool
     {
-        $this->lang = $lang;
-    }
-
-    /**
-     * Get the value of error
-     */
-    public function getError()
-    {
-        return $this->error;
-    }
-
-    /**
-     * Set the value of error
-     *
-     * @return  self
-     */
-    public function setError($error)
-    {
-        $this->error = $error;
-
-        return $this;
-    }
-
-    public function validate($target, $additional)
-    {
-        if (is_int($target)) {
+        try {
+            if (!is_int($target)) {
+                throw new \Exception($this->get('lang')->integer);
+            }
             return true;
+        } catch (\Exception $e) {
+            $this->setError($e->getMessage());
+            return false;
         }
-
-        $this->setError($this->lang->integer);
-
-        return false;
     }
 }

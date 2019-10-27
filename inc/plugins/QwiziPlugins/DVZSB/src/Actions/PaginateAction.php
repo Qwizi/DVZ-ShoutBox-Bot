@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Actions;
 
-use Qwizi\DVZSB\Actions\ActionInterface;
+use Qwizi\DVZSB\Actions\AbstractAction;
 
-class PaginateAction implements ActionInterface
+class PaginateAction extends AbstractAction
 {
     /**
      * @var $perPage
@@ -26,6 +26,6 @@ class PaginateAction implements ActionInterface
         $start = ($page - 1) * ($perPage + 1);
         $offset = $perPage + 1;
 
-        return array_slice($data, $start, $offset);
+        return array_slice($target, $start, $offset);
     }
 }

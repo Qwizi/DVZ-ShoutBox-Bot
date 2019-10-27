@@ -4,58 +4,31 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Validators;
 
-use MyLanguage;
-use Qwizi\DVZSB\Validators\ValidatorInterface;
+use Qwizi\DVZSB\Validators\AbstractValidator;
 
-class IsNotEmptyArgumentValidator implements ValidatorInterface
+class IsNotEmptyArgumentValidator extends AbstractValidator
 {
-    private $error;
-
-    private $lang;
-
-    public function __construct(MyLanguage $lang)
+    public function validate($target, $additional = null): bool
     {
-        $this->lang = $lang;
-    }
+        try {
+            if (!is_array($additional) || empty($additional)) {
+                throw new \Exception('Additonal informations cannot be empty');
+            }
 
-    /**
-     * Get the value of error
-     */
-    public function getError()
-    {
-        return $this->error;
-    }
+            if (empty($target)) {
+                $this->get('lang')->empty_arguments = $this->get('lang')->sprintf(
+                    $this->get('lang')->empty_arguments,
+                    $additional['prefix'].$additional['command'],
+                    $additional['arguments']
+                );
+                throw new \Exception($this->get('lang')->empty_arguments);
+            }
 
-    /**
-     * Set the value of error
-     *
-     * @return  self
-     */
-    public function setError($error)
-    {
-        $this->error = $error;
-
-        return $this;
-    }
-
-    public function validate($target, $additional)
-    {
-        if (isset($this->error)) {
-            unset($this->error);
-        }
-
-        if (!empty($target) && is_array($target)) {
             return true;
+        } catch (\Exception $e) {
+            $this->setError($e->getMessage());
+
+            return false;
         }
-
-        $this->lang->empty_arguments = $this->lang->sprintf(
-            $this->lang->empty_arguments,
-            $additional['prefix'].$additional['command'],
-            $additional['arguments']
-        );
-
-        $this->setError($this->lang->empty_arguments);
-
-        return false;
     }
 }

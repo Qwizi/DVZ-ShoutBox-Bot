@@ -2,14 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Qwizi\DVZSB;
+namespace Qwizi\DVZSB\Commands;
 
+use MyLanguage;
 use Qwizi\DVZSB\Bot;
 use Qwizi\DVZSB\CommandAction;
 use Qwizi\DVZSB\CommandValidator;
 
 class AbstractCommand
 {
+    /** @var MyLanguage */
+    protected $lang;
+
     /** @var Bot */
     protected $bot;
 
@@ -40,6 +44,20 @@ class AbstractCommand
         $this->commandData = $commandData;
         $this->pattern = $this->createPattern("/^({command}|{command}[\s]((.*)))$/");
         $this->args = $this->createArgs();
+    }
+
+    /**
+     * Set Mybb Lang instance
+     *
+     * @param MyLanguage $lang Lang Instance
+     *
+     * @return void
+     */
+    public function setLang(MyLanguage $lang)
+    {
+        $this->lang = $lang;
+        
+        return $this;
     }
 
     /**
@@ -133,53 +151,20 @@ class AbstractCommand
     }
 
     /**
-     * Match command
-     *
-     * @return bool
+     * Create args
+     * 
+     * @return array
      */
-    private function matchCommand(): bool
-    {
-        if (preg_match($this->pattern, $this->shoutData['text'], $matches)) {
-            if (!empty($matches[2])) {
-                if (preg_match('/^\"(.*)\"$/', $matches[2], $m)) {
-                    $args[] = $m[1];
-                } else {
-                    $args = explode(" ", $matches[2]);
-                }
-                $this->setArgs($args);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Check is command matched
-     *
-     * @return bool
-     */
-    public function isMatched(): bool
-    {
-        if (preg_match($this->pattern, $this->shoutData['text'], $matches)) {
-            if (!empty($matches[2])) {
-                if (preg_match('/^\"(.*)\"$/', $matches[2], $m)) {
-                    $args[] = $m[1];
-                } else {
-                    $args = explode(" ", $matches[2]);
-                }
-                $this->setArgs($args);
-            }
-            return true;
-        }
-        return false;
-    }
-
     public function createArgs()
     {
-        if (preg_match('/^\"(.*)\"$/', $this->shoutData['text'], $m)) {
-            $args[] = $m[1];
-        } else {
-            $args = explode(" ", $this->shoutData['text']);
+        preg_match($this->pattern, $this->shoutData['text'], $matches);
+        $args = [];
+        if (!empty($matches[2])) {
+            if (preg_match_all('/"([^"]+)"/', $matches[2], $m)) {
+                $args = $m[1];
+            } else {
+                $args = explode(" ", $matches[2]);
+            }
         }
         return $args;
     }

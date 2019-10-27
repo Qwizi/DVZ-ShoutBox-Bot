@@ -70,11 +70,6 @@ class Bot
         return static::getInstance();
     }
 
-    public function settings(string $setting): string
-    {
-        return $this->mybb->settings[self::SETTINGS_NAME . '_' . $setting];
-    }
-
     /**
      * Insert shout via bot
      *
@@ -85,7 +80,7 @@ class Bot
     public function shout(string $message): int
     {
         $data = [
-                'uid' => $this->settings('id'),
+                'uid' => $this->mybb->settings['dvz_sb_bot_id'],
                 'text' => $message,
                 'ipaddress' => $this->db->escape_binary(my_inet_pton(get_ip())),
                 'date' => TIME_NOW,

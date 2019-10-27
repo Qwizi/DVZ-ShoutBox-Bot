@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB;
 
-use Qwizi\DVZSB\Validators\ValidatorInterface;
 use MyLanguage;
+use Qwizi\DVZSB\Validators\ValidatorInterface;
 
 class CommandValidator
 {
+    /** @var array */
     private $errors = [];
 
-    private $validations = [];
+    /** @var array */
+    private $validators = [];
     
+    /** @var MyLanguage */
     private $lang;
 
     public function __construct(MyLanguage $lang)
@@ -29,34 +32,50 @@ class CommandValidator
         return $this->lang;
     }
     
-    public function get($validationName)
+    /**
+     * Get validator
+     * 
+     * @return array
+     */
+    public function get($validatorName)
     {
-        return $this->validations[$validationName];
+        return $this->validators[$validatorName];
     }
 
-    public function add($validationName, ValidatorInterface $validationInstance)
+    /**
+     * Add validator
+     * 
+     * @param string $validatorName
+     */
+    public function add(string $validatorName, ValidatorInterface $validatorInstance)
     {
-        if (!get_class($validationInstance)) {
-            throw('Class '. $validationInstance. ' not exits');
-        }
-        $this->validations[$validationName] = $validationInstance;
+        $this->validators[$validatorName] = $validatorInstance;
 
         return $this;
     }
 
+    /**
+     * Get validators errors
+     * 
+     * @return array
+     */
     public function getErrors()
     {
-        unset($this->errors);
-
-        foreach ($this->validations as $key => $validation) {
-            if (!empty($validation->getError())) {
-                $this->errors[$key] = $validation->getError();
+        foreach ($this->validators as $key => $validator) {
+            if (!empty($validator->getError())) {
+                $this->errors[$key] = $validator->getError();
             }
         }
 
         return $this->errors;
     }
 
+
+    /**
+     * Check is validated
+     * 
+     * @return bool
+     */
     public function isValidated()
     {
         return empty($this->getErrors()) ? true : false;

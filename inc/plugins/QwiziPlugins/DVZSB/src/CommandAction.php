@@ -8,19 +8,36 @@ use Qwizi\DVZSB\Actions\ActionInterface;
 
 class CommandAction
 {
-    private $actions;
+    /** @var array */
+    private $actions = [];
 
+    /**
+     * Get actions
+     * 
+     * @return array
+     */
     public function getActions()
     {
         return $this->actions;
     }
 
-    public function get($actionName)
+    /**
+     * Get action
+     * 
+     * @return array
+     */
+    public function get(string $actionName)
     {
         return $this->actions[$actionName];
     }
 
-    public function add($actionName, ActionInterface $actionInstance)
+    /**
+     * Add action
+     * 
+     * @param string $actionName
+     * @param AbstractAction $actionInstance
+     */
+    public function add(string $actionName, ActionInterface $actionInstance)
     {
         $this->actions[$actionName] = $actionInstance;
 

@@ -28,19 +28,10 @@ class CommandManager
      */
     private $cache;
 
-    /**
-     * @var $commands
-     */
-    private $commands = [];
-
-    private $nameSpaces = [];
-
     private function __construct(DB_Base $db, datacache $cache)
     {
         $this->db = $db;
         $this->cache = $cache;
-        $this->commands = $this->getCommandsFromCache();
-        $this->namespaces = $namespaces;
     }
 
     /**
@@ -85,26 +76,12 @@ class CommandManager
     {
         return static::getInstance();
     }
-    
-    /**
-     * Set commands
-     *
-     * @param array $commands
-     */
-    private function setCommands(array $commands): void
+
+    public function getCommands()
     {
-        $this->commands[] = $commands;
+        return $this->getCommandsFromCache();
     }
 
-    /**
-     * Get commands
-     *
-     * @return array Get commands
-     */
-    public function getCommands(): array
-    {
-        return $this->commands;
-    }
 
     /**
      * Get commands from the cache
@@ -114,7 +91,11 @@ class CommandManager
     private function getCommandsFromCache(): ?array
     {
         $pluginCache = $this->cache->read(self::CACHE_NAME);
-        return $pluginCache['commands'];
+        $commands = $pluginCache['commands'];
+        foreach ($commands as &$command) {
+            $command['file'] = str_replace('//', '\\', $command['file']);
+        }
+        return $commands;
     }
 
     /**
@@ -137,52 +118,27 @@ class CommandManager
      *
      * @param array $commandData
      */
-    // CommandManager::i()->createCommand(['qwizi', 'Qwizi\\DVZSB\\Commands'])
-    public function createCommand(array $nameSpace, array $commandData): void
+    // CommandManager::i()->createCommand(string)
+    public function createCommand(string $nameSpace, array $commandData): void
     {
         if (empty($commandData)) {
             return;
         }
 
-        $commandDataForDataBase = $commandData;
-
-        foreach($commandDataForDataBase as $commandKey => $commandValue) {
-            $this->db->escape_string($commandValue);
-        }
-
-        $cid = $this->db->insert_query(self::TABLE_NAME, $commandDataForDataBase);
-
-        $commandDataForCache = [];
-
-        foreach ($commandData as $command) {
+        foreach ($commandData as &$command) {
             if (!key_exists('file', $command)) {
-                $command['file'] = $nameSpace[1].ucfirst($command['tag']). 'Cmd';
+                $command['file'] = $nameSpace.ucfirst($command['tag']). 'Cmd';
             }
-            $commandDataForCache[$nameSpace[0]] = $command;
-        }
-
-        $query = $this->db->simple_select(self::TABLE_NAME);
-        while ($row = $this->db->fetch_array($query)) {
-            $cmds[$row['tag']] = $row;
-        }
-
-        /* if (count($commandData) > 1) {
-            foreach ($commandData as $key => $value) {
-                foreach ($value as $v) {
-                    $this->db->escape_string($v);
+            foreach ($command as $key => $value) {
+                if ($key !== 'file') {
+                    $this->db->escape_string($value);
                 }
             }
-            $this->db->insert_query_multiple(self::TABLE_NAME, $commandData);
-        } else {
-            foreach ($commandData as $key => $value) {
-                $this->db->escape_string($value);
-            }
+        }
 
-            $this->db->insert_query(self::TABLE_NAME, $commandData);
-        } */
-        
-        $commands = $this->updateCache();
-        $this->setCommands($commands);
+        $this->db->insert_query_multiple(self::TABLE_NAME, $commandData);
+
+        $this->updateCache();
     }
 
     public function getCommandByTag(string $tag): array
@@ -203,14 +159,14 @@ class CommandManager
 
     public function getCommandByCommand(string $commandName): array
     {
-
-        $query = $this->db->simple_select(self::TABLE_NAME, '*', "command='".$commandName."'");
+        $query = $this->db->simple_select(self::TABLE_NAME, '*', "command='".$commandName."'", ['limit' => 1]);
 
         if ($this->db->num_rows($query) <= 0) {
             return [];
-        } 
+        }
+
         $command = $this->db->fetch_array($query);
-        
+        $command['file'] = \str_replace('//', '\\', $command['file']);
         return $command;
     }
 }

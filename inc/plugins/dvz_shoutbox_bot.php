@@ -132,6 +132,7 @@ function dvz_shoutbox_bot_install()
             `name` varchar(64) not null,
             `command` varchar(32) not null,
             `description` text not null,
+            `file` varchar(255) not null,
             `activated` tinyint(1) not null default 1,
             PRIMARY KEY (`cid`)
         ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
@@ -149,82 +150,67 @@ function dvz_shoutbox_bot_install()
 
     dvz_shoutbox_bot_create_command_manager_instance();
 
-    \Qwizi\DVZSB\CommandManager::i()->createCommand([
+    \Qwizi\DVZSB\CommandManager::i()->createCommand(
+        '//Qwizi//DVZSB//Commands//',
         [
-            'tag' => 'ban',
-            'name' => 'Ban',
-            'command' => 'ban',
-            'description' => 'This command allows you to ban users',
-            'activated' => 1
-        ],
-        [
-            'tag' => 'unBan',
-            'name' => 'UnBan',
-            'command' => 'unban',
-            'description' => 'This command allows you to remove user ban',
-            'activated' => 1
-        ],
-        [
-            'tag' => 'banList',
-            'name' => 'Ban List',
-            'command' => 'banlist',
-            'description' => 'This command currently shows who is banned',
-            'activated' => 1
-        ],
-        [
-            'tag' => 'prune',
-            'name' => 'Prune',
-            'command' => 'prune',
-            'description' => 'This command allows you to delete entries',
-            'activated' => 1
-        ],
-        [
-            'tag' => 'help',
-            'name' => 'Help',
-            'command' => 'help',
-            'description' => 'Commands List',
-            'activated' => 1
-        ],
-        [
-            'tag' => 'setBot',
-            'name' => 'Set Bot',
-            'command' => 'setbot',
-            'description' => 'This command allows you to set up a bot account',
-            'activated' => 1
-        ],
-        [
-            'tag' => 'myShouts',
-            'name' => 'MyShouts',
-            'command' => 'myshouts',
-            'description' => 'The command displays how many entries you have written on shoutbox',
-            'activated' => 1
-        ],
-        [
-            'tag' => 'topShouters',
-            'name' => 'TopShouters',
-            'command' => 'top10',
-            'description' => 'Top 10',
-            'activated' => 1
+            [
+                'tag' => 'ban',
+                'name' => 'Ban',
+                'command' => 'ban',
+                'description' => 'This command allows you to ban users',
+                'activated' => 1
+            ],
+            [
+                'tag' => 'unBan',
+                'name' => 'UnBan',
+                'command' => 'unban',
+                'description' => 'This command allows you to remove user ban',
+                'activated' => 1
+            ],
+            [
+                'tag' => 'banList',
+                'name' => 'Ban List',
+                'command' => 'banlist',
+                'description' => 'This command currently shows who is banned',
+                'activated' => 1
+            ],
+            [
+                'tag' => 'prune',
+                'name' => 'Prune',
+                'command' => 'prune',
+                'description' => 'This command allows you to delete entries',
+                'activated' => 1
+            ],
+            [
+                'tag' => 'help',
+                'name' => 'Help',
+                'command' => 'help',
+                'description' => 'Commands List',
+                'activated' => 1
+            ],
+            [
+                'tag' => 'setBot',
+                'name' => 'Set Bot',
+                'command' => 'setbot',
+                'description' => 'This command allows you to set up a bot account',
+                'activated' => 1
+            ],
+            [
+                'tag' => 'myShouts',
+                'name' => 'MyShouts',
+                'command' => 'myshouts',
+                'description' => 'The command displays how many entries you have written on shoutbox',
+                'activated' => 1
+            ],
+            [
+                'tag' => 'topShouters',
+                'name' => 'TopShouters',
+                'command' => 'top10',
+                'description' => 'Top 10',
+                'activated' => 1
+            ]
         ]
-    ]);
-
-    $new_task = [
-        'title'            => 'DVZ ShoutBox Bot',
-        'description'    => 'Task delete shouts when text = null.',
-        'file'            => 'dvz_shoutbox_bot',
-        'minute'        => '*',
-        'hour'            => '6',
-        'day'            => '*',
-        'month'            => '*',
-        'weekday'        => '*',
-        'enabled'        => '1',
-        'logging'        => '1',
-    ];
-
-    $new_task['nextrun'] = 0;
-
-    $db->insert_query('tasks', $new_task);
-    $cache->update_tasks();
+    );
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -241,7 +227,6 @@ function dvz_shoutbox_bot_uninstall()
     $PL->settings_delete('dvz_sb_bot', true);
 
     $cache->delete('dvz_shoutbox_bot');
-    $db->delete_query('tasks', 'file=\'dvz_shoutbox_bot\'');
 
     //! Delete old settings
     $query = $db->simple_select('settinggroups', 'gid', "name='dvz_shoutbox_bot'");
@@ -392,17 +377,7 @@ function dvz_shoutbox_bot_thread(&$data)
                     'pid' => $post['pid'],
                     'dateline' => $thread['dateline'],
                 ]);
-
                 \Qwizi\DVZSB\Bot::i()->shout($message);
-
-                /* \Qwizi\DVZSB\Bot::i()->convert('thread', [
-                    'username' => $thread['username'],
-                    'subject' => $threadFullLink,
-                    'forum' => $forumFullLink,
-                    'message' => $post['message'],
-                    'pid' => $post['pid'],
-                    'dateline' => $thread['dateline'],
-                ])->shout(\Qwizi\DVZSB\Bot::i()->getMessage()); */
             }
         }
     }
@@ -467,80 +442,169 @@ function dvz_shoutbox_bot_shout_commit(&$data)
     if ($mybb->settings['dvz_sb_bot_commands_onoff'] && dvz_shoutbox_bot_shout_startsWith($data['text'], $mybb->settings['dvz_sb_bot_commands_prefix'])) {
         $explodeData = explode(" ", $data['text']);
         $subData = substr($explodeData[0], 1);
-        $command = \Qwizi\DVZSB\CommandManager::i()->getCommandByCommand($subData);
-        if (!empty($command)) {
+
+        try {
+            $command = \Qwizi\DVZSB\CommandManager::i()->getCommandByCommand($subData);
+
+            if (empty($command)) {
+                throw new Exception('Command not found', 404);
+            }
+
             $lang->load("dvz_shoutbox_bot_{$command['tag']}");
 
-            $nameSpace = 'Qwizi\\DVZSB\\Commands\\';
-            $commandClassName = $nameSpace . ucfirst($command['tag']) . 'Cmd';
+            $commandClassName = $command['file'];
 
-            try {
-                if (!class_exists($commandClassName)) {
-                    throw new Exception('Class ' . $commandClassName . " not exists", 404);
-                }
-
-                $command['prefix'] = $mybb->settings['dvz_sb_bot_commands_prefix'];
-                $commandClass = new $commandClassName($data, $command);
-
-                if ($commandClass instanceof \Qwizi\DVZSB\AbstractCommand) {
-                    if ($commandClass instanceof \Qwizi\DVZSB\Commands\ModRequiredInterface && !\Qwizi\DVZSB\Bot::i()->accessMod()) {
-                        return;
-                    }
-
-                    $action = new \Qwizi\DVZSB\CommandAction();
-
-                    $action->add(
-                        'ban',
-                        new \Qwizi\DVZSB\Actions\BanAction($mybb, $db)
-                    )
-                    ->add(
-                        'log',
-                        new \Qwizi\DVZSB\Actions\LogAction($db, $command['tag'])
-                    )
-                    ->add(
-                        'mention',
-                        new \Qwizi\DVZSB\Actions\MentionUserAction()
-                    )
-                    ->add(
-                        'paginate',
-                        new \Qwizi\DVZSB\Actions\PaginateAction()
-                    );
-
-                    $plugins->run_hooks('dvz_shoutbox_bot_action_end', $action);
-
-                    $validator = new \Qwizi\DVZSB\CommandValidator($lang);
-
-                    $validator->add(
-                        'user',
-                        new \Qwizi\DVZSB\Validators\IsUserValidator($validator->getLang())
-                    )
-                    ->add(
-                        'super_admin',
-                        new \Qwizi\DVZSB\Validators\IsSuperAdminValidator($validator->getLang())
-                    )
-                    ->add(
-                        'interger',
-                        new \Qwizi\DVZSB\Validators\IsIntegerValidator($validator->getLang())
-                    )
-                    ->add(
-                        'float',
-                        new \Qwizi\DVZSB\Validators\IsFloatValidator($validator->getLang())
-                    )
-                    ->add(
-                        'not_empty_argument',
-                        new \Qwizi\DVZSB\Validators\IsNotEmptyArgumentValidator($validator->getLang())
-                    );
-                    
-                    $plugins->run_hooks('dvz_shoutbox_bot_validator_end', $validator);
-
-                    $commandClass->setBot(\Qwizi\DVZSB\Bot::i())
-                                ->setValidator($validator)
-                                ->setAction($action)
-                                ->handle();
-                }
-            } catch (Exception $e) {
-                echo 'Error message: ' . $e->getMessage();
+            if (!class_exists($commandClassName)) {
+                throw new Exception('Class ' . $commandClassName . ' not exists', 404);
             }
+
+            $command['prefix'] = $mybb->settings['dvz_sb_bot_commands_prefix'];
+            $commandClass = new $commandClassName($data, $command);
+
+            if (!$commandClass instanceof \Qwizi\DVZSB\Commands\AbstractCommand
+                || ($commandClass instanceof \Qwizi\DVZSB\Commands\ModRequiredInterface
+                && !\Qwizi\DVZSB\Bot::i()->accessMod())
+            ) {
+                return;
+            }
+
+            $action = new \Qwizi\DVZSB\CommandAction();
+
+            $actionsList = [
+                [
+                    'name' => 'ban',
+                    'class_name' => '\\Qwizi\\DVZSB\\Actions\\BanAction',
+                    'variables' => [
+                        [
+                            'name' => 'mybb',
+                            'instance' => $mybb
+                        ],
+                        [
+                            'name' => 'db',
+                            'instance' => $db
+                        ]
+                    ]
+                ],
+                [
+                    'name' => 'log',
+                    'class_name' => '\\Qwizi\DVZSB\\Actions\\LogAction',
+                    'variables' => [
+                        [
+                            'name' => 'db',
+                            'instance' => $db
+                        ],
+                        [
+                            'name' => 'tag',
+                            'instance' => $command['tag']
+                        ]
+                    ]
+                ],
+                [
+                    'name' => 'mention',
+                    'class_name' => '\\Qwizi\\DVZSB\\Actions\\MentionUserAction'
+                ],
+                [
+                    'name' => 'paginate',
+                    'class_name' => '\\Qwizi\\DVZSB\\Actions\\PaginateAction'
+                ]
+            ];
+
+            $plugins->run_hooks('dvz_shoutbox_bot_actions_list_end', $actionsList);
+
+            foreach ($actionsList as &$actionName) {
+                if (!class_exists($actionName['class_name'])) {
+                    throw new \Exception('Class '.$actionName['class_name']. ' not exits');
+                }
+
+                $actionClassInstance = new $actionName['class_name']();
+
+                if (key_exists('variables', $actionName)) {
+                    foreach ($actionName['variables'] as $variable) {
+                        $actionClassInstance->add($variable['name'], $variable['instance']);
+                    }
+                }
+                $action->add($actionName['name'], $actionClassInstance);
+            }
+
+            $validator = new \Qwizi\DVZSB\CommandValidator($lang);
+
+            $validatorsList = [
+                [
+                    'name' => 'user',
+                    'class_name' => '\\Qwizi\\DVZSB\\Validators\\IsUserValidator',
+                    'variables' => [
+                        [
+                            'name' => 'lang',
+                            'instance' => $validator->getLang()
+                        ]
+                    ]
+                ],
+                [
+                    'name' => 'super_admin',
+                    'class_name' => '\\Qwizi\\DVZSB\\Validators\\IsSuperAdminValidator',
+                    'variables' => [
+                        [
+                            'name' => 'lang',
+                            'instance' => $validator->getLang()
+                        ]
+                    ]
+                ],
+                [
+                    'name' => 'interger',
+                    'class_name' => '\\Qwizi\\DVZSB\\Validators\\IsIntegerValidator',
+                    'variables' => [
+                        [
+                            'name' => 'lang',
+                            'instance' => $validator->getLang()
+                        ]
+                    ]
+                ],
+                [
+                    'name' => 'float',
+                    'class_name' => '\\Qwizi\\DVZSB\\Validators\\IsFloatValidator',
+                    'variables' => [
+                        [
+                            'name' => 'lang',
+                            'instance' => $validator->getLang()
+                        ]
+                    ]
+                ],
+                [
+                    'name' => 'not_empty_argument',
+                    'class_name' => '\\Qwizi\\DVZSB\\Validators\\IsNotEmptyArgumentValidator',
+                    'variables' => [
+                        [
+                            'name' => 'lang',
+                            'instance' => $validator->getLang()
+                        ]
+                    ]
+                ]
+            ];
+
+            $plugins->run_hooks('dvz_shoutbox_bot_validators_list_end', $validatorsList);
+
+            foreach ($validatorsList as &$validatorName) {
+                if (!class_exists($validatorName['class_name'])) {
+                    throw new \Exception('Class '.$validatorName['class_name']. ' not exits');
+                }
+
+                $validatorClassInstance = new $validatorName['class_name']();
+
+                if (key_exists('variables', $validatorName)) {
+                    foreach ($validatorName['variables'] as &$variable) {
+                        $validatorClassInstance->add($variable['name'], $variable['instance']);
+                    }
+                }
+                $validator->add($validatorName['name'], $validatorClassInstance);
+            }
+
+            $commandClass->setLang($lang)
+                        ->setBot(\Qwizi\DVZSB\Bot::i())
+                        ->setValidator($validator)
+                        ->setAction($action)
+                        ->handle();
+        } catch (Exception $e) {
+            echo 'Error message: ' . $e->getMessage();
         }
     }
 }
@@ -562,39 +626,6 @@ function dvz_shoutbox_bot_create_instances()
 {
     dvz_shoutbox_bot_create_bot_instance();
     dvz_shoutbox_bot_create_command_manager_instance();
-}
-
-$plugins->add_hook('index_end', 'dvz_sb_index');
-
-function dvz_sb_index()
-{
-    dvz_shoutbox_bot_create_instances();
-    $test = 'test';
-    $test2 = '/test';
-
-    $nameSpace = ['core', '\\Qwizi\\DVZSB\\Commands\\'];
-
-    $commandData = [
-        [
-            'tag' => 'ban',
-            'name' => 'Ban',
-            'command' => 'ban',
-            'description' => 'This command allows you to ban users',
-            'activated' => 1
-        ]
-    ];
-
-    $commandDataForCache = [];
-    
-    $commandDataForCache2 = [];
-    foreach($commandData as $command) {
-        if (!key_exists('file', $command)) {
-            $command['file'] = $nameSpace[1].ucfirst($command['tag']). 'Cmd';
-        }
-        $commandDataForCache2[$nameSpace[0]] = $command;
-    }
-
-    var_dump($commandDataForCache2);
 }
 
 function dvz_shoutbox_bot_shout_startsWith($haystack, $needle)

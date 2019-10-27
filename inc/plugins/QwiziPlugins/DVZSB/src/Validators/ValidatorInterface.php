@@ -4,5 +4,5 @@ namespace Qwizi\DVZSB\Validators;
 
 interface ValidatorInterface
 {
-    public function validate($target, $additional);
+    public function validate($target, $additional = null): bool;
 }
