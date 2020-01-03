@@ -1,7 +1,7 @@
 # DVZ-ShoutBox-Bot
 DVZ ShoutBox Bot
 
-Version: 1.5.4
+Version: <img src="https://img.shields.io/github/v/release/Qwizi/DVZ-ShoutBox-Bot"/>
 
 Author: Qwizi
 
