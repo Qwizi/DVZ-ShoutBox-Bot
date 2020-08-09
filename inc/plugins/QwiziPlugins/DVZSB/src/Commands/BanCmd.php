@@ -7,19 +7,33 @@ namespace Qwizi\DVZSB\Commands;
 use \Qwizi\DVZSB\Bot;
 use \Qwizi\DVZSB\Commands\Command;
 use \Qwizi\DVZSB\Actions\BanAction;
+use \Qwizi\DVZSB\Validators\IsUserValidator;
+use \Qwizi\DVZSB\Validators\IsNotBannedValidator;
 
 class BanCmd extends Command
 {
     public function __construct($shoutData, $commandData) {
         parent::__construct($shoutData, $commandData);
-        $this->addArgument('target', 'int');
+        $this->addArgument('target', 'int', [
+            'validators' => [
+                new IsUserValidator, 
+                new IsNotBannedValidator
+            ],
+            'aliases' => ['t', 'user']
+        ]);
     }
+
     public function handle()
     {
         $args = $this->parseArguments($this->shoutData['text']);
         $target = $args[0];
+        if ($target['validated']) {
+            BanAction::ban($target['value']);
+            Bot::shout("Pomyślnie zbanowano użytkownika", $this->shoutData['uid'], $this->shoutData['shout_id']);
+        }
+        
         //BanAction::ban($target['value']);
-        Bot::shout($this->getHint(), 1);
+        //Bot::shout('Zbanowano', $this->shoutData['uid'], $this->shoutData['shout_id']);
         /*
         $argumentValidation = $this->validator->get('not_empty_argument');
 

@@ -221,69 +221,6 @@ function dvz_shoutbox_bot_install()
             ]
         ]
     );
-    
-
-    /*\Qwizi\DVZSB\CommandManager::i()->createCommand(
-        '//Qwizi//DVZSB//Commands//',
-        [
-            [
-                'tag' => 'ban',
-                'name' => 'Ban',
-                'command' => 'ban',
-                'description' => 'This command allows you to ban users',
-                'activated' => 1
-            ],
-            [
-                'tag' => 'unBan',
-                'name' => 'UnBan',
-                'command' => 'unban',
-                'description' => 'This command allows you to remove user ban',
-                'activated' => 1
-            ],
-            [
-                'tag' => 'banList',
-                'name' => 'Ban List',
-                'command' => 'banlist',
-                'description' => 'This command currently shows who is banned',
-                'activated' => 1
-            ],
-            [
-                'tag' => 'prune',
-                'name' => 'Prune',
-                'command' => 'prune',
-                'description' => 'This command allows you to delete entries',
-                'activated' => 1
-            ],
-            [
-                'tag' => 'help',
-                'name' => 'Help',
-                'command' => 'help',
-                'description' => 'Commands List',
-                'activated' => 1
-            ],
-            [
-                'tag' => 'setBot',
-                'name' => 'Set Bot',
-                'command' => 'setbot',
-                'description' => 'This command allows you to set up a bot account',
-                'activated' => 1
-            ],
-            [
-                'tag' => 'myShouts',
-                'name' => 'MyShouts',
-                'command' => 'myshouts',
-                'description' => 'The command displays how many entries you have written on shoutbox',
-                'activated' => 1
-            ],
-            [
-                'tag' => 'topShouters',
-                'name' => 'TopShouters',
-                'command' => 'top10',
-                'description' => 'Top 10',
-                'activated' => 1
-            ]
-        ]
-    );*/
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -452,10 +389,6 @@ class DVZSBBot {
 
             if (!empty($command) && (bool)$command['activated']) {
                 $command['prefix'] = $mybb->settings['dvz_sb_bot_commands_prefix'];
-                if (!class_exists($command['namespace'])) {
-                    throw new Exception('Class ' . $command['namespace'] . ' not exists', 404);
-                }
-                $command['instance'] = new $command['namespace']($data, $command);
             }
         }
     }
@@ -471,6 +404,10 @@ class DVZSBBot {
         */
         if (self::canReactToCommands($data)) {
             if (!empty($command) && (bool)$command['activated']) {
+                if (!class_exists($command['namespace'])) {
+                    throw new Exception('Class ' . $command['namespace'] . ' not exists', 404);
+                }
+                $command['instance'] = new $command['namespace']($data, $command);
                 $command['instance']->handle();
             }
         }
