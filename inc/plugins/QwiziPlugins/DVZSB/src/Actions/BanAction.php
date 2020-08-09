@@ -6,21 +6,20 @@ namespace Qwizi\DVZSB\Actions;
 
 use Qwizi\DVZSB\Actions\AbstractAction;
 
-class BanAction extends AbstractAction
+class BanAction
 {
-    public function execute($target, $additonal = null)
-    {
-        $explodeBannedUsers = \explode(",", $this->get('mybb')->settings['dvz_sb_blocked_users']);
+    public static function ban(int $target) {
+        global $mybb, $db;
+        $explodeBannedUsers = \explode(",", $mybb->settings['dvz_sb_blocked_users']);
 
         if (in_array('', $explodeBannedUsers)) {
-            $this->get('db')->update_query('settings', ['value' => $this->get('db')->escape_string((int) $target['uid'])], "name='dvz_sb_blocked_users'");
+            $db->update_query('settings', ['value' => $db->escape_string($target)], "name='dvz_sb_blocked_users'");
         } else {
-            \array_push($explodeBannedUsers, $target['uid']);
+            \array_push($explodeBannedUsers, $target);
             $implodeBannedUsers = \implode(",", $explodeBannedUsers);
 
-            $this->get('db')->update_query('settings', ['value' => $this->get('db')->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
+            $db->update_query('settings', ['value' => $db->escape_string($implodeBannedUsers)], "name='dvz_sb_blocked_users'");
         }
-
         \rebuild_settings();
     }
 }

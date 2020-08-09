@@ -13,12 +13,18 @@ define('DVZSB_PLUGIN_PATH', __DIR__ . '/QwiziPlugins/DVZSB');
 require_once QWIZI_PLUGINS_CORE_PATH . '/src/ClassLoader.php';
 
 $classLoader = \Qwizi\Core\ClassLoader::getInstance();
-$classLoader->registerNamespace(
-    'Qwizi\\DVZSB\\',
-    DVZSB_PLUGIN_PATH . '/src/'
-)->register();
+$classLoader
+    ->registerNamespace(
+        'Qwizi\\Core\\',
+        QWIZI_PLUGINS_CORE_PATH .'/src/'
+    )
+    ->registerNamespace(
+        'Qwizi\\DVZSB\\',
+        DVZSB_PLUGIN_PATH . '/src/'
+    )
+    ->register();
 
-$plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
+/*$plugins->add_hook('member_do_register_end', 'dvz_shoutbox_bot_register');
 $plugins->add_hook('datahandler_post_insert_thread_end', 'dvz_shoutbox_bot_thread');
 $plugins->add_hook('datahandler_post_insert_post_end', 'dvz_shoutbox_bot_post');
 $plugins->add_hook('dvz_shoutbox_shout_commit', 'dvz_shoutbox_bot_shout_commit');
@@ -27,6 +33,13 @@ $plugins->add_hook('admin_user_menu', 'dvz_shoutbox_bot_admin_user_menu');
 $plugins->add_hook('admin_user_action_handler', 'dvz_shoutbox_bot_user_action_handler');
 $plugins->add_hook('admin_dvz_shoutbox_bot_reload', 'dvz_shoutbox_bot_reload_commands');
 $plugins->add_hook('admin_user_permissions', 'dvz_shoutbox_bot_admin_user_permissions');
+*/
+$plugins->add_hook('admin_dvzsbbot_commands_start', ['DVZSBBot', 'commands_start_admin_hook']);
+$plugins->add_hook('member_do_register_end', ['DVZSBBot', 'register_hook']);
+$plugins->add_hook('datahandler_post_insert_thread_end', ['DVZSBBot', 'thread_hook']);
+$plugins->add_hook('datahandler_post_insert_post_end', ['DVZSBBot', 'post_hook']);
+$plugins->add_hook('dvz_shoutbox_shout', ['DVZSBBot', 'shout_hook']);
+$plugins->add_hook('dvz_shoutbox_shout_commit', ['DVZSBBot', 'shout_commit_hook']);
 
 function dvz_shoutbox_bot_info()
 {
@@ -132,7 +145,7 @@ function dvz_shoutbox_bot_install()
             `name` varchar(64) not null,
             `command` varchar(32) not null,
             `description` text not null,
-            `file` varchar(255) not null,
+            `namespace` varchar(255) not null,
             `activated` tinyint(1) not null default 1,
             PRIMARY KEY (`cid`)
         ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
@@ -148,9 +161,69 @@ function dvz_shoutbox_bot_install()
         ) " . ($innodbSupport ? "ENGINE=InnoDB" : null) . " " . $db->build_create_table_collation() . "
     ");
 
-    dvz_shoutbox_bot_create_command_manager_instance();
+    \Qwizi\DVZSB\CommandManager::addCommands('//Qwizi//DVZSB//Commands//', 
+        [
+            [
+                'tag' => 'ban',
+                'name' => 'Ban',
+                'command' => 'ban',
+                'description' => 'This command allows you to ban users',
+                'activated' => true
+            ],
+            [
+                'tag' => 'unBan',
+                'name' => 'UnBan',
+                'command' => 'unban',
+                'description' => 'This command allows you to remove user ban',
+                'activated' => true
+            ],
+            [
+                'tag' => 'banList',
+                'name' => 'Ban List',
+                'command' => 'banlist',
+                'description' => 'This command currently shows who is banned',
+                'activated' => true
+            ],
+            [
+                'tag' => 'prune',
+                'name' => 'Prune',
+                'command' => 'prune',
+                'description' => 'This command allows you to delete entries',
+                'activated' => true
+            ],
+            [
+                'tag' => 'help',
+                'name' => 'Help',
+                'command' => 'help',
+                'description' => 'Commands List',
+                'activated' => true
+            ],
+            [
+                'tag' => 'setBot',
+                'name' => 'Set Bot',
+                'command' => 'setbot',
+                'description' => 'This command allows you to set up a bot account',
+                'activated' => true
+            ],
+            [
+                'tag' => 'myShouts',
+                'name' => 'MyShouts',
+                'command' => 'myshouts',
+                'description' => 'The command displays how many entries you have written on shoutbox',
+                'activated' => true
+            ],
+            [
+                'tag' => 'topShouters',
+                'name' => 'TopShouters',
+                'command' => 'top10',
+                'description' => 'Top 10',
+                'activated' => true
+            ]
+        ]
+    );
+    
 
-    \Qwizi\DVZSB\CommandManager::i()->createCommand(
+    /*\Qwizi\DVZSB\CommandManager::i()->createCommand(
         '//Qwizi//DVZSB//Commands//',
         [
             [
@@ -210,7 +283,7 @@ function dvz_shoutbox_bot_install()
                 'activated' => 1
             ]
         ]
-    );
+    );*/
 }
 
 function dvz_shoutbox_bot_uninstall()
@@ -258,8 +331,179 @@ function dvz_shoutbox_bot_is_installed()
     return (bool) $db->num_rows($query);
 }
 
+class DVZSBBot {
 
-function dvz_shoutbox_bot_admin_user_menu(&$sub_menu)
+    static function commands_start_admin_hook() {
+        global $mybb, $db, $page, $lang;
+
+        $module = new \Qwizi\Core\Admin\Module('dvzsbbot');
+        
+        $viewAction = new \Qwizi\DVZSB\Admin\Commands\ViewAction($module->getLink());
+        $viewAction->setTab('view_commands', 'View Commands', 'View Commands', '');
+        $module->addAction($viewAction);
+
+        $editAction = new \Qwizi\DVZSB\Admin\Commands\EditAction($module->getLink());
+        $editAction->setTab('edit_commands', 'Edit commands', 'Edit commands', "edit", ['cid' => $mybb->get_input('cid', MyBB::INPUT_INT)], 
+        true);
+        $module->addAction($editAction);
+
+        $module->handleActions();
+    }
+
+    static function register_hook() {
+        global $mybb, $user_info;
+
+        if ($mybb->settings['dvz_sb_bot_register_onoff']) {
+            $messageFromSettings = $mybb->settings['dvz_sb_bot_register_message'];
+            $username = \Qwizi\DVZSB\Message::mentionUser($user['username'], (int)$user_info['uid']);
+            $message = \Qwizi\DVZSB\Message::convert($messageFromSettings, [
+                'username' => $username
+            ]);
+            \Qwizi\DVZSB\Bot::shout($message);
+        }
+    }
+
+    static function thread_hook($data) {
+        global $mybb;
+
+        if ($mybb->settings['dvz_sb_bot_thread_onoff']) {
+            $threadData = $data->thread_insert_data;
+            if ($threadData['visible'] == 1) {
+                $forumData = get_forum($threadData['fid']);
+
+                if (self::checkThreadIsNotInIgnoreForums($forumData['fid'])) {
+                    $threadMessageFromSettings = $mybb->settings['dvz_sb_bot_thread_message'];
+
+                    $threadLink = get_thread_link($data->tid);
+                    $threadTitle = \Qwizi\DVZSB\Message::clearHTML($threadData['subject']);
+                    $threadLinkBBcode = \Qwizi\DVZSB\Message::createLink($threadLink, $threadTitle, true);
+                    $threadDateline = $threadData['dateline'];
+
+                    $forumLink = get_forum_link($forumData['fid']);
+                    $forumTitle = \Qwizi\DVZSB\Message::clearHTML($forumData['name']);
+                    $forumLInkBBcode = \Qwizi\DVZSB\Message::createLink($forumLink, $forumTitle, true);
+                    
+                    $postData = $data->post_insert_data;
+                    $postMessage = \Qwizi\DVZSB\Message::addDotsToMessage($postData['message'], 800);
+                    $postId = $data->pid;
+
+                    $username = \Qwizi\DVZSB\Message::mentionUser($threadData['username'], (int)$threadData['uid']);
+
+                    $message = \Qwizi\DVZSB\Message::convert($threadMessageFromSettings, [
+                        'username' => $username,
+                        'threadLink' => $threadLinkBBcode,
+                        'threadDateline' => $threadDateline,
+                        'forumLink' => $forumLInkBBcode,
+                        'postMessage' => $postMessage,
+                        'postId' => $postId,
+                    ]);
+
+                    \Qwizi\DVZSB\Bot::shout($message);
+                }
+            }
+        }
+    }
+
+    static function post_hook($data) {
+        global $mybb;
+
+        if ($mybb->settings['dvz_sb_bot_post_onoff']) {
+            $postData = $data->post_insert_data;
+            if (self::checkThreadIsNotInIgnoreForums($postData['fid'])) {
+                $postMessageFromSettings = $mybb->settings['dvz_sb_bot_post_message'];
+                
+                $postLink = sprintf("%s#pid%d", get_post_link($data->pid, $postData['tid']), $data->pid);
+                $postSubject = \Qwizi\DVZSB\Message::clearHTML($postData['subject']);
+                $postLinkBBcode = \Qwizi\DVZSB\Message::createLink($postLink, $postSubject, true);
+                $postMessage = \Qwizi\DVZSB\Message::addDotsToMessage($postData['message'], 800);
+                $postDateline = $post['dateline'];
+                $postId = $data->pid;
+
+                $username = \Qwizi\DVZSB\Message::mentionUser($postData['username'], (int)$postData['uid']);
+
+                $message = \Qwizi\DVZSB\Message::convert($postMessageFromSettings, [
+                    'username' => $username,
+                    'postLink' => $postLinkBBcode,
+                    'postMessage' => $postMessage,
+                    'postDateline' => $postDateline,
+                    'postId' => $postId
+                ]);
+                \Qwizi\DVZSB\Bot::shout($message);
+            }
+        }
+    }
+
+    static function shout_hook(&$data) {
+        global $mybb, $command;
+        /*
+        Sprawdzamy komendy tylko wtedy jeżeli
+        - Jest wlaczony plugin
+        - Wpisany tekst zaczyna sie na ustawiony prefix
+        - Zostala wpisana komenda a nie sam prefix
+        - Czy osoba, która wyslala wiadomość nie jest ustawionym botem
+        */
+        if (self::canReactToCommands($data)) {
+            // Rozdzielamy stringa za pomoca spacji, by znalezc jaka komende wpisal uzytkownik
+            $explodeData = explode(" ", $data['text']);
+            // Szukamy komendy oraz usuwamy prefix
+            $searchedCommandByFirstSpace = substr($explodeData[0], 1);
+
+            $command = \Qwizi\DVZSB\CommandManager::getCommand($searchedCommandByFirstSpace);
+
+            if (!empty($command) && (bool)$command['activated']) {
+                $command['prefix'] = $mybb->settings['dvz_sb_bot_commands_prefix'];
+                if (!class_exists($command['namespace'])) {
+                    throw new Exception('Class ' . $command['namespace'] . ' not exists', 404);
+                }
+                $command['instance'] = new $command['namespace']($data, $command);
+            }
+        }
+    }
+
+    static function shout_commit_hook($data) {
+        global $mybb, $command;
+        /*
+        Sprawdzamy komendy tylko wtedy jeżeli
+        - Jest wlaczony plugin
+        - Wpisany tekst zaczyna sie na ustawiony prefix
+        - Zostala wpisana komenda a nie sam prefix
+        - Czy osoba, która wyslala wiadomość nie jest ustawionym botem
+        */
+        if (self::canReactToCommands($data)) {
+            if (!empty($command) && (bool)$command['activated']) {
+                $command['instance']->handle();
+            }
+        }
+    }
+
+    static function getIgnoreForums() {
+        global $mybb;
+        return explode(",", $mybb->settings['dvz_sb_bot_forum_ignore']);
+    }
+
+    static function checkThreadIsNotInIgnoreForums($fid) {
+        $ignoreForums = self::getIgnoreForums();
+        return (!in_array($fid, $ignoreForums) && !in_array("-1", $ignoreForums));
+    }
+
+    static function messageStartWith($text, $prefix) {
+        $length = strlen($prefix);
+        return (substr($text, 0, $length) === $prefix);
+    }
+
+    static function canReactToCommands($data) {
+        global $mybb;
+        return (
+            $mybb->settings['dvz_sb_bot_commands_onoff'] &&
+            self::messageStartWith($data['text'], $mybb->settings['dvz_sb_bot_commands_prefix']) &&
+            strlen($data['text']) > 1 &&
+            $data['uid'] !== $mybb->settings['dvz_sb_bot_id']
+        );
+    }
+}
+
+
+/*function dvz_shoutbox_bot_admin_user_menu(&$sub_menu)
 {
     $sub_menu[count($sub_menu) - 1] = [
         'id' => 'dvz-shoutbox-bot',
@@ -633,3 +877,4 @@ function dvz_shoutbox_bot_shout_startsWith($haystack, $needle)
     $length = strlen($needle);
     return (substr($haystack, 0, $length) === $needle);
 }
+*/

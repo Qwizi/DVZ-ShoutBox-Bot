@@ -7,95 +7,52 @@ namespace Qwizi\DVZSB;
 use DB_Base;
 use datacache;
 use Qwizi\DVZSB\Exceptions\CommandNotFoundException;
+use Exception;
 
 class CommandManager
 {
     const TABLE_NAME = 'dvz_shoutbox_bot_commands';
-    const CACHE_NAME = 'dvz_shoutbox_bot';
-
-    /**
-     * @var CommandManager
-     */
-    private static $instance = null;
-
-    /**
-     * @var DB_Base
-     */
-    private $db;
-
-    /**
-     * @var datacache
-     */
-    private $cache;
-
-    private function __construct(DB_Base $db, datacache $cache)
-    {
-        $this->db = $db;
-        $this->cache = $cache;
-    }
-
-    /**
-     * Create instance of the command manager
-     *
-     * @param DB_Base $db MyBB database object
-     * @param datacache $cache MyBB cache object
-     *
-     * @return CommandManager The created instance
-     */
-    public static function createInstance(DB_Base $db, datacache $cache)
-    {
-        if (static::$instance === null) {
-            static::$instance = new self($db, $cache);
-        }
-        return static::$instance;
-    }
-
-    /**
-     * Get a prior created command manager instance
-     *
-     * @return bool|CommandManager The prior created
-     *                              instance, or false if
-     *                              not created
-     */
-    public static function getInstance()
-    {
-        if (static::$instance === null) {
-            return false;
-        }
-        return static::$instance;
-    }
-
-    /**
-     * Short method getInstance
-     *
-     * @return bool|CommandManager The prior created
-     *                              instance, or false if
-     *                              not created
-     */
-    public static function i()
-    {
-        return static::getInstance();
-    }
-
-    public function getCommands()
-    {
-        return $this->getCommandsFromCache();
-    }
-
 
     /**
      * Get commands from the cache
      *
      * @return array Get commands from the cache
      */
-    private function getCommandsFromCache(): ?array
+    private static function getCommandsFromCache(): array
     {
-        $pluginCache = $this->cache->read(self::CACHE_NAME);
-        $commands = $pluginCache['commands'];
-        foreach ($commands as &$command) {
-            $command['file'] = str_replace('//', '\\', $command['file']);
+        global $cache;
+        $commandsCache = $cache->read(self::TABLE_NAME);
+        foreach ($commandsCache as &$command) {
+            $command['namespace'] = str_replace('//', '\\', $command['namespace']);
         }
         return $commands;
+    }
+
+    public static function getCommands()
+    {
+        global $db;
+        $query = $db->simple_select(self::TABLE_NAME, '*');
+        $commands = [];
+        while($row = $db->fetch_array($query)) $commands[] = $row;
+        return $commands;
+    }
+
+    public static function getCommand(string $tag) {
+        global $db;
+        $tag = $db->escape_string($tag);
+        $query = $db->simple_select(self::TABLE_NAME, '*', 'tag="'.$tag.'"', ['limit' => 1]);
+        $command = [];
+        $command = $db->fetch_array($query);
+
+        if (!empty($command)) {
+            $comamnd['tag'] = \htmlspecialchars_uni($command['tag']);
+            $comamnd['name'] = \htmlspecialchars_uni($comamnd['name']);
+            $command['description'] = \htmlspecialchars_uni($command['description']);
+            $command['namespace'] = \htmlspecialchars_uni($command['namespace']);
+            $command['namespace'] = str_replace('//', '\\', $command['namespace']);
+            $command['activated'] = boolval($command['activated']);
+        }
+        return $command;
     }
 
     /**
@@ -103,14 +60,34 @@ class CommandManager
      *
      * @return array
      */
-    public function updateCache(): array
+    public static function updateCache(): array
     {
-        $query = $this->db->simple_select(self::TABLE_NAME);
-        while ($c = $this->db->fetch_array($query)) {
-            $cmds[$c['tag']] = $c;
+        global $db, $cache;
+        $query = $db->simple_select(self::TABLE_NAME, '*');
+        $commands = [];
+        while ($row =$db->fetch_array($query)) {
+            $commands[$row['tag']] = $row;
         }
-        $this->cache->update(self::CACHE_NAME, ['commands' => $cmds]);
-        return $cmds;
+        $cache->update(self::TABLE_NAME, ['commands' => $commands]);
+        return $commands;
+    }
+
+    public static function addCommands(string $nameSpace, array $commandsData) {
+        global $db;
+        foreach ($commandsData as &$command) {
+            if (!key_exists('namespace', $command)) {
+                $command['namespace'] = $nameSpace.ucfirst($command['tag']). 'Cmd';
+            }
+            foreach ($command as $key => $value) {
+                if ($key !== 'namespace') {
+                    $db->escape_string($value);
+                }
+            }
+        }
+
+        $db->insert_query_multiple(self::TABLE_NAME, $commandsData);
+
+        static::updateCache();
     }
 
     /**
@@ -126,11 +103,12 @@ class CommandManager
         }
 
         foreach ($commandData as &$command) {
-            if (!key_exists('file', $command)) {
-                $command['file'] = $nameSpace.ucfirst($command['tag']). 'Cmd';
+            if (!key_exists('namespace', $command)) {
+                $command['namespace'] = $nameSpace.ucfirst($command['tag']). 'Cmd';
+                $command['namespace'] = \str_replace('//', '\\', $command['namespace']);
             }
             foreach ($command as $key => $value) {
-                if ($key !== 'file') {
+                if ($key !== 'namespace') {
                     $this->db->escape_string($value);
                 }
             }
@@ -166,7 +144,7 @@ class CommandManager
         }
 
         $command = $this->db->fetch_array($query);
-        $command['file'] = \str_replace('//', '\\', $command['file']);
+        $command['namespace'] = \str_replace('//', '\\', $command['namespace']);
         return $command;
     }
 }

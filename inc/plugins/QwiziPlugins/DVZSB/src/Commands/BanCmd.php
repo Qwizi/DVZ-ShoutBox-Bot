@@ -4,14 +4,23 @@ declare(strict_types=1);
 
 namespace Qwizi\DVZSB\Commands;
 
-use Qwizi\DVZSB\Commands\AbstractCommand;
-use Qwizi\DVZSB\Interfaces\ModRequiredInterface;
+use \Qwizi\DVZSB\Bot;
+use \Qwizi\DVZSB\Commands\Command;
+use \Qwizi\DVZSB\Actions\BanAction;
 
-class BanCmd extends AbstractCommand implements ModRequiredInterface
+class BanCmd extends Command
 {
+    public function __construct($shoutData, $commandData) {
+        parent::__construct($shoutData, $commandData);
+        $this->addArgument('target', 'int');
+    }
     public function handle()
     {
-        $args = $this->getArgs();
+        $args = $this->parseArguments($this->shoutData['text']);
+        $target = $args[0];
+        //BanAction::ban($target['value']);
+        Bot::shout($this->getHint(), 1);
+        /*
         $argumentValidation = $this->validator->get('not_empty_argument');
 
         $additional = [
@@ -55,5 +64,6 @@ class BanCmd extends AbstractCommand implements ModRequiredInterface
 
         // Send message
         $this->bot->shout($message);
+        */
     }
 }
