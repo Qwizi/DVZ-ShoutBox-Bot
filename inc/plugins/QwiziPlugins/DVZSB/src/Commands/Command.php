@@ -121,6 +121,8 @@ abstract class Command
                     // Jezeli nie znaleziono argumentow ALE zostala ustawiona opcja required przy dodawaniu argumentow trzeba ustawic stan argumentow na false
                     if ($this->args[$i]['is_required']) {
                         $argumentValidate = false;
+                    } else {
+                        $argumentValidate = true;
                     }
                 }
 
@@ -170,7 +172,7 @@ abstract class Command
         ];
     }
 
-    protected function getHint()
+    public function getHint()
     {
         $message = \sprintf(
             "Usage %s%s ",

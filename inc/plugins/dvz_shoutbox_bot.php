@@ -408,7 +408,10 @@ class DVZSBBot {
                     throw new Exception('Class ' . $command['namespace'] . ' not exists', 404);
                 }
                 $command['instance'] = new $command['namespace']($data, $command);
-                $command['instance']->handle();
+
+                if ($command['instance'] instanceof \Qwizi\DVZSB\Commands\Command) {
+                    $command['instance']->handle();
+                }
             }
         }
     }

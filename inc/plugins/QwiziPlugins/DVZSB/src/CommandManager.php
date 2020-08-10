@@ -1,13 +1,8 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace Qwizi\DVZSB;
-
-use DB_Base;
-use datacache;
-use Qwizi\DVZSB\Exceptions\CommandNotFoundException;
-use Exception;
 
 class CommandManager
 {
@@ -18,14 +13,23 @@ class CommandManager
         global $db;
         $query = $db->simple_select(self::TABLE_NAME, '*');
         $commands = [];
-        while($row = $db->fetch_array($query)) $commands[] = $row;
+        while ($row = $db->fetch_array($query)) {
+            $row['tag'] = \htmlspecialchars_uni($row['tag']);
+            $row['name'] = \htmlspecialchars_uni($row['name']);
+            $row['description'] = \htmlspecialchars_uni($row['description']);
+            $row['namespace'] = \htmlspecialchars_uni($row['namespace']);
+            $row['namespace'] = str_replace('//', '\\', $row['namespace']);
+            $row['activated'] = boolval($command['activated']);
+            $commands[] = $row;
+        };
         return $commands;
     }
 
-    public static function getCommand(string $tag) {
+    public static function getCommand(string $tag)
+    {
         global $db;
         $tag = $db->escape_string($tag);
-        $query = $db->simple_select(self::TABLE_NAME, '*', 'tag="'.$tag.'"', ['limit' => 1]);
+        $query = $db->simple_select(self::TABLE_NAME, '*', 'tag="' . $tag . '"', ['limit' => 1]);
         $command = [];
         $command = $db->fetch_array($query);
 
@@ -40,11 +44,12 @@ class CommandManager
         return $command;
     }
 
-    public static function addCommands(string $nameSpace, array $commandsData) {
+    public static function addCommands(string $nameSpace, array $commandsData)
+    {
         global $db;
         foreach ($commandsData as &$command) {
             if (!key_exists('namespace', $command)) {
-                $command['namespace'] = $nameSpace.ucfirst($command['tag']). 'Cmd';
+                $command['namespace'] = $nameSpace . ucfirst($command['tag']) . 'Cmd';
             }
             foreach ($command as $key => $value) {
                 if ($key !== 'namespace') {

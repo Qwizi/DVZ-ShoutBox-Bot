@@ -10,7 +10,7 @@ class Bot
     /*
     Delete shout
     */
-    private static function deleteShout($id)
+    public static function deleteShout($id)
     {
         global $mybb, $db;
 
