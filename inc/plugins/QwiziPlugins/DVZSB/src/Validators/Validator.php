@@ -9,14 +9,27 @@ use \Qwizi\DVZSB\Bot;
 abstract class Validator
 {
     protected $error_messages = [];
-    protected $shoutData = [];
+    private $shoutData = [];
+    private $validated = false;
+    private $tag;
+
     public function setShoutData($shoutData) {
         $this->shoutData = $shoutData;
     }
 
-    protected function shoutErrorMsg($tag) {
-        $message = $this->error_messages[$tag];
+    public function shoutErrorMsg() {
+        $message = $this->error_messages[$this->tag];
         Bot::shout($message, $this->shoutData['uid'], $this->shoutData['shout_id']);
     }
-    abstract public function validate($argumentValue): bool;
+
+    public function getValidateState(): bool {
+        return $this->validated;
+    }
+
+    public function setValidateState(bool $state, string $tag=null) {
+        $this->validated = $state;
+        if (!$state) $this->tag = $tag;
+    }
+
+    abstract public function validate($argumentValue);
 }

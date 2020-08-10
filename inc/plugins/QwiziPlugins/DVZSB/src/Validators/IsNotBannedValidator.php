@@ -14,14 +14,14 @@ class IsNotBannedValidator extends Validator
         ];
     }
 
-    public function validate($argumentValue): bool {
+    public function validate($argumentValue) {
         global $mybb, $db;
         $explodeBannedUsers = \explode(",", $mybb->settings['dvz_sb_blocked_users']);
         $argumentValue = (int) $argumentValue;
         if (in_array($argumentValue, $explodeBannedUsers)) {
-            $this->shoutErrorMsg('user_banned');
-            return false;
+            $this->setValidateState(false, 'user_banned');
+        } else {
+            $this->setValidateState(true);
         }
-        return true;
     }
 }

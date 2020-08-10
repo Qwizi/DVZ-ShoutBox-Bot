@@ -14,12 +14,12 @@ class IsUserValidator extends Validator
         ];
     }
 
-    public function validate($argumentValue): bool {
+    public function validate($argumentValue) {
         $argumentValue = (int)$argumentValue;
         if (empty(\get_user($argumentValue))) {
-            $this->shoutErrorMsg('invalid_user');
-            return false;
+            $this->setValidateState(false, 'invalid_user');
+        } else {
+            $this->setValidateState(true);
         }
-        return true;
     }
 }
